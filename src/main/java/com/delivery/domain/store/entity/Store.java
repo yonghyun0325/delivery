@@ -46,9 +46,11 @@ public class Store extends BaseEntity {
     @Column(name = "min_order_amount", nullable = false)
     private Integer minOrderAmount;
 
+    @Builder.Default
     @Column(name = "is_open", nullable = false)
     private Boolean isOpen = false;
 
+    @Builder.Default
     @Column(name = "average_rating", nullable = false)
     private Double averageRating = 0.0;
 
@@ -67,6 +69,6 @@ public class Store extends BaseEntity {
     }
 
     public void delete(String deletedBy) {
-        super.softDelete(deletedBy);
+        super.delete(deletedBy);
     }
 }
