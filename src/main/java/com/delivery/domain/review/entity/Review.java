@@ -1,0 +1,58 @@
+package com.delivery.domain.review.entity;
+
+import com.delivery.common.base.BaseEntity;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "p_review")
+public class Review extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "review_id")
+    private UUID id;
+
+    @Column(name = "order_id", nullable = false)
+    private UUID orderId;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
+    @Column(name = "store_id", nullable = false)
+    private UUID storeId;
+
+    @Column(name = "rating", nullable = false)
+    private Integer rating;
+
+    @Column(name = "content", nullable = false, length = 1000)
+    private String content;
+
+    protected Review(
+            UUID orderId,
+            UUID userId,
+            UUID storeId,
+            Integer rating,
+            String content) {
+        this.orderId = orderId;
+        this.userId = userId;
+        this.storeId = storeId;
+        this.rating = rating;
+        this.content = content;
+    }
+
+    public static Review create(
+            UUID orderId,
+            UUID userId,
+            UUID storeId,
+            Integer rating,
+            String content) {
+        return new Review(orderId, userId, storeId, rating, content);
+    }
+}
