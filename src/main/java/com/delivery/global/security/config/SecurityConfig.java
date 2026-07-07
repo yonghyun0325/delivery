@@ -47,7 +47,10 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout")
                                 .permitAll()
                                 .anyRequest()
-                                .authenticated());
+                                // TODO: CustomUserDetail(s)Service/JWT 필터 완성 후 authenticated()로 복구
+                                // (담당: Auth). 그 전까지는 로컬 개발/테스트가 막히지 않도록 permitAll 유지.
+                                // .authenticated());
+                                .permitAll());
         //        httpSecurity
         //                .exceptionHandling(config -> config
         //                        .authenticationEntryPoint(
