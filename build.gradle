@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.16'
     id 'io.spring.dependency-management' version '1.1.7'
+    // Google Java Style(AOSP) 기반으로 코드 자동 정렬
     id 'com.diffplug.spotless' version '6.25.0'
 }
 
@@ -20,27 +21,62 @@ repositories {
 }
 
 dependencies {
+    // ==========================
+    // Spring
+    // ==========================
+    // Spring Data JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Spring Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Spring Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // ==========================
+    // Database
+    // ==========================
+    // PostgreSQL Driver
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // ==========================
+    // JWT (JSON Web Token)
+    // ==========================
+    // JWT API
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+
+    // JWT 구현체
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+
+    // JWT JSON 직렬화/역직렬화(Jackson)
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // ==========================
+    // Lombok
+    // ==========================
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    runtimeOnly 'org.postgresql:postgresql'
-
+    // ==========================
+    // Test
+    // ==========================
+    // Spring Boot Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // Spring Security Test
     testImplementation 'org.springframework.security:spring-security-test'
 
+    // TestContainers
     testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
     testImplementation 'org.testcontainers:testcontainers:1.20.1'
     testImplementation 'org.testcontainers:postgresql:1.20.1'
 
     testCompileOnly 'org.projectlombok:lombok'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
     testAnnotationProcessor 'org.projectlombok:lombok'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
@@ -54,5 +90,6 @@ spotless {
 }
 
 tasks.named('build') {
+    // build 실행 전 코드 포맷 자동 적용
     dependsOn 'spotlessApply'
 }

@@ -1,5 +1,6 @@
 package com.delivery.domain.review.entity;
 
+import com.delivery.common.base.BaseEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "p_review")
-public class Review {
+public class Review extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,26 +34,17 @@ public class Review {
     @Column(name = "content", nullable = false, length = 1000)
     private String content;
 
-    @Column(name = "created_by", nullable = false, length = 100)
-    private String createdBy;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
     protected Review(
             UUID orderId,
             UUID userId,
             UUID storeId,
             Integer rating,
-            String content,
-            String createdBy) {
+            String content) {
         this.orderId = orderId;
         this.userId = userId;
         this.storeId = storeId;
         this.rating = rating;
         this.content = content;
-        this.createdBy = createdBy;
-        this.createdAt = LocalDateTime.now();
     }
 
     public static Review create(
@@ -60,8 +52,7 @@ public class Review {
             UUID userId,
             UUID storeId,
             Integer rating,
-            String content,
-            String createdBy) {
-        return new Review(orderId, userId, storeId, rating, content, createdBy);
+            String content) {
+        return new Review(orderId, userId, storeId, rating, content);
     }
 }

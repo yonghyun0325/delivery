@@ -25,8 +25,7 @@ public class ReviewService {
                         request.getUserId(),
                         request.getStoreId(),
                         request.getRating(),
-                        request.getContent(),
-                        request.getUserId().toString());
+                        request.getContent().toString());
 
         // 리뷰 저장
         Review savedReview = reviewRepository.save(review);
