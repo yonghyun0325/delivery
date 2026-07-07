@@ -15,8 +15,7 @@ public abstract class AbstractIntegrationTest {
             new PostgreSQLContainer<>("postgres:17")
                     .withDatabaseName("testdb")
                     .withUsername("test")
-                    .withPassword("test")
-                    .withReuse(true);
+                    .withPassword("test");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

@@ -1,12 +1,12 @@
 package com.delivery.domain.auth.service;
 
-import static com.delivery.domain.user.entity.Role.ROLE_CUSTOMER;
+import static com.delivery.domain.user.entity.Role.CUSTOMER;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.delivery.domain.auth.dto.LoginRequestDto;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
-import com.delivery.domain.auth.service.AuthService;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
@@ -16,26 +16,29 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceUnitTest {
     @Mock private UserRepository userRepository;
-
     @Mock private PasswordEncoder passwordEncoder;
-
+    @Mock private AuthenticationManager authenticationManager;
     @InjectMocks private AuthService authService;
 
     @Nested
     @DisplayName("회원가입 실패 테스트")
     class SignUp {
         @Test
-        @DisplayName("회원가입 실패 - 이미 존재하는 username")
-        void signUp_fail_when_username_is_invalid() {
+        @DisplayName("이미 존재하는 사용자일 시 예외가 발생해야한다.")
+        void signUp_fail_when_username_is_duplicate() {
             // given
             SignUpRequestDto request =
                     new SignUpRequestDto(
-                            "test1234", "testtest1234!", "test", "01012345678", ROLE_CUSTOMER);
+                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER);
 
             when(userRepository.existsByUsername(request.getUsername())).thenReturn(true);
 
@@ -49,12 +52,12 @@ class AuthServiceUnitTest {
         }
 
         @Test
-        @DisplayName("회원가입 실패 - 이미 존재하는 nickname")
-        void signUp_fail_when_nickname_is_invalid() {
+        @DisplayName("이미 존재하는 닉네임일 시 예외가 발생해야한다.")
+        void signUp_fail_when_nickname_is_duplicate() {
             // given
             SignUpRequestDto request =
                     new SignUpRequestDto(
-                            "test1234", "testtest1234!", "test", "01012345678", ROLE_CUSTOMER);
+                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER);
 
             when(userRepository.existsByNickName(request.getNickName())).thenReturn(true);
 
@@ -65,6 +68,44 @@ class AuthServiceUnitTest {
 
             verify(userRepository).existsByNickName(request.getNickName());
             verify(userRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("로그인 실패 테스트")
+    class Login {
+        @Test
+        @DisplayName("로그인 시 존재하지 않는 아이디를 입력하면 예외가 발생해야한다.")
+        void login_fail_when_invalid_login() {
+            // given
+            LoginRequestDto request = new LoginRequestDto("test1234", "Testtest1234!");
+            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                    .thenThrow(new InternalAuthenticationServiceException("아이디"));
+
+            // when & then
+            assertThatThrownBy(() -> authService.login(request))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessage("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다.");
+
+            verify(authenticationManager)
+                    .authenticate(any(UsernamePasswordAuthenticationToken.class));
+        }
+
+        @Test
+        @DisplayName("로그인 시 틀린 비밀번호를 입력하면 예외가 발생해야한다.")
+        void login_fail_when_invalid_password() {
+            // given
+            LoginRequestDto request = new LoginRequestDto("test1234", "Testtest1234!");
+            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                    .thenThrow(new BadCredentialsException("비밀번호"));
+
+            // when & then
+            assertThatThrownBy(() -> authService.login(request))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessage("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다.");
+
+            verify(authenticationManager)
+                    .authenticate(any(UsernamePasswordAuthenticationToken.class));
         }
     }
 }

@@ -1,19 +1,25 @@
 package com.delivery.domain.auth.service;
 
+import static com.delivery.domain.user.entity.Role.CUSTOMER;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.delivery.domain.auth.dto.AuthResponseDto;
+import com.delivery.domain.auth.dto.LoginRequestDto;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
+import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
+import com.delivery.domain.user.entity.UserStatus;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.testconfig.AbstractIntegrationTest;
+import com.delivery.testutil.ConcurrencyTestingUtil;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.delivery.domain.user.entity.Role.CUSTOMER;
-import static com.delivery.domain.user.entity.Role.ROLE_CUSTOMER;
-import static org.assertj.core.api.Assertions.assertThat;
 
 // TODO : 동시성 문제 확인 후 예외 처리 확인해봐야함
 class AuthServiceIntegrationTest extends AbstractIntegrationTest {
@@ -21,41 +27,85 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
-    // TODO : JWT 구현 완료 후 테스트 코드 수정
-    @Nested
-    @DisplayName("회원가입 테스트")
-    class SignUp {
-        @Test
-        @Transactional
-        @DisplayName("회원가입 성공")
-        void signUp_success() {
-            // given
-            SignUpRequestDto request =
-                    new SignUpRequestDto(
-                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER);
+    @Test
+    @Transactional
+    @DisplayName("회원가입 성공")
+    void signUp_success() {
+        // given
+        SignUpRequestDto request =
+                new SignUpRequestDto("test1234", "testtest1234!", "test", "01012345678", CUSTOMER);
 
-            // when
-            var response = authService.signUp(request);
+        // when
+        AuthResponseDto response = authService.signUp(request);
 
-            // then
-            User savedUser = userRepository.findByUsername(request.getUsername()).orElseThrow();
+        // then
+        User savedUser = userRepository.findByUsername(request.getUsername()).orElseThrow();
 
-            assertThat(savedUser.getId()).isEqualTo(response.getId());
-            assertThat(savedUser.getUsername()).isEqualTo(response.getUsername());
-            assertThat(savedUser.getNickName()).isEqualTo(response.getNickname());
+        assertThat(savedUser.getId()).isEqualTo(response.getId());
+        assertThat(savedUser.getUsername()).isEqualTo(response.getUsername());
+        assertThat(passwordEncoder.matches("testtest1234!", savedUser.getPassword())).isTrue();
+        assertThat(savedUser.getNickName()).isEqualTo(response.getNickName());
+        assertThat(response.getAccessToken()).isNotBlank();
+    }
 
-            //            assertTrue(response.success());
-            //            assertThat(response.code()).isEqualTo(HttpStatus.OK.value());
-            //            assertThat(response.message()).isEqualTo("회원가입 성공");
-            //            assertThat(response.data().getId()).isEqualTo(savedUser.getId());
-            //
-            // assertThat(response.data().getUsername()).isEqualTo(savedUser.getUsername());
-            //
-            // assertThat(response.data().getNickname()).isEqualTo(savedUser.getNickName());
-            //            assertThat(passwordEncoder.matches(request.getPassword(),
-            // savedUser.getPassword()))
-            //                    .isTrue();
-            //            assertThat(response.error()).isNull();
-        }
+    @Test
+    @DisplayName(("회원가입 시 동시 클릭하는 경우 하나만 성공해야 한다."))
+    void signUp_fail_when_duplicate_on_concurrency() throws InterruptedException {
+        // given
+        SignUpRequestDto request =
+                new SignUpRequestDto(
+                        "test1234567", "testtest1234!", "testtest", "01012345678", CUSTOMER);
+        int threadCount = 5;
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failureCount = new AtomicInteger(0);
+
+        // when
+        ConcurrencyTestingUtil.run(
+                threadCount,
+                () -> {
+                    try {
+                        // NOTE : 미리 설정한 dummyProduct의 재고가 20개이므로 10개씩 2회 성공, 1회 실패해야한다.
+                        authService.signUp(request);
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        failureCount.incrementAndGet();
+                    }
+                });
+
+        // then
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failureCount.get()).isEqualTo(4);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("로그인 성공")
+    void login_success() {
+        // given
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.CUSTOMER);
+
+        User user =
+                User.builder()
+                        .username("test1234")
+                        .password(passwordEncoder.encode("testtest1234!"))
+                        .nickName("test")
+                        .phoneNumber("01012345678")
+                        .userStatus(UserStatus.ACTIVE)
+                        .roles(roles)
+                        .build();
+
+        User savedUser = userRepository.save(user);
+        LoginRequestDto loginRequest = new LoginRequestDto("test1234", "testtest1234!");
+
+        // when
+        AuthResponseDto loginResponse = authService.login(loginRequest);
+
+        // then
+        assertThat(loginResponse.getId()).isEqualTo(savedUser.getId());
+        assertThat(loginResponse.getUsername()).isEqualTo(savedUser.getUsername());
+        assertThat(loginResponse.getNickName()).isEqualTo(savedUser.getNickName());
+        assertThat(loginResponse.getAccessToken()).isNotBlank();
     }
 }
