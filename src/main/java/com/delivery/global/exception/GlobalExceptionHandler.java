@@ -42,14 +42,20 @@ public class GlobalExceptionHandler {
                         default -> GlobalErrorCode.BAD_REQUEST;
                     };
         }
+        String errorMessage =
+                (fieldError != null) ? fieldError.getDefaultMessage() : errorCode.getMessage();
+        if (errorMessage != null
+                && (errorMessage.contains("must ")
+                        || errorMessage.contains("match")
+                        || errorMessage.contains("size"))) {
+            errorMessage = errorCode.getMessage();
+        }
 
-        log.error("{} : {}", errorCode.getName(), errorCode.getMessage(), e);
+        log.error("{} : {}", errorCode.getName(), errorMessage, e);
 
         return ResponseEntity.status(errorCode.getHttpStatus())
                 .body(
                         RestApiResponse.fail(
-                                errorCode.getHttpStatus(),
-                                errorCode.getMessage(),
-                                errorCode.getName()));
+                                errorCode.getHttpStatus(), errorMessage, errorCode.getName()));
     }
 }
