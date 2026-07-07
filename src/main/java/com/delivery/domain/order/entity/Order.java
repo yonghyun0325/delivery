@@ -16,7 +16,9 @@ import java.util.UUID;
 @Table(
         name = "p_order",
         indexes = {
+                // 고객 본인 주문 내역 확인용
                 @Index(name = "idx_order_user_created_at", columnList = "user_id, created_at"),
+                // 가게 주문 내역 조회(상태별)
                 @Index(name = "idx_order_store_status_created_at", columnList = "store_id, status, created_at")
         }
 )
