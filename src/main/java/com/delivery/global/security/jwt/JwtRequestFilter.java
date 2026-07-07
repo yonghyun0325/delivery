@@ -1,13 +1,13 @@
 package com.delivery.global.security.jwt;
 
 import com.delivery.domain.auth.exception.AuthErrorCode;
-import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,8 +17,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
 
 @Slf4j
 @Component
@@ -70,7 +68,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         usernamePasswordAuthenticationToken.setDetails(
                 new WebAuthenticationDetailsSource().buildDetails(request));
 
-        SecurityContextHolder.getContext()
-                .setAuthentication(usernamePasswordAuthenticationToken);
+        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
     }
 }

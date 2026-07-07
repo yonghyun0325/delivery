@@ -38,7 +38,7 @@ class AuthServiceUnitTest {
             // given
             SignUpRequestDto request =
                     new SignUpRequestDto(
-                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER);
+                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER, "SYSTEM");
 
             when(userRepository.existsByUsername(request.getUsername())).thenReturn(true);
 
@@ -57,7 +57,7 @@ class AuthServiceUnitTest {
             // given
             SignUpRequestDto request =
                     new SignUpRequestDto(
-                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER);
+                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER, "SYSTEM");
 
             when(userRepository.existsByNickName(request.getNickName())).thenReturn(true);
 

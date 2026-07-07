@@ -4,11 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.spec.SecretKeySpec;
 import java.io.Serial;
 import java.io.Serializable;
 import java.security.Key;
@@ -18,11 +13,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtil implements Serializable {
-    @Serial
-    private static final long serialVersionUID = -2634790745690120103L;
+    @Serial private static final long serialVersionUID = -2634790745690120103L;
 
     // Acces Token 30분
     public static final long ACCESS_TOKEN_VALIDITY = Duration.ofMinutes(30).toMillis();
@@ -71,7 +69,8 @@ public class JwtUtil implements Serializable {
         return expiration.before(new Date());
     }
 
-    private String generateToken(UserDetails userDetails, Long userId, Key signingKey, long validity) {
+    private String generateToken(
+            UserDetails userDetails, Long userId, Key signingKey, long validity) {
         Map<String, Object> claims = new HashMap<>();
         Date date = new Date();
 
@@ -87,11 +86,13 @@ public class JwtUtil implements Serializable {
     }
 
     public String generateAccessToken(UserDetails userDetails, Long memberId) {
-        return generateToken(userDetails, memberId, getSecretKey(accessSecretKey), ACCESS_TOKEN_VALIDITY);
+        return generateToken(
+                userDetails, memberId, getSecretKey(accessSecretKey), ACCESS_TOKEN_VALIDITY);
     }
 
     public String generateRefreshToken(UserDetails userDetails, Long memberId) {
-        return generateToken(userDetails, memberId, getSecretKey(refreshSecretKey), REFRESH_TOKEN_VALIDITY);
+        return generateToken(
+                userDetails, memberId, getSecretKey(refreshSecretKey), REFRESH_TOKEN_VALIDITY);
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
@@ -114,7 +115,6 @@ public class JwtUtil implements Serializable {
 
     public Key getSecretKey(String SecretKey) {
         return new SecretKeySpec(
-                Base64.getDecoder().decode(SecretKey),
-                SignatureAlgorithm.HS256.getJcaName());
+                Base64.getDecoder().decode(SecretKey), SignatureAlgorithm.HS256.getJcaName());
     }
 }

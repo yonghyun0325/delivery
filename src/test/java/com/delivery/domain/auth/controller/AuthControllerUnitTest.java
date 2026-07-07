@@ -47,7 +47,12 @@ class AuthControllerUnitTest {
             // given
             SignUpRequestDto request =
                     new SignUpRequestDto(
-                            "test1234", "Testtest123!", "test", "01012345678", Role.CUSTOMER);
+                            "test1234",
+                            "Testtest123!",
+                            "test",
+                            "01012345678",
+                            Role.CUSTOMER,
+                            "SYSTEM");
 
             AuthResponseDto response =
                     AuthResponseDto.builder()
@@ -90,18 +95,21 @@ class AuthControllerUnitTest {
             return Stream.of(
                     // 아이디 유효성 검사 실패
                     new SignUpRequestDto(
-                            "아이디", "Testtest123!", "test", "01012345678", Role.CUSTOMER),
+                            "아이디", "Testtest123!", "test", "01012345678", Role.CUSTOMER, "SYSTEM"),
                     // 비밀번호 유효성 검사 실패
-                    new SignUpRequestDto("test1234", "비밀번호", "test", "01012345678", Role.CUSTOMER),
+                    new SignUpRequestDto(
+                            "test1234", "비밀번호", "test", "01012345678", Role.CUSTOMER, "SYSTEM"),
                     // 닉네임 유효성 검사 실패
                     new SignUpRequestDto(
                             "test1234",
                             "Testtest123!",
                             "테스트테스트테스트테스트테스트테스트",
                             "01012345678",
-                            Role.CUSTOMER),
+                            Role.CUSTOMER,
+                            "SYSTEM"),
                     // 전화번호 유효성 검사 실패
-                    new SignUpRequestDto("test1234", "Testtest123!", "test", "연락처", Role.CUSTOMER));
+                    new SignUpRequestDto(
+                            "test1234", "Testtest123!", "test", "연락처", Role.CUSTOMER, "SYSTEM"));
         }
     }
 

@@ -30,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<RestApiResponse<AuthResponseDto>> login(
-            @RequestBody LoginRequestDto request) {
+            @Valid @RequestBody LoginRequestDto request) {
         AuthResponseDto response = authService.login(request);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(RestApiResponse.success(HttpStatus.OK, "로그인 성공", response));

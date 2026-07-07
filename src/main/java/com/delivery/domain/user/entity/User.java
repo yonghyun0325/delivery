@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "p_user")
 public class User extends BaseEntity {
-    // TODO : BaseEntity 세팅해야함
     @Id
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)

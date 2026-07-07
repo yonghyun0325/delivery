@@ -1,10 +1,9 @@
 package com.delivery.global.security.config;
 
+import com.delivery.domain.user.entity.User;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.delivery.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,9 +23,10 @@ public class CustomUserDetails implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
 
     public static CustomUserDetails from(User user) {
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
-                .collect(Collectors.toList());
+        List<GrantedAuthority> authorities =
+                user.getRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
+                        .collect(Collectors.toList());
 
         return new CustomUserDetails(
                 user.getId(),
@@ -34,7 +34,6 @@ public class CustomUserDetails implements UserDetails {
                 user.getPassword(),
                 user.getNickName(),
                 user.getPhoneNumber(),
-                authorities
-        );
+                authorities);
     }
 }

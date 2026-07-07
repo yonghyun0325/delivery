@@ -31,6 +31,11 @@ public class CustomUserDetailsService implements UserDetailsService {
                         .collect(Collectors.toList());
 
         return new CustomUserDetails(
-                user.getId(), username, user.getPassword(), user.getPhoneNumber(), authorities);
+                user.getId(),
+                username,
+                user.getPassword(),
+                user.getNickName(),
+                user.getPhoneNumber(),
+                authorities);
     }
 }

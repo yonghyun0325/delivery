@@ -47,15 +47,25 @@ public class SecurityConfig {
                                 .permitAll()
 
                                 // 공통 권한
-                                .requestMatchers(HttpMethod.POST, "/api/v1/auth", "/api/v1/auth/login").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/users/check-id", "/api/v1/users/check-nickname").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/stores", "/api/v1/stores/*").permitAll()
+                                .requestMatchers(
+                                        HttpMethod.POST, "/api/v1/auth", "/api/v1/auth/login")
+                                .permitAll()
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/api/v1/users/check-id",
+                                        "/api/v1/users/check-nickname")
+                                .permitAll()
+                                .requestMatchers(
+                                        HttpMethod.GET, "/api/v1/stores", "/api/v1/stores/*")
+                                .permitAll()
 
                                 // 관리자
-                                .requestMatchers("/api/v1/users", "/api/v1/users/*").hasAnyRole("MASTER", "MANAGER")
+                                .requestMatchers("/api/v1/users", "/api/v1/users/*")
+                                .hasAnyRole("MASTER", "MANAGER")
 
                                 // 나머지
-                                .anyRequest().authenticated());
+                                .anyRequest()
+                                .authenticated());
         httpSecurity.exceptionHandling(
                 config -> config.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 

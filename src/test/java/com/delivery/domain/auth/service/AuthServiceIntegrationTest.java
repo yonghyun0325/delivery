@@ -33,7 +33,8 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
     void signUp_success() {
         // given
         SignUpRequestDto request =
-                new SignUpRequestDto("test1234", "testtest1234!", "test", "01012345678", CUSTOMER);
+                new SignUpRequestDto(
+                        "test1234", "testtest1234!", "test", "01012345678", CUSTOMER, "SYSTEM");
 
         // when
         AuthResponseDto response = authService.signUp(request);
@@ -54,7 +55,12 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         // given
         SignUpRequestDto request =
                 new SignUpRequestDto(
-                        "test1234567", "testtest1234!", "testtest", "01012345678", CUSTOMER);
+                        "test1234567",
+                        "testtest1234!",
+                        "testtest",
+                        "01012345678",
+                        CUSTOMER,
+                        "SYSTEM");
         int threadCount = 5;
 
         AtomicInteger successCount = new AtomicInteger(0);
