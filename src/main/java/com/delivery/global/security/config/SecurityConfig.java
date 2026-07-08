@@ -1,5 +1,7 @@
 package com.delivery.global.security.config;
 
+import com.delivery.global.security.jwt.JwtAuthenticationEntryPoint;
+import com.delivery.global.security.jwt.JwtRequestFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,15 +12,20 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtRequestFilter jwtRequestFilter;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -38,31 +45,35 @@ public class SecurityConfig {
                 (requests) ->
                         requests.requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
                                 .permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/auth")
-                                .permitAll()
-                                .requestMatchers("/h2-console/**")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/login")
-                                .permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout")
-                                .permitAll()
-                                .anyRequest()
-                                // TODO: CustomUserDetail(s)Service/JWT 필터 완성 후 authenticated()로 복구
-                                // (담당: Auth). 그 전까지는 로컬 개발/테스트가 막히지 않도록 permitAll 유지.
-                                // .authenticated());
-                                .permitAll());
-        //        httpSecurity
-        //                .exceptionHandling(config -> config
-        //                        .authenticationEntryPoint(
-        //                                jwtAuthenticationEntryPoint));
 
-        //        httpSecurity.sessionManagement(
-        //                sessionManagement ->
-        //
-        // sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        //        // 필터 관리
-        //        httpSecurity.addFilterBefore(jwtRequestFilter,
-        // UsernamePasswordAuthenticationFilter.class);
+                                // 공통 권한
+                                .requestMatchers(
+                                        HttpMethod.POST, "/api/v1/auth", "/api/v1/auth/login")
+                                .permitAll()
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/api/v1/users/check-id",
+                                        "/api/v1/users/check-nickname")
+                                .permitAll()
+                                .requestMatchers(
+                                        HttpMethod.GET, "/api/v1/stores", "/api/v1/stores/*")
+                                .permitAll()
+
+                                // 관리자
+                                .requestMatchers("/api/v1/users", "/api/v1/users/*")
+                                .hasAnyRole("MASTER", "MANAGER")
+
+                                // 나머지
+                                .anyRequest()
+                                .authenticated());
+        httpSecurity.exceptionHandling(
+                config -> config.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+
+        httpSecurity.sessionManagement(
+                sessionManagement ->
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        // 필터 관리
+        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 }

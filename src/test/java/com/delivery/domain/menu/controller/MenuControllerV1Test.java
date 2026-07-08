@@ -17,6 +17,7 @@ import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.service.MenuServiceV1;
 import com.delivery.global.exception.BusinessException;
+import com.delivery.global.security.jwt.JwtRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +42,10 @@ class MenuControllerV1Test {
     @Autowired private ObjectMapper objectMapper;
 
     @MockitoBean private MenuServiceV1 menuService;
+
+    // @WebMvcTest는 Filter 타입 빈을 자동으로 스캔 대상에 포함시키는데,
+    // JwtRequestFilter는 JwtUtil에 의존해 실제 컨텍스트 로딩이 실패한다. 모킹으로 우회.
+    @MockitoBean private JwtRequestFilter jwtRequestFilter;
 
     @Nested
     @DisplayName("메뉴 생성")

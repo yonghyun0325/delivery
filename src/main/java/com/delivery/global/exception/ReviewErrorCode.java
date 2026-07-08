@@ -1,13 +1,13 @@
-//package com.delivery.global.exception;
+// package com.delivery.global.exception;
 //
-//import com.delivery.global.exception.ErrorCode;
-//import lombok.Getter;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.http.HttpStatus;
+// import com.delivery.global.exception.ErrorCode;
+// import lombok.Getter;
+// import lombok.RequiredArgsConstructor;
+// import org.springframework.http.HttpStatus;
 //
-//@Getter
-//@RequiredArgsConstructor
-//public enum ReviewErrorCode implements ErrorCode {
+// @Getter
+// @RequiredArgsConstructor
+// public enum ReviewErrorCode implements ErrorCode {
 //
 //    // 400 Bad Request
 //    INVALID_RATING(HttpStatus.BAD_REQUEST, "평점은 1점 이상 5점 이하여야 합니다."),
@@ -26,4 +26,4 @@
 //    public String getName() {
 //        return this.name();
 //    }
-//}
+// }
