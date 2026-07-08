@@ -270,6 +270,25 @@ public class OrderService {
     }
 
 
+    // 관리자 주문 삭제(Soft Delete)
+    @Transactional
+    public void deleteOrder(UUID orderId, Long currentAdminId) {
+        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() ->
+                        new BusinessException(OrderErrorCode.ORDER_NOT_FOUND)
+                );
+
+        // TODO: Spring Security/JWT 연동 후 MANAGER, MASTER 권한 검증
+        // 현재는 관리자 권한 검증 전이므로 Soft Delete 동작만 우선 확인
+        // 현재 currentAdminId 임시값이며, 추후 인증된 관리자 ID로 교체
+
+        // BaseEntity의 delete()를 활용
+        // 실제 DELETE가 아니라 deleted_at, deleted_by 값을 채우는 Soft Delete
+        order.delete(String.valueOf(currentAdminId));
+    }
+
+
+
 
     // Customer 검증 메서드
     private void validateOrderAccessForCustomer(Order order, Long currentUserId) {

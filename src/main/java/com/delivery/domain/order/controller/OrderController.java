@@ -161,5 +161,28 @@ public class OrderController {
         );
     }
 
+    // 관리자 주문 삭제
+    @DeleteMapping("/admin/orders/{orderId}")
+    // TODO: Spring Security/JWT 연동 후 관리자 권한 적용
+    // @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
+    public ResponseEntity<RestApiResponse<Void>> deleteOrder(
+            @PathVariable UUID orderId
+    ) {
+        // TODO: Spring Security/JWT 연동 후 인증 객체에서 관리자 ID 추출
+        Long currentAdminId = 1L;
+
+        // 관리자 ID와 삭제 대상 주문 ID를 Service에 전달
+        orderService.deleteOrder(orderId, currentAdminId);
+
+        return ResponseEntity.ok(
+                RestApiResponse.success(
+                        HttpStatus.OK,
+                        "주문이 삭제되었습니다.",
+                        null
+                )
+        );
+    }
+
+
 
 }
