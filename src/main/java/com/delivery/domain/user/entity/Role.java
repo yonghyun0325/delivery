@@ -1,5 +1,7 @@
 package com.delivery.domain.user.entity;
 
+import com.delivery.domain.auth.exception.AuthErrorCode;
+import com.delivery.global.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,6 +14,12 @@ public enum Role {
     CUSTOMER(Authority.CUSTOMER);
 
     private final String authority;
+
+    public static void validateSignupRole(Role role) {
+        if (role.equals(Role.MANAGER) || role.equals(Role.MASTER)) {
+            throw new BusinessException(AuthErrorCode.INVALID_ROLE);
+        }
+    }
 
     public static class Authority {
         public static final String MASTER = "ROLE_MASTER";

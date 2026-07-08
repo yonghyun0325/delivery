@@ -34,7 +34,6 @@ public class SignUpRequestDto {
     @Pattern(regexp = "^010\\d+$")
     private String phoneNumber;
 
-    // TODO : 권한 검증 로직 필요
     @NotNull private Role role;
 
     private String createdBy = "SYSTEM";

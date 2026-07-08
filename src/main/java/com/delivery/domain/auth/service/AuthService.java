@@ -37,6 +37,7 @@ public class AuthService {
     public AuthResponseDto signUp(SignUpRequestDto request) {
         validateDuplicateUsername(request.getUsername());
         validateDuplicateNickName(request.getNickName());
+        Role.validateSignupRole(request.getRole());
 
         User savedUser = createUser(request);
         CustomUserDetails userDetails = CustomUserDetails.from(savedUser);

@@ -1,6 +1,6 @@
 package com.delivery.domain.auth.service;
 
-import static com.delivery.domain.user.entity.Role.CUSTOMER;
+import static com.delivery.domain.user.entity.Role.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.delivery.domain.auth.dto.AuthResponseDto;
@@ -71,7 +71,6 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
                 threadCount,
                 () -> {
                     try {
-                        // NOTE : 미리 설정한 dummyProduct의 재고가 20개이므로 10개씩 2회 성공, 1회 실패해야한다.
                         authService.signUp(request);
                         successCount.incrementAndGet();
                     } catch (Exception e) {
