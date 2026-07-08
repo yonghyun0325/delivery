@@ -12,6 +12,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,6 +30,8 @@ public class MenuControllerV1 {
 
     // 메뉴 등록
     // TODO: aiGeneration/aiPrompt 요청 필드 + AiService 연동 추가 예정 (MVP2)
+    // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PostMapping("/api/v1/stores/{storeId}/menus")
     public ResponseEntity<RestApiResponse<ResMenuDtoV1>> createMenu(
             @PathVariable UUID storeId, @RequestBody ReqCreateMenuDtoV1 request) {
@@ -59,6 +63,8 @@ public class MenuControllerV1 {
     }
 
     // 메뉴 수정
+    // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<ResMenuDtoV1>> updateMenu(
             @PathVariable UUID menuId, @RequestBody ReqUpdateMenuDtoV1 request) {
@@ -70,6 +76,8 @@ public class MenuControllerV1 {
     }
 
     // 숨김 상태 업데이트
+    // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/api/v1/menus/{menuId}/visibility")
     public ResponseEntity<RestApiResponse<ResMenuDtoV1>> updateMenuVisibility(
             @PathVariable UUID menuId, @RequestBody ReqUpdateMenuVisibilityDtoV1 request) {
@@ -80,10 +88,12 @@ public class MenuControllerV1 {
     }
 
     // 메뉴 삭제 (Soft Delete)
+    // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @DeleteMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<Void>> deleteMenu(@PathVariable UUID menuId) {
-        // TODO: Security 완성 후 인증된 사용자 username으로 교체
-        menuService.deleteMenu(menuId, null);
+        String deletedBy = SecurityContextHolder.getContext().getAuthentication().getName();
+        menuService.deleteMenu(menuId, deletedBy);
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "메뉴가 삭제되었습니다.", null));
     }
 }

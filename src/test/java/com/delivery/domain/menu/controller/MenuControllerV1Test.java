@@ -28,6 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -180,10 +183,18 @@ class MenuControllerV1Test {
         void deleteMenu_returns200WithNullData() throws Exception {
             UUID menuId = UUID.randomUUID();
 
-            mockMvc.perform(delete("/api/v1/menus/{menuId}", menuId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").value(nullValue()));
+            SecurityContextHolder.getContext()
+                    .setAuthentication(
+                            new UsernamePasswordAuthenticationToken(
+                                    "owner1", null, List.of(new SimpleGrantedAuthority("ROLE_OWNER"))));
+            try {
+                mockMvc.perform(delete("/api/v1/menus/{menuId}", menuId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.success").value(true))
+                        .andExpect(jsonPath("$.data").value(nullValue()));
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
         }
     }
 }
