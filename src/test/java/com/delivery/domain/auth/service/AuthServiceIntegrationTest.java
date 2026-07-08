@@ -47,7 +47,10 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         AuthResponseDto response = authService.signUp(request);
 
         // then
-        User savedUser = userRepository.findByUsername(request.getUsername()).orElseThrow();
+        User savedUser =
+                userRepository
+                        .findByUsernameAndDeletedAtIsNull(request.getUsername())
+                        .orElseThrow();
 
         assertThat(savedUser.getId()).isEqualTo(response.getId());
         assertThat(savedUser.getUsername()).isEqualTo(response.getUsername());
