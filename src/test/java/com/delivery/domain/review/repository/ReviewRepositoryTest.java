@@ -1,35 +1,29 @@
 package com.delivery.domain.review.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.delivery.domain.review.entity.Review;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 @Transactional
 class ReviewRepositoryTest {
 
-    @Autowired
-    private ReviewRepository reviewRepository;
+    @Autowired private ReviewRepository reviewRepository;
 
     @Test
     @DisplayName("리뷰 저장")
     void saveReview() {
         // given
-        Review review = Review.create(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                5,
-                "정말 맛있었습니다!"
-        );
+        Review review =
+                Review.create(
+                        UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), 5, "정말 맛있었습니다!");
 
         // when
         Review savedReview = reviewRepository.save(review);
@@ -44,13 +38,13 @@ class ReviewRepositoryTest {
     @DisplayName("리뷰 단건 조회")
     void findReview() {
         // given
-        Review review = Review.create(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                4,
-                "배송도 빠르고 맛있었습니다."
-        );
+        Review review =
+                Review.create(
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        4,
+                        "배송도 빠르고 맛있었습니다.");
 
         Review savedReview = reviewRepository.save(review);
 
