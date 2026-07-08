@@ -66,7 +66,8 @@ class MenuRepositoryIntegrationTest extends AbstractIntegrationTest {
         void returnsOnlyNonDeletedMenusOfStore() {
             menuRepository.save(new MenuEntity(STORE_ID, "메뉴1", null, 1000));
             menuRepository.save(new MenuEntity(STORE_ID, "메뉴2", null, 2000));
-            MenuEntity deletedMenu = menuRepository.save(new MenuEntity(STORE_ID, "메뉴3", null, 3000));
+            MenuEntity deletedMenu =
+                    menuRepository.save(new MenuEntity(STORE_ID, "메뉴3", null, 3000));
             deletedMenu.delete("owner1");
             menuRepository.saveAndFlush(deletedMenu);
             menuRepository.save(new MenuEntity(UUID.randomUUID(), "다른가게메뉴", null, 4000));

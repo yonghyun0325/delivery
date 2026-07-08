@@ -7,13 +7,14 @@ import com.delivery.domain.menu.dto.request.ReqUpdateMenuVisibilityDtoV1;
 import com.delivery.domain.menu.dto.response.ResMenuDtoV1;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.service.MenuServiceV1;
+import com.delivery.global.security.config.CustomUserDetails;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -91,9 +92,9 @@ public class MenuControllerV1 {
     // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @DeleteMapping("/api/v1/menus/{menuId}")
-    public ResponseEntity<RestApiResponse<Void>> deleteMenu(@PathVariable UUID menuId) {
-        String deletedBy = SecurityContextHolder.getContext().getAuthentication().getName();
-        menuService.deleteMenu(menuId, deletedBy);
+    public ResponseEntity<RestApiResponse<Void>> deleteMenu(
+            @PathVariable UUID menuId, @AuthenticationPrincipal CustomUserDetails principal) {
+        menuService.deleteMenu(menuId, principal.getUsername());
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "메뉴가 삭제되었습니다.", null));
     }
 }

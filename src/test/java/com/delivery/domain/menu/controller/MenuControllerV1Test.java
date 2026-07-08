@@ -17,6 +17,7 @@ import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.service.MenuServiceV1;
 import com.delivery.global.exception.BusinessException;
+import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -183,10 +184,17 @@ class MenuControllerV1Test {
         void deleteMenu_returns200WithNullData() throws Exception {
             UUID menuId = UUID.randomUUID();
 
+            List<SimpleGrantedAuthority> authorities =
+                    List.of(new SimpleGrantedAuthority("ROLE_OWNER"));
+            CustomUserDetails principal =
+                    CustomUserDetails.builder()
+                            .id(1L)
+                            .username("owner1")
+                            .authorities(authorities)
+                            .build();
             SecurityContextHolder.getContext()
                     .setAuthentication(
-                            new UsernamePasswordAuthenticationToken(
-                                    "owner1", null, List.of(new SimpleGrantedAuthority("ROLE_OWNER"))));
+                            new UsernamePasswordAuthenticationToken(principal, null, authorities));
             try {
                 mockMvc.perform(delete("/api/v1/menus/{menuId}", menuId))
                         .andExpect(status().isOk())
