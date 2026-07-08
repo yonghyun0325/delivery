@@ -49,7 +49,7 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         // then
         User savedUser =
                 userRepository
-                        .findByUsernameAndDeletedAtIsNull(request.getUsername())
+                        .findWithRolesByUsernameAndDeletedAtIsNull(request.getUsername())
                         .orElseThrow();
 
         assertThat(savedUser.getId()).isEqualTo(response.getId());
