@@ -1,40 +1,32 @@
 package com.delivery.domain.review.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.delivery.domain.review.dto.request.ReviewRequest;
 import com.delivery.domain.review.dto.response.ReviewResponse;
 import com.delivery.domain.review.repository.ReviewRepository;
-import com.delivery.domain.review.service.ReviewService;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @Transactional
 @SpringBootTest
 class ReviewServiceTest {
 
-    @Autowired
-    private ReviewService reviewService;
+    @Autowired private ReviewService reviewService;
 
-    @Autowired
-    private ReviewRepository reviewRepository;
+    @Autowired private ReviewRepository reviewRepository;
 
     @Test
     @DisplayName("리뷰 등록 성공")
     void createReview_success() {
         // given
-        ReviewRequest request = new ReviewRequest(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                5,
-                "정말 맛있었습니다!"
-        );
+        ReviewRequest request =
+                new ReviewRequest(
+                        UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), 5, "정말 맛있었습니다!");
 
         // when
         ReviewResponse response = reviewService.createReview(request);

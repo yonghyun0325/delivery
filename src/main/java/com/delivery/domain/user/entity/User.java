@@ -1,0 +1,44 @@
+package com.delivery.domain.user.entity;
+
+import com.delivery.common.base.BaseEntity;
+import jakarta.persistence.*;
+import java.util.Set;
+import lombok.*;
+
+@Getter
+@Entity
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Table(name = "p_user")
+public class User extends BaseEntity {
+    @Id
+    @Column(name = "user_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false, unique = true)
+    private String nickName;
+
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
+    private UserStatus userStatus;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "p_role", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles;
+
+    public void delete() {
+        this.getDeletedBy();
+    }
+}
