@@ -12,21 +12,22 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "p_user")
 public class User extends BaseEntity {
+    // TODO : 추후 userStatus 삭제(삭제 유저는 deletedAt으로 구분 가능)
     @Id
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 10)
     private String username;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 20)
     private String nickName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String phoneNumber;
 
     @Column(nullable = false)
@@ -37,8 +38,4 @@ public class User extends BaseEntity {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
-
-    public void delete() {
-        this.getDeletedBy();
-    }
 }

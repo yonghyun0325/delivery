@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) {
         User user =
                 userRepository
-                        .findByUsernameAndDeletedAtIsNull(username)
+                        .findWithRolesByUsernameAndDeletedAtIsNull(username)
                         .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_EXIST_USER));
 
         List<GrantedAuthority> authorities =
