@@ -37,3 +37,6 @@ out/
 .vscode/
 
 /summary/
+
+### Env ###
+.env
