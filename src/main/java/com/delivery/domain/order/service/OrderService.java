@@ -173,8 +173,8 @@ public class OrderService {
         // 검색 조건 조합
         // OrderSpecification에 분리해둔 조건들을 조립
         // null인 조건은 Specification에서 제외됨
-        Specification<Order> spec = Specification
-                .where(userIdEquals(currentUserId))   // 본인 주문만 조회
+        Specification<Order> spec = Specification.<Order>unrestricted()
+                .and(userIdEquals(currentUserId))   // 본인 주문만 조회
                 .and(deletedAtIsNull())               // Soft Delete 제외
                 .and(statusEquals(status))            // status가 있을 때만 상태 조건 추가
                 .and(createdAtGoe(startDateTime))     // startDate가 있을 때만 시작일 조건 추가
@@ -188,6 +188,54 @@ public class OrderService {
         // Page<Order>를 응답 DTO로 변환
         return OrderListResponse.from(orders);
     }
+
+
+    // 가게 주문 내역 조회
+    @Transactional(readOnly = true)
+    public OrderListResponse getStoreOrders(
+            UUID storeId,
+            LocalDate startDate,
+            LocalDate endDate,
+            OrderStatus status,
+            int page,
+            int size,
+            String sort
+    ) {
+        // TODO: Store 도메인 연동 후 storeId 존재 여부 검증
+        // 예: storeRepository.existsById(storeId) 또는 storeService.validateStoreExists(storeId)
+
+        // TODO: Spring Security/JWT 및 Store 도메인 연동 후 접근 권한 검증
+        // OWNER: 로그인한 사용자가 해당 storeId의 소유자인 경우만 조회 가능
+        // MANAGER / MASTER: 전체 가게 주문 조회 가능
+        // 현재는 Store/User 도메인이 연결 전이라 storeId 조건 검색만 수행
+
+        validateDateRange(startDate, endDate);
+
+        LocalDateTime startDateTime = startDate != null
+                ? startDate.atStartOfDay()
+                : null;
+
+        LocalDateTime endDateTime = endDate != null
+                ? endDate.atTime(LocalTime.MAX)
+                : null;
+
+        int normalizedSize = normalizePageSize(size);
+        Pageable pageable = createPageable(page, normalizedSize, sort);
+
+        // storeId 기준으로 본인 가게 주문만 조회
+        // 날짜, 상태 조건은 값이 있을 때만 추가됨
+        Specification<Order> spec = Specification.<Order>unrestricted()
+                .and(storeIdEquals(storeId))
+                .and(deletedAtIsNull())
+                .and(statusEquals(status))
+                .and(createdAtGoe(startDateTime))
+                .and(createdAtLoe(endDateTime));
+
+        Page<Order> orders = orderRepository.findAll(spec, pageable);
+
+        return OrderListResponse.from(orders);
+    }
+
 
     // 날짜 범위 검증 메서드
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {

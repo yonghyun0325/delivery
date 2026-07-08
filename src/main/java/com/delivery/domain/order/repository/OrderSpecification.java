@@ -73,4 +73,11 @@ public class OrderSpecification {
                         endDateTime
                 );
     }
+
+    // 가게 주문 내역 조회 조건
+    // PathVariable로 받은 storeId와 일치하는 주문만 조회
+    public static Specification<Order> storeIdEquals(UUID storeId) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("storeId"), storeId);
+    }
 }

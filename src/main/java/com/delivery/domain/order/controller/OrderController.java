@@ -19,14 +19,14 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/orders")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService orderService;
 
     // 고객 주문 생성
-    @PostMapping
+    @PostMapping("/orders")
     public ResponseEntity<RestApiResponse<OrderCreateResponse>> createOrder(
             @Valid @RequestBody OrderCreateRequest request
     ){
@@ -46,7 +46,7 @@ public class OrderController {
     }
 
     // 주문 단건 조회
-    @GetMapping("/{orderId}")
+    @GetMapping("/orders/{orderId}")
     // TODO: Spring Security/JWT 연동 후 역할 기반 접근 권한 적용
 //    @PreAuthorize("hasAnyRole('CUSTOMER', 'OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderDetailResponse>> getOrder(
@@ -68,7 +68,7 @@ public class OrderController {
     }
 
     // 고객 본인 주문 내역 조회
-    @GetMapping("/me")
+    @GetMapping("/orders/me")
     // TODO: Spring Security/JWT 연동 후 역할 기반 접근 권한 적용
     // @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderListResponse>> getMyOrders(
@@ -114,6 +114,52 @@ public class OrderController {
         );
     }
 
+
+    // 가게 주문 내역 조회
+    @GetMapping("/stores/{storeId}/orders")
+    // TODO: Spring Security/JWT 연동 후 OWNER, MANAGER, MASTER(역할 기반 접근) 권한 적용
+    // @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
+    public ResponseEntity<RestApiResponse<OrderListResponse>> getStoreOrders(
+            @PathVariable UUID storeId,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate,
+
+            @RequestParam(required = false)
+            OrderStatus status,
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size,
+
+            @RequestParam(defaultValue = "createdAt,desc")
+            String sort
+    ) {
+        OrderListResponse response = orderService.getStoreOrders(
+                storeId,
+                startDate,
+                endDate,
+                status,
+                page,
+                size,
+                sort
+        );
+
+        return ResponseEntity.ok(
+                RestApiResponse.success(
+                        HttpStatus.OK,
+                        "가게 주문 내역 조회에 성공했습니다.",
+                        response
+                )
+        );
+    }
 
 
 }
