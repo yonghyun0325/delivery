@@ -27,6 +27,7 @@ import java.util.UUID;
 public class Order extends BaseEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private UUID id;
 
@@ -57,7 +58,6 @@ public class Order extends BaseEntity {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     public Order(Long userId, UUID storeId, String deliveryAddress) {
-        this.id = UUID.randomUUID();
         this.userId = userId;
         this.storeId = storeId;
         this.status = OrderStatus.REQUESTED;

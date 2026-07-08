@@ -3,6 +3,7 @@ package com.delivery.domain.order.service;
 import com.delivery.domain.order.dto.request.OrderCreateRequest;
 import com.delivery.domain.order.dto.request.OrderItemCreateRequest;
 import com.delivery.domain.order.dto.response.OrderCreateResponse;
+import com.delivery.domain.order.dto.response.OrderDetailResponse;
 import com.delivery.domain.order.entity.Order;
 import com.delivery.domain.order.entity.OrderItem;
 import com.delivery.domain.order.enums.OrderErrorCode;
@@ -82,6 +83,58 @@ public class OrderService {
         return OrderCreateResponse.from(savedOrder);
     }
 
+
+    // 주문 단건 조회
+    @Transactional(readOnly = true)
+    public OrderDetailResponse getOrder(
+            UUID orderId,
+            Long currentUserId
+    ) {
+        // 삭제되지 않은 주문 주회
+        // 주문 단건 응답에 메뉴 상세 목록이 포함되므로 orderItems도 함께 조회
+        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        /*
+         * TODO: Spring Security/JWT 및 권한(Role) 적용 후 접근 권한 검증 로직 확장 필요
+         *
+         * 주문 단건 조회 접근 정책:
+         * 1. CUSTOMER
+         *    - 본인이 생성한 주문만 조회 가능
+         *    - order.userId == currentUserId 인 경우만 허용
+         *
+         * 2. OWNER
+         *    - 본인 가게의 주문만 조회 가능
+         *    - order.storeId가 로그인한 OWNER의 storeId와 일치하는 경우만 허용
+         *
+         * 3. MANAGER
+         *    - 서비스 담당자 권한
+         *    - 정책에 따라 전체 주문 또는 담당 범위 주문 조회 가능
+         *
+         * 4. MASTER
+         *    - 최종 관리자 권한
+         *    - 전체 주문 조회 가능
+         */
+
+        // 현재는 인증/인가 구조가 확정되지 않았으므로, CUSTOMER 기준으로 currentUserId와 order.userId만 임시 검증
+        validateOrderAccessForCustomer(order, currentUserId);
+
+        // 조회된 주문 엔티티 상세 응답 DTO 변환
+        return OrderDetailResponse.from(order);
+
+    }
+
+    // Customer 검증 메서드
+    private void validateOrderAccessForCustomer(Order order, Long currentUserId) {
+        if (!order.getUserId().equals(currentUserId)) {
+            throw new BusinessException(OrderErrorCode.FORBIDDEN_ORDER_ACCESS);
+        }
+    }
+
+
+
+
+
     // 가게 존재 여부 확인하는 메서드
     private void validateStoreExists(UUID storeId) {
         // TODO: 가게 도메인 Repository 또는 Service 확정 후 구현
@@ -126,7 +179,6 @@ public class OrderService {
             throw new BusinessException(OrderErrorCode.INVALID_ORDER_QUANTITY);
         }
     }
-
 
     // 주문 도메인에서 메뉴 도메인으로부터 필요한 값만 담는 내부 DTO
     // 실제 Menu Entity 구조를 몰라도 주문 생성 흐름을 먼저 작성할 수 있게 해줌
