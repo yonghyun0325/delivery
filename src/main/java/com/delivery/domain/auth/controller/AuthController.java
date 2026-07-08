@@ -32,7 +32,6 @@ public class AuthController {
     public ResponseEntity<RestApiResponse<AuthResponseDto>> login(
             @Valid @RequestBody LoginRequestDto request) {
         AuthResponseDto response = authService.login(request);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(RestApiResponse.success(HttpStatus.OK, "로그인 성공", response));
+        return ResponseEntity.ok().body(RestApiResponse.success(HttpStatus.OK, "로그인 성공", response));
     }
 }

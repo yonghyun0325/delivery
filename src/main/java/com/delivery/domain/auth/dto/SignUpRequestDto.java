@@ -1,6 +1,6 @@
 package com.delivery.domain.auth.dto;
 
-import com.delivery.domain.user.entity.Role;
+import com.delivery.domain.user.enums.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;

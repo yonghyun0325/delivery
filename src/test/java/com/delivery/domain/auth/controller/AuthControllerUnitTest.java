@@ -10,7 +10,7 @@ import com.delivery.domain.auth.dto.AuthResponseDto;
 import com.delivery.domain.auth.dto.LoginRequestDto;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
 import com.delivery.domain.auth.service.AuthService;
-import com.delivery.domain.user.entity.Role;
+import com.delivery.domain.user.enums.Role;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.stream.Stream;

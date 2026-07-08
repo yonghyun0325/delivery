@@ -1,14 +1,13 @@
 package com.delivery.domain.auth.service;
 
-import static com.delivery.domain.user.entity.Role.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.delivery.domain.auth.dto.AuthResponseDto;
 import com.delivery.domain.auth.dto.LoginRequestDto;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
-import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
-import com.delivery.domain.user.entity.UserStatus;
+import com.delivery.domain.user.enums.Role;
+import com.delivery.domain.user.enums.UserStatus;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.testconfig.AbstractIntegrationTest;
 import com.delivery.testutil.ConcurrencyTestingUtil;
