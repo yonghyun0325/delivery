@@ -26,7 +26,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @Import(JpaAuditingConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class MenuRepositoryTest {
+class MenuRepositoryIntegrationTest {
 
     private static final UUID STORE_ID = UUID.randomUUID();
 
