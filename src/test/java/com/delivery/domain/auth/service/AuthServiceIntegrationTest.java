@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
-// TODO : 동시성 문제 확인 후 예외 처리 확인해봐야함
 class AuthServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired private AuthService authService;
     @Autowired private UserRepository userRepository;
@@ -33,8 +32,14 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
     void signUp_success() {
         // given
         SignUpRequestDto request =
-                new SignUpRequestDto(
-                        "test1234", "testtest1234!", "test", "01012345678", CUSTOMER, "SYSTEM");
+                SignUpRequestDto.builder()
+                        .username("test1234")
+                        .password("testtest1234!")
+                        .nickName("test")
+                        .phoneNumber("01012345678")
+                        .role(Role.CUSTOMER)
+                        .createdBy("SYSTEM")
+                        .build();
 
         // when
         AuthResponseDto response = authService.signUp(request);
@@ -54,13 +59,14 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
     void signUp_fail_when_duplicate_on_concurrency() throws InterruptedException {
         // given
         SignUpRequestDto request =
-                new SignUpRequestDto(
-                        "test1234567",
-                        "testtest1234!",
-                        "testtest",
-                        "01012345678",
-                        CUSTOMER,
-                        "SYSTEM");
+                SignUpRequestDto.builder()
+                        .username("test1234567")
+                        .password("testtest1234!")
+                        .nickName("test12345")
+                        .phoneNumber("01012345678")
+                        .role(Role.CUSTOMER)
+                        .createdBy("SYSTEM")
+                        .build();
         int threadCount = 5;
 
         AtomicInteger successCount = new AtomicInteger(0);
@@ -102,7 +108,8 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
                         .build();
 
         User savedUser = userRepository.save(user);
-        LoginRequestDto loginRequest = new LoginRequestDto("test1234", "testtest1234!");
+        LoginRequestDto loginRequest =
+                LoginRequestDto.builder().username("test1234").password("testtest1234!").build();
 
         // when
         AuthResponseDto loginResponse = authService.login(loginRequest);

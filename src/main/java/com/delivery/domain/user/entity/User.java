@@ -3,16 +3,13 @@ package com.delivery.domain.user.entity;
 import com.delivery.common.base.BaseEntity;
 import jakarta.persistence.*;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @Entity
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "p_user")
 public class User extends BaseEntity {
     @Id
@@ -40,4 +37,8 @@ public class User extends BaseEntity {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
+
+    public void delete() {
+        this.getDeletedBy();
+    }
 }

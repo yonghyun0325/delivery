@@ -5,13 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class SignUpRequestDto {
     @NotBlank
     @Size(min = 4, max = 10)
@@ -36,5 +34,5 @@ public class SignUpRequestDto {
 
     @NotNull private Role role;
 
-    private String createdBy = "SYSTEM";
+    @NotBlank private String createdBy;
 }

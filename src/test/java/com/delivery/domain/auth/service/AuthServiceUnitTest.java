@@ -1,12 +1,12 @@
 package com.delivery.domain.auth.service;
 
-import static com.delivery.domain.user.entity.Role.CUSTOMER;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.delivery.domain.auth.dto.LoginRequestDto;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
+import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
@@ -37,8 +37,14 @@ class AuthServiceUnitTest {
         void signUp_fail_when_username_is_duplicate() {
             // given
             SignUpRequestDto request =
-                    new SignUpRequestDto(
-                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER, "SYSTEM");
+                    SignUpRequestDto.builder()
+                            .username("test1234")
+                            .password("testtest1234!")
+                            .nickName("test")
+                            .phoneNumber("01012345678")
+                            .role(Role.CUSTOMER)
+                            .createdBy("SYSTEM")
+                            .build();
 
             when(userRepository.existsByUsername(request.getUsername())).thenReturn(true);
 
@@ -56,8 +62,14 @@ class AuthServiceUnitTest {
         void signUp_fail_when_nickname_is_duplicate() {
             // given
             SignUpRequestDto request =
-                    new SignUpRequestDto(
-                            "test1234", "testtest1234!", "test", "01012345678", CUSTOMER, "SYSTEM");
+                    SignUpRequestDto.builder()
+                            .username("test1234")
+                            .password("testtest1234!")
+                            .nickName("test")
+                            .phoneNumber("01012345678")
+                            .role(Role.CUSTOMER)
+                            .createdBy("SYSTEM")
+                            .build();
 
             when(userRepository.existsByNickName(request.getNickName())).thenReturn(true);
 
@@ -78,7 +90,12 @@ class AuthServiceUnitTest {
         @DisplayName("로그인 시 존재하지 않는 아이디를 입력하면 예외가 발생해야한다.")
         void login_fail_when_invalid_login() {
             // given
-            LoginRequestDto request = new LoginRequestDto("test1234", "Testtest1234!");
+            LoginRequestDto request =
+                    LoginRequestDto.builder()
+                            .username("test1234")
+                            .password("testtest1234!")
+                            .build();
+
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenThrow(new InternalAuthenticationServiceException("아이디"));
 
@@ -95,7 +112,12 @@ class AuthServiceUnitTest {
         @DisplayName("로그인 시 틀린 비밀번호를 입력하면 예외가 발생해야한다.")
         void login_fail_when_invalid_password() {
             // given
-            LoginRequestDto request = new LoginRequestDto("test1234", "Testtest1234!");
+            LoginRequestDto request =
+                    LoginRequestDto.builder()
+                            .username("test1234")
+                            .password("testtest1234!")
+                            .build();
+
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenThrow(new BadCredentialsException("비밀번호"));
 
