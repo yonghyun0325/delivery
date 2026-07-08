@@ -26,10 +26,10 @@ public class AddressService {
         if (addressRepository.countByUserId(userId) == 10) {
             throw new UserException(UserErrorCode.EXCEED_MAX_ADDRESS);
         }
-        if (addressRepository.existsByUserIdAndIsDefault(userId, true)) {
+        if (request.getIsDefault() == true
+                && addressRepository.existsByUserIdAndIsDefault(userId, true)) {
             throw new UserException(UserErrorCode.ALREADY_EXISTS_DEFAULT_ADDRESS);
         }
-
 
         User user = userService.findUser(userId);
 
@@ -43,12 +43,13 @@ public class AddressService {
     }
 
     public List<AddressResponseDto> findAddresses(Long userId) {
-
-        throw new UnsupportedOperationException("개발 중");
+        return addressRepository.findAllByUserId(userId).stream()
+                .map(UserDtoMapper::toDto)
+                .toList();
     }
 
     public AddressResponseDto findAddress(Long userId, UUID addressId) {
-        throw new UnsupportedOperationException("개발 중");
+        return UserDtoMapper.toDto(addressRepository.findByIdAndUserId(addressId, userId));
     }
 
     public AddressResponseDto updateAddress(

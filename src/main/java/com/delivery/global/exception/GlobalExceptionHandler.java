@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -20,7 +21,7 @@ public class GlobalExceptionHandler {
         String message = errorCode.getMessage();
         String error = errorCode.getName();
 
-        log.error("{} : {}", error, message, e);
+        log.warn("{} : {}", error, message, e);
 
         return ResponseEntity.status(httpStatus)
                 .body(RestApiResponse.fail(httpStatus, message, error));
@@ -51,11 +52,26 @@ public class GlobalExceptionHandler {
             errorMessage = errorCode.getMessage();
         }
 
-        log.error("{} : {}", errorCode.getName(), errorMessage, e);
+        log.warn("{} : {}", errorCode.getName(), errorMessage, e);
 
         return ResponseEntity.status(errorCode.getHttpStatus())
                 .body(
                         RestApiResponse.fail(
                                 errorCode.getHttpStatus(), errorMessage, errorCode.getName()));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<RestApiResponse<?>> handMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException e) {
+        ErrorCode errorCode = GlobalErrorCode.INVALID_PARAMETER_TYPE;
+
+        log.warn("{} : {}", errorCode.getName(), errorCode.getMessage(), e);
+
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(
+                        RestApiResponse.fail(
+                                errorCode.getHttpStatus(),
+                                errorCode.getMessage(),
+                                errorCode.getName()));
     }
 }
