@@ -3,6 +3,8 @@ package com.delivery.domain.menu.entity;
 import com.delivery.common.base.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -25,6 +27,7 @@ import org.hibernate.annotations.Check;
 public class MenuEntity extends BaseEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "menu_id")
     private UUID menuId;
 
@@ -40,11 +43,10 @@ public class MenuEntity extends BaseEntity {
     @Column(name = "price", nullable = false)
     private int price;
 
-    @Column(name = "is_hidden", nullable = false)
+    @Column(name = "is_hidden", nullable = false, columnDefinition = "boolean default false")
     private boolean hidden;
 
     public MenuEntity(UUID storeId, String name, String description, int price) {
-        this.menuId = UUID.randomUUID();
         this.storeId = storeId;
         this.name = name;
         this.description = description;
