@@ -23,9 +23,14 @@ public class AddressService {
     private final UserService userService;
 
     public AddressResponseDto createAddress(Long userId, CreateAddressRequest request) {
-        if(addressRepository.countByUserId(userId) == 10) {
+        if (addressRepository.countByUserId(userId) == 10) {
             throw new UserException(UserErrorCode.EXCEED_MAX_ADDRESS);
         }
+        if (addressRepository.existsByUserIdAndIsDefault(userId, true)) {
+            throw new UserException(UserErrorCode.ALREADY_EXISTS_DEFAULT_ADDRESS);
+        }
+
+
         User user = userService.findUser(userId);
 
         Address address =
