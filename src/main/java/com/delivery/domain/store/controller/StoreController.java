@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ public class StoreController {
 
     private final StoreService storeService;
 
+    @PreAuthorize("hasRole('OWNER')")
     @PostMapping
     public ResponseEntity<?> createStore(
             @Valid @RequestBody StoreRequestDto request,
@@ -72,6 +74,7 @@ public class StoreController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PutMapping("/{storeId}")
     public ResponseEntity<?> updateStore(
             @PathVariable UUID storeId,
@@ -90,6 +93,7 @@ public class StoreController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/{storeId}/status")
     public ResponseEntity<?> updateStoreStatus(
             @PathVariable UUID storeId,
@@ -108,6 +112,7 @@ public class StoreController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @DeleteMapping("/{storeId}")
     public ResponseEntity<?> deleteStore(
             @PathVariable UUID storeId,

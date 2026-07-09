@@ -58,6 +58,9 @@ public class SecurityConfig {
                                 .requestMatchers(
                                         HttpMethod.GET, "/api/v1/stores", "/api/v1/stores/*")
                                 .permitAll()
+                                .requestMatchers(
+                                        HttpMethod.GET, "/api/v1/categories", "/api/v1/regions")
+                                .permitAll()
 
                                 // 관리자
                                 .requestMatchers("/api/v1/users", "/api/v1/users/*")

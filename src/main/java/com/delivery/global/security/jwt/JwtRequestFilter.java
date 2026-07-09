@@ -50,11 +50,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = jwtUserDetailService.loadUserByUsername(username);
 
-            if (jwtTokenUtil.validateToken(jwt, userDetails)) {
-                setAuthentication(request, userDetails);
-            } else {
-                ErrorCode errorCode = AuthErrorCode.INVALID_TOKEN;
-                logger.warn(errorCode.getMessage());
+            try {
+                if (jwtTokenUtil.validateToken(jwt, userDetails)) {
+                    log.debug("JWT 인증 성공: {}, roles: {}", username, userDetails.getAuthorities());
+                    setAuthentication(request, userDetails);
+                } else {
+                    log.warn("JWT 검증 실패 (validateToken returned false): {}", username);
+                }
+            } catch (Exception e) {
+                log.warn("JWT 검증 중 예외 발생: {}", e.getMessage());
             }
         }
         filterChain.doFilter(request, response);

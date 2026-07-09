@@ -49,7 +49,7 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         // then
         User savedUser =
                 userRepository
-                        .findByUsernameAndDeletedAtIsNull(request.getUsername())
+                        .findWithRolesByUsernameAndDeletedAtIsNull(request.getUsername())
                         .orElseThrow();
 
         assertThat(savedUser.getId()).isEqualTo(response.getId());
@@ -65,7 +65,7 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         // given
         SignUpRequestDto request =
                 SignUpRequestDto.builder()
-                        .username("test1234567")
+                        .username("test123456")
                         .password("testtest1234!")
                         .nickName("test12345")
                         .phoneNumber("01012345678")

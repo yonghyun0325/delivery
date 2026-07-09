@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,5 +39,22 @@ public class RegionService {
                 .stream()
                 .map(RegionResponseDto::from)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public RegionResponseDto updateRegion(UUID regionId, RegionRequestDto request) {
+        Region region = regionRepository.findByRegionIdAndDeletedAtIsNull(regionId)
+                .orElseThrow(() -> new RuntimeException("지역을 찾을 수 없습니다."));
+
+        region.update(request.getName(), request.getLatitude(), request.getLongitude());
+        return RegionResponseDto.from(region);
+    }
+
+    @Transactional
+    public void deleteRegion(UUID regionId, String deletedBy) {
+        Region region = regionRepository.findByRegionIdAndDeletedAtIsNull(regionId)
+                .orElseThrow(() -> new RuntimeException("지역을 찾을 수 없습니다."));
+
+        region.delete(deletedBy);
     }
 }
