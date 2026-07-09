@@ -45,6 +45,10 @@ public abstract class BaseEntity {
     @Column(name = "deleted_by", length = 100)
     private String deletedBy;
 
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     /**
      * Soft Delete 처리
      *

@@ -45,4 +45,9 @@ public class Review extends BaseEntity {
             UUID orderId, UUID userId, UUID storeId, Integer rating, String content) {
         return new Review(orderId, userId, storeId, rating, content);
     }
+
+    public void update(Integer rating, String content) {
+        this.rating = rating;
+        this.content = content;
+    }
 }

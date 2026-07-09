@@ -35,4 +35,9 @@ public class ReviewResponse {
         this.createdBy = review.getCreatedBy();
         this.createdAt = review.getCreatedAt();
     }
+
+    /** Entity를 Response DTO로 변환 */
+    public static ReviewResponse toDto(Review Review) {
+        return new ReviewResponse(Review);
+    }
 }
