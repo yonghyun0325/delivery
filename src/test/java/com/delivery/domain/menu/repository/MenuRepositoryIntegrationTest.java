@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.delivery.domain.menu.entity.MenuEntity;
+import com.delivery.global.config.CustomAuditorAware;
 import com.delivery.global.config.JpaAuditingConfig;
 import com.delivery.testconfig.AbstractIntegrationTest;
 import java.util.List;
@@ -15,13 +16,27 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.AuditorAware;
 
 @DataJpaTest
-@Import(JpaAuditingConfig.class)
+@Import({JpaAuditingConfig.class, MenuRepositoryIntegrationTest.TestAuditorConfig.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class MenuRepositoryIntegrationTest extends AbstractIntegrationTest {
+
+    // @Import(CustomAuditorAware.class)만으로는 이 테스트 슬라이스에서
+    // "customAuditorAware"라는 빈 이름으로 등록되지 않아 @EnableJpaAuditing이 못 찾음 -
+    // @Bean(name=...)으로 명시적으로 등록해야 함.
+    @TestConfiguration
+    static class TestAuditorConfig {
+        @Bean(name = "customAuditorAware")
+        public AuditorAware<String> customAuditorAware() {
+            return new CustomAuditorAware();
+        }
+    }
 
     private static final UUID STORE_ID = UUID.randomUUID();
 
