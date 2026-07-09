@@ -1,13 +1,16 @@
 package com.delivery.domain.user.entity;
 
 import com.delivery.common.base.BaseEntity;
+import com.delivery.domain.user.enums.Role;
+import com.delivery.domain.user.enums.UserStatus;
 import jakarta.persistence.*;
 import java.util.Set;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Entity
-@Builder
+@SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "p_user")
@@ -38,4 +41,20 @@ public class User extends BaseEntity {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
+
+    public static User create(
+            String username,
+            String password,
+            String nickName,
+            String phoneNumber,
+            Set<Role> roles) {
+        return User.builder()
+                .username(username)
+                .password(password)
+                .nickName(nickName)
+                .phoneNumber(phoneNumber)
+                .roles(roles)
+                .userStatus(UserStatus.ACTIVE)
+                .build();
+    }
 }

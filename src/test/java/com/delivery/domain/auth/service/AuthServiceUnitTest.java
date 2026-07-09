@@ -6,9 +6,10 @@ import static org.mockito.Mockito.*;
 
 import com.delivery.domain.auth.dto.LoginRequestDto;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
-import com.delivery.domain.user.entity.Role;
+import com.delivery.domain.auth.exception.AuthException;
+import com.delivery.domain.user.enums.Role;
+import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,14 +44,13 @@ class AuthServiceUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build();
 
             when(userRepository.existsByUsername(request.getUsername())).thenReturn(true);
 
             // when & then
             assertThatThrownBy(() -> authService.signUp(request))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(UserException.class)
                     .hasMessage("이미 사용중인 아이디입니다.");
 
             verify(userRepository).existsByUsername(request.getUsername());
@@ -68,14 +68,13 @@ class AuthServiceUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build();
 
             when(userRepository.existsByNickName(request.getNickName())).thenReturn(true);
 
             // when & then
             assertThatThrownBy(() -> authService.signUp(request))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(UserException.class)
                     .hasMessage("이미 사용중인 닉네임입니다.");
 
             verify(userRepository).existsByNickName(request.getNickName());
@@ -101,7 +100,7 @@ class AuthServiceUnitTest {
 
             // when & then
             assertThatThrownBy(() -> authService.login(request))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(AuthException.class)
                     .hasMessage("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다.");
 
             verify(authenticationManager)
@@ -123,7 +122,7 @@ class AuthServiceUnitTest {
 
             // when & then
             assertThatThrownBy(() -> authService.login(request))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(AuthException.class)
                     .hasMessage("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다.");
 
             verify(authenticationManager)
