@@ -33,6 +33,4 @@ public class SignUpRequestDto {
     private String phoneNumber;
 
     @NotNull private Role role;
-
-    @NotBlank private String createdBy;
 }

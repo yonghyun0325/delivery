@@ -52,7 +52,6 @@ class AuthControllerUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build();
 
             AuthResponseDto response =
@@ -101,7 +100,6 @@ class AuthControllerUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build(),
 
                     // 비밀번호 유효성 검사 실패
@@ -111,7 +109,6 @@ class AuthControllerUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build(),
 
                     // 닉네임 유효성 검사 실패
@@ -121,7 +118,6 @@ class AuthControllerUnitTest {
                             .nickName("테스트테스트테스트테스트테스트테스트")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build(),
 
                     // 전화번호 유효성 검사 실패
@@ -131,7 +127,6 @@ class AuthControllerUnitTest {
                             .nickName("test")
                             .phoneNumber("연락처")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build());
         }
 

@@ -39,7 +39,6 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
                         .nickName("test")
                         .phoneNumber("01012345678")
                         .role(Role.CUSTOMER)
-                        .createdBy("SYSTEM")
                         .build();
 
         // when
@@ -69,7 +68,6 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
                         .nickName("test12345")
                         .phoneNumber("01012345678")
                         .role(Role.CUSTOMER)
-                        .createdBy("SYSTEM")
                         .build();
         int threadCount = 5;
 

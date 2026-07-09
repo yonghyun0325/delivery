@@ -55,7 +55,6 @@ public class User extends BaseEntity {
                 .phoneNumber(phoneNumber)
                 .roles(roles)
                 .userStatus(UserStatus.ACTIVE)
-                .createdBy("SYSTEM")
                 .build();
     }
 }

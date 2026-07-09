@@ -44,7 +44,6 @@ class AuthServiceUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build();
 
             when(userRepository.existsByUsername(request.getUsername())).thenReturn(true);
@@ -69,7 +68,6 @@ class AuthServiceUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build();
 
             when(userRepository.existsByNickName(request.getNickName())).thenReturn(true);
