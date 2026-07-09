@@ -1,5 +1,6 @@
 package com.delivery.domain.store.service;
 
+import com.delivery.domain.review.repository.ReviewRepository;
 import com.delivery.domain.store.dto.StoreRequestDto;
 import com.delivery.domain.store.dto.StoreResponseDto;
 import com.delivery.domain.store.entity.Store;
@@ -22,6 +23,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final CategoryRepository categoryRepository;
     private final RegionRepository regionRepository;
+    private final ReviewRepository reviewRepository;
 
     // 가게 등록
     @Transactional
@@ -101,5 +103,15 @@ public class StoreService {
                 .orElseThrow(() -> new RuntimeException("가게를 찾을 수 없습니다."));
 
         store.delete(userId.toString());
+    }
+
+    //가게 평점 평균
+    @Transactional
+    public void updateAverageRating(UUID storeId) {
+        Store store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
+                .orElseThrow(() -> new RuntimeException("가게를 찾을 수 없습니다."));
+
+        Double average = reviewRepository.findAverageRatingByStoreId(storeId);
+        store.updateAverageRating(average);
     }
 }

@@ -71,4 +71,8 @@ public class Store extends BaseEntity {
     public void delete(String deletedBy) {
         super.delete(deletedBy);
     }
+
+    public void updateAverageRating(Double averageRating) {
+        this.averageRating = averageRating != null ? averageRating : 0.0;
+    }
 }
