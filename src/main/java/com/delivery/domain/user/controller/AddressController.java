@@ -72,7 +72,8 @@ public class AddressController {
     public ResponseEntity<RestApiResponse<Void>> deleteAddress(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable UUID addressId) {
-        addressService.deleteAddress(customUserDetails.getId(), addressId);
+        addressService.deleteAddress(
+                customUserDetails.getId(), customUserDetails.getUsername(), addressId);
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "배송지 삭제 성공", null));
     }
 }

@@ -41,7 +41,17 @@ public class Address extends BaseEntity {
                 .address(address)
                 .addressDetail(addressDetail)
                 .isDefault(isDefault)
-                .createdBy(user.getUsername())
+                .createdBy(user.getId() + "_" + user.getUsername())
                 .build();
+    }
+
+    public void update(String address, String AddressDetail, boolean isDefault) {
+        this.address = address;
+        this.addressDetail = AddressDetail;
+        this.isDefault = isDefault;
+    }
+
+    public void updateDefault(boolean isDefault) {
+        this.isDefault = isDefault;
     }
 }
