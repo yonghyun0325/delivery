@@ -1,20 +1,20 @@
 package com.delivery.domain.store.controller;
 
+import com.delivery.common.RestApiResponse;
 import com.delivery.domain.store.dto.request.RegionRequest;
 import com.delivery.domain.store.dto.response.RegionResponse;
 import com.delivery.domain.store.service.RegionService;
 import com.delivery.global.security.config.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/regions")
@@ -25,64 +25,33 @@ public class RegionController {
 
     @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
     @PostMapping
-    public ResponseEntity<?> createRegion(@Valid @RequestBody RegionRequest request) {
+    public ResponseEntity<RestApiResponse<RegionResponse>> createRegion(@Valid @RequestBody RegionRequest request) {
         RegionResponse response = regionService.createRegion(request);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("code", 201);
-        result.put("message", "지역 등록 성공");
-        result.put("data", response);
-        result.put("error", null);
-
-        return ResponseEntity.status(201).body(result);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(RestApiResponse.success(HttpStatus.CREATED, "지역 등록 성공", response));
     }
 
     @GetMapping
-    public ResponseEntity<?> getRegions() {
+    public ResponseEntity<RestApiResponse<List<RegionResponse>>> getRegions() {
         List<RegionResponse> response = regionService.getRegions();
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("code", 200);
-        result.put("message", "조회 성공");
-        result.put("data", response);
-        result.put("error", null);
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "조회 성공", response));
     }
 
     @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
     @PutMapping("/{regionId}")
-    public ResponseEntity<?> updateRegion(
+    public ResponseEntity<RestApiResponse<RegionResponse>> updateRegion(
             @PathVariable UUID regionId,
             @Valid @RequestBody RegionRequest request) {
         RegionResponse response = regionService.updateRegion(regionId, request);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("code", 200);
-        result.put("message", "지역 수정 성공");
-        result.put("data", response);
-        result.put("error", null);
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "지역 수정 성공", response));
     }
 
     @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
     @DeleteMapping("/{regionId}")
-    public ResponseEntity<?> deleteRegion(
+    public ResponseEntity<RestApiResponse<Void>> deleteRegion(
             @PathVariable UUID regionId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         regionService.deleteRegion(regionId, userDetails.getUsername());
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("code", 200);
-        result.put("message", "지역 삭제 성공");
-        result.put("data", null);
-        result.put("error", null);
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "지역 삭제 성공", null));
     }
 }
