@@ -96,6 +96,67 @@ class MenuRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
+    @DisplayName("주문 가능 메뉴 조회")
+    class FindByMenuIdAndStoreIdAndDeletedAtIsNullAndHiddenIsFalse {
+
+        @Test
+        @DisplayName("존재·미삭제·미숨김·가게 소속이면 조회된다")
+        void findsOrderableMenu() {
+            UUID storeId = UUID.randomUUID();
+            MenuEntity menu = menuRepository.save(new MenuEntity(storeId, "김치찌개", "설명", 8000));
+
+            Optional<MenuEntity> found =
+                    menuRepository.findByMenuIdAndStoreIdAndDeletedAtIsNullAndHiddenIsFalse(
+                            menu.getMenuId(), storeId);
+
+            assertThat(found).isPresent();
+        }
+
+        @Test
+        @DisplayName("다른 가게 소속이면 조회되지 않는다")
+        void excludesMenuOfDifferentStore() {
+            UUID storeId = UUID.randomUUID();
+            MenuEntity menu = menuRepository.save(new MenuEntity(storeId, "김치찌개", "설명", 8000));
+
+            Optional<MenuEntity> found =
+                    menuRepository.findByMenuIdAndStoreIdAndDeletedAtIsNullAndHiddenIsFalse(
+                            menu.getMenuId(), UUID.randomUUID());
+
+            assertThat(found).isEmpty();
+        }
+
+        @Test
+        @DisplayName("숨김 처리된 메뉴는 조회되지 않는다")
+        void excludesHiddenMenu() {
+            UUID storeId = UUID.randomUUID();
+            MenuEntity menu = menuRepository.save(new MenuEntity(storeId, "김치찌개", "설명", 8000));
+            menu.updateHidden(true);
+            menuRepository.saveAndFlush(menu);
+
+            Optional<MenuEntity> found =
+                    menuRepository.findByMenuIdAndStoreIdAndDeletedAtIsNullAndHiddenIsFalse(
+                            menu.getMenuId(), storeId);
+
+            assertThat(found).isEmpty();
+        }
+
+        @Test
+        @DisplayName("삭제된 메뉴는 조회되지 않는다")
+        void excludesDeletedMenu() {
+            UUID storeId = UUID.randomUUID();
+            MenuEntity menu = menuRepository.save(new MenuEntity(storeId, "김치찌개", "설명", 8000));
+            menu.delete("owner1");
+            menuRepository.saveAndFlush(menu);
+
+            Optional<MenuEntity> found =
+                    menuRepository.findByMenuIdAndStoreIdAndDeletedAtIsNullAndHiddenIsFalse(
+                            menu.getMenuId(), storeId);
+
+            assertThat(found).isEmpty();
+        }
+    }
+
+    @Nested
     @DisplayName("price CHECK 제약조건")
     class PriceCheckConstraint {
 

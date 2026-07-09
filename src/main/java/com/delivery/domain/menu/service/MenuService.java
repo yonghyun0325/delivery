@@ -4,6 +4,7 @@ import com.delivery.domain.ai.exception.AiErrorCode;
 import com.delivery.domain.ai.exception.AiException;
 import com.delivery.domain.ai.service.AiService;
 import com.delivery.domain.menu.dto.response.MenuResponse;
+import com.delivery.domain.menu.dto.response.MenuSnapshot;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
@@ -97,6 +98,16 @@ public class MenuService {
     public void deleteMenu(UUID menuId, String deletedBy) {
         MenuEntity menu = findMenu(menuId);
         menu.delete(deletedBy);
+    }
+
+    // 주문/장바구니 도메인에 제공하는 계약 - 존재·미삭제·미숨김·가게 소속을 한 번에 검증 후 스냅샷 반환.
+    // 실패 사유(없음/다른 가게 소속/숨김/삭제됨)를 구분하지 않고 전부 MENU_NOT_FOUND로 응답 -
+    // 존재 여부 자체를 노출하지 않기 위함(다른 404 응답들과 동일 원칙).
+    public MenuSnapshot getOrderableMenu(UUID menuId, UUID storeId) {
+        return MenuSnapshot.from(
+                menuRepository
+                        .findByMenuIdAndStoreIdAndDeletedAtIsNullAndHiddenIsFalse(menuId, storeId)
+                        .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND)));
     }
 
     // 수정/삭제 등 엔티티 자체가 필요한 내부 호출용 - 공개 API(getMenu)는 MenuResponse를 반환하므로 분리함

@@ -11,6 +11,7 @@ import com.delivery.domain.ai.exception.AiErrorCode;
 import com.delivery.domain.ai.exception.AiException;
 import com.delivery.domain.ai.service.AiService;
 import com.delivery.domain.menu.dto.response.MenuResponse;
+import com.delivery.domain.menu.dto.response.MenuSnapshot;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
@@ -214,6 +215,45 @@ class MenuServiceTest {
 
             assertThat(menu.isDeleted()).isTrue();
             assertThat(menu.getDeletedBy()).isEqualTo("owner1");
+        }
+    }
+
+    @Nested
+    @DisplayName("주문 가능 메뉴 조회")
+    class GetOrderableMenu {
+
+        @Test
+        @DisplayName("존재·미삭제·미숨김·가게 소속이면 스냅샷을 반환한다")
+        void getOrderableMenu_returnsSnapshot_whenValid() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+
+            given(
+                            menuRepository.findByMenuIdAndStoreIdAndDeletedAtIsNullAndHiddenIsFalse(
+                                    menuId, STORE_ID))
+                    .willReturn(Optional.of(menu));
+
+            MenuSnapshot result = menuService.getOrderableMenu(menuId, STORE_ID);
+
+            assertThat(result).isEqualTo(MenuSnapshot.from(menu));
+        }
+
+        @Test
+        @DisplayName("조건을 만족하지 않으면(없음/다른 가게/숨김/삭제) MENU_NOT_FOUND 예외를 던진다")
+        void getOrderableMenu_throws_whenNotOrderable() {
+
+            UUID menuId = UUID.randomUUID();
+
+            given(
+                            menuRepository.findByMenuIdAndStoreIdAndDeletedAtIsNullAndHiddenIsFalse(
+                                    menuId, STORE_ID))
+                    .willReturn(Optional.empty());
+
+            assertThatExceptionOfType(MenuException.class)
+                    .isThrownBy(() -> menuService.getOrderableMenu(menuId, STORE_ID))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(MenuErrorCode.MENU_NOT_FOUND);
         }
     }
 }
