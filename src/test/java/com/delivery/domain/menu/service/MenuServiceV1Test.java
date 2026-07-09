@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.delivery.domain.ai.exception.AiErrorCode;
 import com.delivery.domain.ai.service.AiServiceV1;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
@@ -49,6 +51,33 @@ class MenuServiceV1Test {
 
             assertThat(result).isEqualTo(saved);
             verify(menuRepository).save(any(MenuEntity.class));
+        }
+
+        @Test
+        @DisplayName("aiGeneration이 true면 AI가 생성한 설명으로 메뉴를 생성한다")
+        void createMenu_withAiGeneration_usesGeneratedDescription() {
+
+            given(aiServiceV1.generateProductDescription("김치찌개 설명 써줘")).willReturn("AI가 만든 설명");
+            given(menuRepository.save(any(MenuEntity.class)))
+                    .willAnswer(invocation -> invocation.getArgument(0));
+
+            MenuEntity result =
+                    menuService.createMenu(STORE_ID, "김치찌개", null, 8000, true, "김치찌개 설명 써줘");
+
+            assertThat(result.getDescription()).isEqualTo("AI가 만든 설명");
+        }
+
+        @Test
+        @DisplayName("aiGeneration이 true인데 aiPrompt가 비어있으면 AI_PROMPT_REQUIRED 예외를 던진다")
+        void createMenu_withAiGenerationButNoPrompt_throws() {
+
+            assertThatExceptionOfType(BusinessException.class)
+                    .isThrownBy(
+                            () -> menuService.createMenu(STORE_ID, "김치찌개", null, 8000, true, " "))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(AiErrorCode.AI_PROMPT_REQUIRED);
+
+            verifyNoInteractions(aiServiceV1);
         }
     }
 
