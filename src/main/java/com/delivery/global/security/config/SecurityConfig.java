@@ -45,7 +45,12 @@ public class SecurityConfig {
 
         httpSecurity.authorizeHttpRequests(
                 (requests) ->
-                        requests.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/scalar", "/scalar/**", "/webjars/**")
+                        requests.requestMatchers(
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
+                                        "/scalar",
+                                        "/scalar/**",
+                                        "/webjars/**")
                                 .permitAll()
 
                                 // 공통 권한
