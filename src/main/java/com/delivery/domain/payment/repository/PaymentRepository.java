@@ -16,28 +16,41 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             Long userId, PaymentStatus paymentStatus, Pageable pageable);
 
     @Query(
-            """
-            select p
-            from Payment p
-            where p.orderId in (
-                select o.id
-                from Order o
-                where o.storeId = :storeId
-            )
-            """)
+            value =
+                    """
+                    select p.*
+                    from p_payment p
+                    join p_order o on p.order_id = o.id
+                    where o.store_id = :storeId
+                    """,
+            countQuery =
+                    """
+                    select count(*)
+                    from p_payment p
+                    join p_order o on p.order_id = o.id
+                    where o.store_id = :storeId
+                    """,
+            nativeQuery = true)
     Page<Payment> findByStoreId(UUID storeId, Pageable pageable);
 
     @Query(
-            """
-            select p
-            from Payment p
-            where p.paymentStatus = :paymentStatus
-              and p.orderId in (
-                select o.id
-                from Order o
-                where o.storeId = :storeId
-            )
-            """)
+            value =
+                    """
+                    select p.*
+                    from p_payment p
+                    join p_order o on p.order_id = o.id
+                    where o.store_id = :storeId
+                      and p.payment_status = cast(:paymentStatus as varchar)
+                    """,
+            countQuery =
+                    """
+                    select count(*)
+                    from p_payment p
+                    join p_order o on p.order_id = o.id
+                    where o.store_id = :storeId
+                      and p.payment_status = cast(:paymentStatus as varchar)
+                    """,
+            nativeQuery = true)
     Page<Payment> findByStoreIdAndPaymentStatus(
             UUID storeId, PaymentStatus paymentStatus, Pageable pageable);
 }
