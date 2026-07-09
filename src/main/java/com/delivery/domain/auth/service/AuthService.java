@@ -4,16 +4,15 @@ import com.delivery.domain.auth.dto.AuthResponseDto;
 import com.delivery.domain.auth.dto.LoginRequestDto;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
 import com.delivery.domain.auth.exception.AuthErrorCode;
-import com.delivery.domain.user.entity.Role;
+import com.delivery.domain.auth.exception.AuthException;
 import com.delivery.domain.user.entity.User;
-import com.delivery.domain.user.entity.UserStatus;
+import com.delivery.domain.user.enums.Role;
 import com.delivery.domain.user.exception.UserErrorCode;
+import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.mapper.UserDtoMapper;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.global.exception.BusinessException;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
-import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,7 +38,17 @@ public class AuthService {
         validateDuplicateNickName(request.getNickName());
         Role.validateSignupRole(request.getRole());
 
-        User savedUser = createUser(request);
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        Set<Role> roles = Role.getDefaultRoles(request.getRole());
+
+        User savedUser =
+                userRepository.save(
+                        User.create(
+                                request.getUsername(),
+                                encodedPassword,
+                                request.getNickName(),
+                                request.getPhoneNumber(),
+                                roles));
         CustomUserDetails userDetails = CustomUserDetails.from(savedUser);
 
         String accessToken = jwtUtil.generateAccessToken(userDetails, userDetails.getId());
@@ -60,38 +69,19 @@ public class AuthService {
             return UserDtoMapper.toDto(userDetails, accessToken);
 
         } catch (InternalAuthenticationServiceException | BadCredentialsException e) {
-            throw new BusinessException(AuthErrorCode.INVALID_LOGIN);
+            throw new AuthException(AuthErrorCode.INVALID_LOGIN);
         }
-    }
-
-    private User createUser(SignUpRequestDto request) {
-        Set<Role> roles = new HashSet<>();
-        roles.add(Role.CUSTOMER);
-
-        if (Role.OWNER.equals(request.getRole())) {
-            roles.add(Role.OWNER);
-        }
-
-        return userRepository.save(
-                User.builder()
-                        .username(request.getUsername())
-                        .password(passwordEncoder.encode(request.getPassword()))
-                        .nickName(request.getNickName())
-                        .phoneNumber(request.getPhoneNumber())
-                        .roles(roles)
-                        .userStatus(UserStatus.ACTIVE)
-                        .build());
     }
 
     private void validateDuplicateUsername(String username) {
         if (userRepository.existsByUsername(username)) {
-            throw new BusinessException(UserErrorCode.DUPLICATE_USERNAME);
+            throw new UserException(UserErrorCode.DUPLICATE_USERNAME);
         }
     }
 
     private void validateDuplicateNickName(String nickName) {
         if (userRepository.existsByNickName(nickName)) {
-            throw new BusinessException(UserErrorCode.DUPLICATE_NICKNAME);
+            throw new UserException(UserErrorCode.DUPLICATE_NICKNAME);
         }
     }
 }

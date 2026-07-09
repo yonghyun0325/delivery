@@ -16,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -25,6 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtRequestFilter jwtRequestFilter;
+    private final AccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -43,7 +45,12 @@ public class SecurityConfig {
 
         httpSecurity.authorizeHttpRequests(
                 (requests) ->
-                        requests.requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
+                        requests.requestMatchers(
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
+                                        "/scalar",
+                                        "/scalar/**",
+                                        "/webjars/**")
                                 .permitAll()
 
                                 // 공통 권한
@@ -67,7 +74,9 @@ public class SecurityConfig {
                                 .anyRequest()
                                 .authenticated());
         httpSecurity.exceptionHandling(
-                config -> config.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+                config ->
+                        config.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                                .accessDeniedHandler(accessDeniedHandler));
 
         httpSecurity.sessionManagement(
                 sessionManagement ->

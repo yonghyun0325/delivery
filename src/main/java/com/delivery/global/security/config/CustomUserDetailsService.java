@@ -2,8 +2,8 @@ package com.delivery.global.security.config;
 
 import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;
+import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.global.exception.BusinessException;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user =
                 userRepository
                         .findWithRolesByUsernameAndDeletedAtIsNull(username)
-                        .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_EXIST_USER));
+                        .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_USER));
 
         List<GrantedAuthority> authorities =
                 user.getRoles().stream()

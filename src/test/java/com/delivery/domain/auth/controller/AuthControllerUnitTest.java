@@ -10,7 +10,7 @@ import com.delivery.domain.auth.dto.AuthResponseDto;
 import com.delivery.domain.auth.dto.LoginRequestDto;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
 import com.delivery.domain.auth.service.AuthService;
-import com.delivery.domain.user.entity.Role;
+import com.delivery.domain.user.enums.Role;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.stream.Stream;
@@ -52,7 +52,6 @@ class AuthControllerUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build();
 
             AuthResponseDto response =
@@ -101,7 +100,6 @@ class AuthControllerUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build(),
 
                     // 비밀번호 유효성 검사 실패
@@ -111,7 +109,6 @@ class AuthControllerUnitTest {
                             .nickName("test")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build(),
 
                     // 닉네임 유효성 검사 실패
@@ -121,7 +118,6 @@ class AuthControllerUnitTest {
                             .nickName("테스트테스트테스트테스트테스트테스트")
                             .phoneNumber("01012345678")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build(),
 
                     // 전화번호 유효성 검사 실패
@@ -131,7 +127,6 @@ class AuthControllerUnitTest {
                             .nickName("test")
                             .phoneNumber("연락처")
                             .role(Role.CUSTOMER)
-                            .createdBy("SYSTEM")
                             .build());
         }
 
@@ -188,14 +183,14 @@ class AuthControllerUnitTest {
                                 post("/api/v1/auth/login")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsString(request)))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.message").value("아이디를 입력해주세요."));
+                        .andExpect(status().isUnauthorized())
+                        .andExpect(jsonPath("$.message").value("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다."));
                 mockMvc.perform(
                                 post("/api/v1/auth/login")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsString(request2)))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.message").value("비밀번호를 입력해주세요."));
+                        .andExpect(status().isUnauthorized())
+                        .andExpect(jsonPath("$.message").value("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다."));
             }
         }
     }

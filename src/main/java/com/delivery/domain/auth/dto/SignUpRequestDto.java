@@ -1,6 +1,6 @@
 package com.delivery.domain.auth.dto;
 
-import com.delivery.domain.user.entity.Role;
+import com.delivery.domain.user.enums.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -33,6 +33,4 @@ public class SignUpRequestDto {
     private String phoneNumber;
 
     @NotNull private Role role;
-
-    @NotBlank private String createdBy;
 }
