@@ -23,13 +23,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClientException;
 
 @ExtendWith(MockitoExtension.class)
-class AiServiceV1Test {
+class AiServiceTest {
 
     @Mock private GeminiClient geminiClient;
 
     @Mock private AiLogRepository aiLogRepository;
 
-    @InjectMocks private AiServiceV1 aiServiceV1;
+    @InjectMocks private AiService aiService;
 
     @Nested
     @DisplayName("상품 설명 생성")
@@ -40,7 +40,7 @@ class AiServiceV1Test {
         void generateProductDescription_returnsResponse_andLogsSuccess() {
             given(geminiClient.generateContent(any())).willReturn("맛있는 설명");
 
-            String result = aiServiceV1.generateProductDescription("김치찌개 설명 써줘");
+            String result = aiService.generateProductDescription("김치찌개 설명 써줘");
 
             assertThat(result).isEqualTo("맛있는 설명");
             verify(aiLogRepository)
@@ -57,7 +57,7 @@ class AiServiceV1Test {
             String longPrompt = "a".repeat(201);
 
             assertThatExceptionOfType(AiException.class)
-                    .isThrownBy(() -> aiServiceV1.generateProductDescription(longPrompt))
+                    .isThrownBy(() -> aiService.generateProductDescription(longPrompt))
                     .extracting(BusinessException::getErrorCode)
                     .isEqualTo(AiErrorCode.AI_PROMPT_TOO_LONG);
 
@@ -70,7 +70,7 @@ class AiServiceV1Test {
             given(geminiClient.generateContent(any())).willThrow(new RestClientException("연결 실패"));
 
             assertThatExceptionOfType(AiException.class)
-                    .isThrownBy(() -> aiServiceV1.generateProductDescription("김치찌개 설명 써줘"))
+                    .isThrownBy(() -> aiService.generateProductDescription("김치찌개 설명 써줘"))
                     .extracting(BusinessException::getErrorCode)
                     .isEqualTo(AiErrorCode.AI_GENERATION_FAILED);
 

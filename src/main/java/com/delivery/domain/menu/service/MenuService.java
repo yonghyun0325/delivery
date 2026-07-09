@@ -2,7 +2,8 @@ package com.delivery.domain.menu.service;
 
 import com.delivery.domain.ai.exception.AiErrorCode;
 import com.delivery.domain.ai.exception.AiException;
-import com.delivery.domain.ai.service.AiServiceV1;
+import com.delivery.domain.ai.service.AiService;
+import com.delivery.domain.menu.dto.response.MenuResponse;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
@@ -16,14 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MenuServiceV1 {
+public class MenuService {
 
     private final MenuRepository menuRepository;
-    private final AiServiceV1 aiServiceV1;
+    private final AiService aiService;
 
     // 메뉴 생성
     @Transactional
-    public MenuEntity createMenu(
+    public MenuResponse createMenu(
             UUID storeId,
             String name,
             String description,
@@ -37,52 +38,59 @@ public class MenuServiceV1 {
             if (aiPrompt == null || aiPrompt.isBlank()) {
                 throw new AiException(AiErrorCode.AI_PROMPT_REQUIRED);
             }
-            finalDescription = aiServiceV1.generateProductDescription(aiPrompt);
+            finalDescription = aiService.generateProductDescription(aiPrompt);
         }
 
         MenuEntity menu = new MenuEntity(storeId, name, finalDescription, price);
-        return menuRepository.save(menu);
+        return MenuResponse.from(menuRepository.save(menu));
     }
 
     // 메뉴 목록 조회
     // 클래스 레벨 @Transactional(readOnly = true) 적용
     // 읽기 전용 -> 더티체킹/flush 생략. 조회 성능 높임.
-    public List<MenuEntity> getStoreMenus(UUID storeId) {
-        return menuRepository.findAllByStoreIdAndDeletedAtIsNull(storeId);
+    public List<MenuResponse> getStoreMenus(UUID storeId) {
+        return menuRepository.findAllByStoreIdAndDeletedAtIsNull(storeId).stream()
+                .map(MenuResponse::from)
+                .toList();
     }
 
     // 메뉴 단건 조회
     // 클래스 레벨 @Transactional(readOnly = true) 적용
     // 읽기 전용 -> 더티체킹/flush 생략. 조회 성능 높임.
-    public MenuEntity getMenu(UUID menuId) {
-        return menuRepository
-                .findByMenuIdAndDeletedAtIsNull(menuId)
-                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+    public MenuResponse getMenu(UUID menuId) {
+        return MenuResponse.from(findMenu(menuId));
     }
 
     // 메뉴 수정
     @Transactional
-    public MenuEntity updateMenu(UUID menuId, String name, String description, int price) {
+    public MenuResponse updateMenu(UUID menuId, String name, String description, int price) {
         validateMenu(name, price);
 
-        MenuEntity menu = getMenu(menuId);
+        MenuEntity menu = findMenu(menuId);
         menu.update(name, description, price);
-        return menu;
+        return MenuResponse.from(menu);
     }
 
     // 숨김 상태 업데이트
     @Transactional
-    public MenuEntity updateVisibility(UUID menuId, boolean hidden) {
-        MenuEntity menu = getMenu(menuId);
+    public MenuResponse updateVisibility(UUID menuId, boolean hidden) {
+        MenuEntity menu = findMenu(menuId);
         menu.updateHidden(hidden);
-        return menu;
+        return MenuResponse.from(menu);
     }
 
     // 메뉴 삭제 (Soft Delete)
     @Transactional
     public void deleteMenu(UUID menuId, String deletedBy) {
-        MenuEntity menu = getMenu(menuId);
+        MenuEntity menu = findMenu(menuId);
         menu.delete(deletedBy);
+    }
+
+    // 수정/삭제 등 엔티티 자체가 필요한 내부 호출용 - 공개 API(getMenu)는 MenuResponse를 반환하므로 분리함
+    private MenuEntity findMenu(UUID menuId) {
+        return menuRepository
+                .findByMenuIdAndDeletedAtIsNull(menuId)
+                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
     }
 
     // 컨트롤러를 거치지 않는 호출(내부 서비스 간 호출 등)에서도 규칙이 지켜지도록 서비스 레벨에서도 검증

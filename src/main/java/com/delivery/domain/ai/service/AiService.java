@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClientException;
 
 @Service
 @RequiredArgsConstructor
-public class AiServiceV1 {
+public class AiService {
 
     private static final int PROMPT_MAX_LENGTH = 200;
     private static final String CONCISE_SUFFIX = " 답변을 최대한 간결하게 50자 이하로 메뉴 설명을 작성해줘.";

@@ -9,7 +9,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.delivery.domain.ai.exception.AiErrorCode;
 import com.delivery.domain.ai.exception.AiException;
-import com.delivery.domain.ai.service.AiServiceV1;
+import com.delivery.domain.ai.service.AiService;
+import com.delivery.domain.menu.dto.response.MenuResponse;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
@@ -27,31 +28,31 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class MenuServiceV1Test {
+class MenuServiceTest {
 
     private static final UUID STORE_ID = UUID.randomUUID();
 
     @Mock private MenuRepository menuRepository;
 
-    @Mock private AiServiceV1 aiServiceV1;
+    @Mock private AiService aiService;
 
-    @InjectMocks private MenuServiceV1 menuService;
+    @InjectMocks private MenuService menuService;
 
     @Nested
     @DisplayName("메뉴 생성")
     class CreateMenu {
 
         @Test
-        @DisplayName("리포지토리에 저장하고 저장된 엔티티를 반환한다")
+        @DisplayName("리포지토리에 저장하고 저장된 엔티티 기반의 응답을 반환한다")
         void createMenu_savesAndReturns() {
 
             MenuEntity saved = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
 
             given(menuRepository.save(any(MenuEntity.class))).willReturn(saved);
 
-            MenuEntity result = menuService.createMenu(STORE_ID, "김치찌개", "설명", 8000, false, null);
+            MenuResponse result = menuService.createMenu(STORE_ID, "김치찌개", "설명", 8000, false, null);
 
-            assertThat(result).isEqualTo(saved);
+            assertThat(result).isEqualTo(MenuResponse.from(saved));
             verify(menuRepository).save(any(MenuEntity.class));
         }
 
@@ -59,14 +60,14 @@ class MenuServiceV1Test {
         @DisplayName("aiGeneration이 true면 AI가 생성한 설명으로 메뉴를 생성한다")
         void createMenu_withAiGeneration_usesGeneratedDescription() {
 
-            given(aiServiceV1.generateProductDescription("김치찌개 설명 써줘")).willReturn("AI가 만든 설명");
+            given(aiService.generateProductDescription("김치찌개 설명 써줘")).willReturn("AI가 만든 설명");
             given(menuRepository.save(any(MenuEntity.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
-            MenuEntity result =
+            MenuResponse result =
                     menuService.createMenu(STORE_ID, "김치찌개", null, 8000, true, "김치찌개 설명 써줘");
 
-            assertThat(result.getDescription()).isEqualTo("AI가 만든 설명");
+            assertThat(result.description()).isEqualTo("AI가 만든 설명");
         }
 
         @Test
@@ -79,7 +80,7 @@ class MenuServiceV1Test {
                     .extracting(BusinessException::getErrorCode)
                     .isEqualTo(AiErrorCode.AI_PROMPT_REQUIRED);
 
-            verifyNoInteractions(aiServiceV1);
+            verifyNoInteractions(aiService);
         }
     }
 
@@ -88,8 +89,8 @@ class MenuServiceV1Test {
     class GetMenu {
 
         @Test
-        @DisplayName("존재하면 엔티티를 반환한다")
-        void getMenu_returnsEntity_whenExists() {
+        @DisplayName("존재하면 응답을 반환한다")
+        void getMenu_returnsResponse_whenExists() {
 
             UUID menuId = UUID.randomUUID();
             MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
@@ -97,9 +98,9 @@ class MenuServiceV1Test {
             given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
                     .willReturn(Optional.of(menu));
 
-            MenuEntity result = menuService.getMenu(menuId);
+            MenuResponse result = menuService.getMenu(menuId);
 
-            assertThat(result).isEqualTo(menu);
+            assertThat(result).isEqualTo(MenuResponse.from(menu));
         }
 
         @Test
@@ -126,13 +127,13 @@ class MenuServiceV1Test {
         @DisplayName("삭제되지 않은 메뉴 목록을 반환한다")
         void getStoreMenus_returnsList() {
 
-            List<MenuEntity> menus = List.of(new MenuEntity(STORE_ID, "메뉴1", null, 1000));
+            MenuEntity menu = new MenuEntity(STORE_ID, "메뉴1", null, 1000);
+            given(menuRepository.findAllByStoreIdAndDeletedAtIsNull(STORE_ID))
+                    .willReturn(List.of(menu));
 
-            given(menuRepository.findAllByStoreIdAndDeletedAtIsNull(STORE_ID)).willReturn(menus);
+            List<MenuResponse> result = menuService.getStoreMenus(STORE_ID);
 
-            List<MenuEntity> result = menuService.getStoreMenus(STORE_ID);
-
-            assertThat(result).isEqualTo(menus);
+            assertThat(result).containsExactly(MenuResponse.from(menu));
         }
     }
 
@@ -150,11 +151,11 @@ class MenuServiceV1Test {
             given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
                     .willReturn(Optional.of(menu));
 
-            MenuEntity result = menuService.updateMenu(menuId, "된장찌개", "새 설명", 9000);
+            MenuResponse result = menuService.updateMenu(menuId, "된장찌개", "새 설명", 9000);
 
-            assertThat(result.getName()).isEqualTo("된장찌개");
-            assertThat(result.getDescription()).isEqualTo("새 설명");
-            assertThat(result.getPrice()).isEqualTo(9000);
+            assertThat(result.name()).isEqualTo("된장찌개");
+            assertThat(result.description()).isEqualTo("새 설명");
+            assertThat(result.price()).isEqualTo(9000);
         }
     }
 
@@ -172,9 +173,9 @@ class MenuServiceV1Test {
             given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
                     .willReturn(Optional.of(menu));
 
-            MenuEntity result = menuService.updateVisibility(menuId, true);
+            MenuResponse result = menuService.updateVisibility(menuId, true);
 
-            assertThat(result.isHidden()).isTrue();
+            assertThat(result.hidden()).isTrue();
         }
     }
 

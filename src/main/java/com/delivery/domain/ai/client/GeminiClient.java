@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClient;
 
 // Gemini generateContent API를 호출하는 역할만 담당함 (infra 계층 성격).
 // 글자수 검증, 프롬프트에 문구 삽입, 로그 저장 같은 비즈니스 로직은 여기 없음 -
-// 그건 이 클래스를 호출하는 AiServiceV1의 책임.
+// 그건 이 클래스를 호출하는 AiService의 책임.
 @Component
 public class GeminiClient {
 
@@ -29,9 +29,9 @@ public class GeminiClient {
         this.model = model;
     }
 
-    // prompt는 AiServiceV1이 글자수 검증 + "50자 이하로" 문구 삽입까지 끝낸 최종 텍스트.
+    // prompt는 AiService이 글자수 검증 + "50자 이하로" 문구 삽입까지 끝낸 최종 텍스트.
     // 실패(4xx/5xx, 네트워크 오류) 시 RestClientException이 그대로 던져짐 -
-    // 여기서 잡지 않고 호출자(AiServiceV1)가 잡아서 AI_GENERATION_FAILED로 변환하고
+    // 여기서 잡지 않고 호출자(AiService)가 잡아서 AI_GENERATION_FAILED로 변환하고
     // 실패 로그를 남기도록 함. API 키가 URL 쿼리에 들어가므로 요청/응답을 로깅하지 않음.
     public String generateContent(String prompt) {
         GeminiGenerateContentResponse response =

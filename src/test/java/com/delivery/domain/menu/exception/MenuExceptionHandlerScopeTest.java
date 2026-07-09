@@ -7,9 +7,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.delivery.domain.auth.controller.AuthController;
 import com.delivery.domain.auth.dto.SignUpRequestDto;
 import com.delivery.domain.auth.service.AuthService;
-import com.delivery.domain.menu.controller.MenuControllerV1;
-import com.delivery.domain.menu.dto.request.ReqCreateMenuDtoV1;
-import com.delivery.domain.menu.service.MenuServiceV1;
+import com.delivery.domain.menu.controller.MenuController;
+import com.delivery.domain.menu.dto.request.CreateMenuRequest;
+import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.user.enums.Role;
 import com.delivery.global.security.jwt.JwtRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,11 +24,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-// MenuExceptionHandler(assignableTypes = MenuControllerV1.class)가 정말로 MenuControllerV1에만
+// MenuExceptionHandler(assignableTypes = MenuController.class)가 정말로 MenuController에만
 // 적용되고 다른 컨트롤러(AuthController)의 예외 처리는 그대로 GlobalExceptionHandler가
 // 담당하는지 확인하는 테스트. 두 컨트롤러를 한 슬라이스에 같이 올려야 스코프 누수 여부를
 // 검증할 수 있어서 별도 파일로 분리함.
-@WebMvcTest(controllers = {MenuControllerV1.class, AuthController.class})
+@WebMvcTest(controllers = {MenuController.class, AuthController.class})
 @AutoConfigureMockMvc(addFilters = false)
 class MenuExceptionHandlerScopeTest {
 
@@ -36,7 +36,7 @@ class MenuExceptionHandlerScopeTest {
 
     @Autowired private ObjectMapper objectMapper;
 
-    @MockitoBean private MenuServiceV1 menuService;
+    @MockitoBean private MenuService menuService;
 
     @MockitoBean private AuthService authService;
 
@@ -47,10 +47,10 @@ class MenuExceptionHandlerScopeTest {
     class Scope {
 
         @Test
-        @DisplayName("MenuControllerV1의 검증 실패는 MenuExceptionHandler가 처리한다")
+        @DisplayName("MenuController의 검증 실패는 MenuExceptionHandler가 처리한다")
         void menuValidationFailure_usesMenuErrorCode() throws Exception {
             UUID storeId = UUID.randomUUID();
-            ReqCreateMenuDtoV1 request = new ReqCreateMenuDtoV1("", "설명", 8000, false, null);
+            CreateMenuRequest request = new CreateMenuRequest("", "설명", 8000, false, null);
 
             mockMvc.perform(
                             post("/api/v1/stores/{storeId}/menus", storeId)

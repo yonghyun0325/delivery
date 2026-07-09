@@ -11,13 +11,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.delivery.domain.menu.dto.request.ReqCreateMenuDtoV1;
-import com.delivery.domain.menu.dto.request.ReqUpdateMenuDtoV1;
-import com.delivery.domain.menu.dto.request.ReqUpdateMenuVisibilityDtoV1;
+import com.delivery.domain.menu.dto.request.CreateMenuRequest;
+import com.delivery.domain.menu.dto.request.UpdateMenuRequest;
+import com.delivery.domain.menu.dto.request.UpdateMenuVisibilityRequest;
+import com.delivery.domain.menu.dto.response.MenuResponse;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
-import com.delivery.domain.menu.service.MenuServiceV1;
+import com.delivery.domain.menu.service.MenuService;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,9 +37,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(MenuControllerV1.class)
+@WebMvcTest(MenuController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class MenuControllerV1Test {
+class MenuControllerTest {
 
     private static final UUID STORE_ID = UUID.randomUUID();
 
@@ -46,7 +47,7 @@ class MenuControllerV1Test {
 
     @Autowired private ObjectMapper objectMapper;
 
-    @MockitoBean private MenuServiceV1 menuService;
+    @MockitoBean private MenuService menuService;
 
     // @WebMvcTest는 Filter 타입 빈을 자동으로 스캔 대상에 포함시키는데,
     // JwtRequestFilter는 JwtUtil에 의존해 실제 컨텍스트 로딩이 실패한다. 모킹으로 우회.
@@ -59,7 +60,7 @@ class MenuControllerV1Test {
         @Test
         @DisplayName("생성에 성공하면 201과 생성된 메뉴를 반환한다")
         void createMenu_returns201() throws Exception {
-            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+            MenuResponse response = MenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
             given(
                             menuService.createMenu(
                                     eq(STORE_ID),
@@ -68,9 +69,9 @@ class MenuControllerV1Test {
                                     eq(8000),
                                     eq(false),
                                     isNull()))
-                    .willReturn(menu);
+                    .willReturn(response);
 
-            ReqCreateMenuDtoV1 request = new ReqCreateMenuDtoV1("김치찌개", "설명", 8000, false, null);
+            CreateMenuRequest request = new CreateMenuRequest("김치찌개", "설명", 8000, false, null);
 
             mockMvc.perform(
                             post("/api/v1/stores/{storeId}/menus", STORE_ID)
@@ -87,7 +88,7 @@ class MenuControllerV1Test {
         @Test
         @DisplayName("이름이 비어있으면 400과 INVALID_MENU_NAME 에러를 반환한다")
         void createMenu_returns400_whenNameBlank() throws Exception {
-            ReqCreateMenuDtoV1 request = new ReqCreateMenuDtoV1("", "설명", 8000, false, null);
+            CreateMenuRequest request = new CreateMenuRequest("", "설명", 8000, false, null);
 
             mockMvc.perform(
                             post("/api/v1/stores/{storeId}/menus", STORE_ID)
@@ -101,7 +102,7 @@ class MenuControllerV1Test {
         @Test
         @DisplayName("가격이 0 이하이면 400과 INVALID_MENU_PRICE 에러를 반환한다")
         void createMenu_returns400_whenPriceNotPositive() throws Exception {
-            ReqCreateMenuDtoV1 request = new ReqCreateMenuDtoV1("김치찌개", "설명", 0, false, null);
+            CreateMenuRequest request = new CreateMenuRequest("김치찌개", "설명", 0, false, null);
 
             mockMvc.perform(
                             post("/api/v1/stores/{storeId}/menus", STORE_ID)
@@ -120,8 +121,8 @@ class MenuControllerV1Test {
         @Test
         @DisplayName("메뉴 목록을 200과 함께 반환한다")
         void getStoreMenus_returns200() throws Exception {
-            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
-            given(menuService.getStoreMenus(STORE_ID)).willReturn(List.of(menu));
+            MenuResponse response = MenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
+            given(menuService.getStoreMenus(STORE_ID)).willReturn(List.of(response));
 
             mockMvc.perform(get("/api/v1/stores/{storeId}/menus", STORE_ID))
                     .andExpect(status().isOk())
@@ -139,8 +140,8 @@ class MenuControllerV1Test {
         @DisplayName("존재하면 200과 메뉴 정보를 반환한다")
         void getMenu_returns200_whenExists() throws Exception {
             UUID menuId = UUID.randomUUID();
-            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
-            given(menuService.getMenu(menuId)).willReturn(menu);
+            MenuResponse response = MenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
+            given(menuService.getMenu(menuId)).willReturn(response);
 
             mockMvc.perform(get("/api/v1/menus/{menuId}", menuId))
                     .andExpect(status().isOk())
@@ -172,11 +173,12 @@ class MenuControllerV1Test {
         @DisplayName("수정에 성공하면 200과 수정된 메뉴를 반환한다")
         void updateMenu_returns200() throws Exception {
             UUID menuId = UUID.randomUUID();
-            MenuEntity menu = new MenuEntity(STORE_ID, "된장찌개", "새 설명", 9000);
+            MenuResponse response =
+                    MenuResponse.from(new MenuEntity(STORE_ID, "된장찌개", "새 설명", 9000));
             given(menuService.updateMenu(eq(menuId), eq("된장찌개"), eq("새 설명"), eq(9000)))
-                    .willReturn(menu);
+                    .willReturn(response);
 
-            ReqUpdateMenuDtoV1 request = new ReqUpdateMenuDtoV1("된장찌개", "새 설명", 9000);
+            UpdateMenuRequest request = new UpdateMenuRequest("된장찌개", "새 설명", 9000);
 
             mockMvc.perform(
                             patch("/api/v1/menus/{menuId}", menuId)
@@ -191,7 +193,7 @@ class MenuControllerV1Test {
         @DisplayName("이름이 비어있으면 400과 INVALID_MENU_NAME 에러를 반환한다")
         void updateMenu_returns400_whenNameBlank() throws Exception {
             UUID menuId = UUID.randomUUID();
-            ReqUpdateMenuDtoV1 request = new ReqUpdateMenuDtoV1("", "새 설명", 9000);
+            UpdateMenuRequest request = new UpdateMenuRequest("", "새 설명", 9000);
 
             mockMvc.perform(
                             patch("/api/v1/menus/{menuId}", menuId)
@@ -205,7 +207,7 @@ class MenuControllerV1Test {
         @DisplayName("가격이 0 이하이면 400과 INVALID_MENU_PRICE 에러를 반환한다")
         void updateMenu_returns400_whenPriceNotPositive() throws Exception {
             UUID menuId = UUID.randomUUID();
-            ReqUpdateMenuDtoV1 request = new ReqUpdateMenuDtoV1("된장찌개", "새 설명", 0);
+            UpdateMenuRequest request = new UpdateMenuRequest("된장찌개", "새 설명", 0);
 
             mockMvc.perform(
                             patch("/api/v1/menus/{menuId}", menuId)
@@ -226,9 +228,9 @@ class MenuControllerV1Test {
             UUID menuId = UUID.randomUUID();
             MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
             menu.updateHidden(true);
-            given(menuService.updateVisibility(menuId, true)).willReturn(menu);
+            given(menuService.updateVisibility(menuId, true)).willReturn(MenuResponse.from(menu));
 
-            ReqUpdateMenuVisibilityDtoV1 request = new ReqUpdateMenuVisibilityDtoV1(true);
+            UpdateMenuVisibilityRequest request = new UpdateMenuVisibilityRequest(true);
 
             mockMvc.perform(
                             patch("/api/v1/menus/{menuId}/visibility", menuId)

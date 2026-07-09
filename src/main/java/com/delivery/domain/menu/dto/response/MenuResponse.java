@@ -4,7 +4,7 @@ import com.delivery.domain.menu.entity.MenuEntity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ResMenuDtoV1(
+public record MenuResponse(
         UUID menuId,
         UUID storeId,
         String name,
@@ -14,8 +14,8 @@ public record ResMenuDtoV1(
         LocalDateTime createdAt,
         LocalDateTime updatedAt) {
 
-    public static ResMenuDtoV1 from(MenuEntity menu) {
-        return new ResMenuDtoV1(
+    public static MenuResponse from(MenuEntity menu) {
+        return new MenuResponse(
                 menu.getMenuId(),
                 menu.getStoreId(),
                 menu.getName(),
