@@ -30,6 +30,8 @@ public class MenuServiceV1 {
             int price,
             boolean aiGeneration,
             String aiPrompt) {
+        validateMenu(name, price);
+
         String finalDescription = description;
         if (aiGeneration) {
             if (aiPrompt == null || aiPrompt.isBlank()) {
@@ -61,6 +63,8 @@ public class MenuServiceV1 {
     // 메뉴 수정
     @Transactional
     public MenuEntity updateMenu(UUID menuId, String name, String description, int price) {
+        validateMenu(name, price);
+
         MenuEntity menu = getMenu(menuId);
         menu.update(name, description, price);
         return menu;
@@ -79,5 +83,15 @@ public class MenuServiceV1 {
     public void deleteMenu(UUID menuId, String deletedBy) {
         MenuEntity menu = getMenu(menuId);
         menu.delete(deletedBy);
+    }
+
+    // 컨트롤러를 거치지 않는 호출(내부 서비스 간 호출 등)에서도 규칙이 지켜지도록 서비스 레벨에서도 검증
+    private void validateMenu(String name, int price) {
+        if (name == null || name.isBlank() || name.length() > 100) {
+            throw new MenuException(MenuErrorCode.INVALID_MENU_NAME);
+        }
+        if (price <= 0) {
+            throw new MenuException(MenuErrorCode.INVALID_MENU_PRICE);
+        }
     }
 }

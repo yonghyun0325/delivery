@@ -1,3 +1,8 @@
 package com.delivery.domain.menu.dto.request;
 
-public record ReqUpdateMenuDtoV1(String name, String description, int price) {}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
+public record ReqUpdateMenuDtoV1(
+        @NotBlank @Size(max = 100) String name, String description, @Positive int price) {}

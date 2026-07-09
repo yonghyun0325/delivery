@@ -73,7 +73,7 @@ public class MenuControllerV1 {
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<ResMenuDtoV1>> updateMenu(
-            @PathVariable UUID menuId, @RequestBody ReqUpdateMenuDtoV1 request) {
+            @PathVariable UUID menuId, @Valid @RequestBody ReqUpdateMenuDtoV1 request) {
         MenuEntity menu =
                 menuService.updateMenu(
                         menuId, request.name(), request.description(), request.price());
