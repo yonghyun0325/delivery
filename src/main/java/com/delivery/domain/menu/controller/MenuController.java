@@ -93,7 +93,8 @@ public class MenuController {
     @DeleteMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<Void>> deleteMenu(
             @PathVariable UUID menuId, @AuthenticationPrincipal CustomUserDetails principal) {
-        menuService.deleteMenu(menuId, principal.getUsername());
+        // CustomAuditorAware/AddressService와 동일한 "{id}_{username}" 포맷으로 통일
+        menuService.deleteMenu(menuId, principal.getId() + "_" + principal.getUsername());
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "메뉴가 삭제되었습니다.", null));
     }
 }
