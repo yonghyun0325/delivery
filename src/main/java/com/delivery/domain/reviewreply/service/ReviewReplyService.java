@@ -35,14 +35,14 @@ public class ReviewReplyService {
         ReviewReply reply = new ReviewReply(review, request.getContent(), ownerId);
         ReviewReply savedReply = reviewReplyRepository.save(reply);
 
-        return ReviewReplyResponse.from(savedReply);
+        return ReviewReplyResponse.toDto(savedReply);
     }
 
     // 사장님 리뷰 답글 조회
     public ReviewReplyResponse getReply(UUID reviewId) {
         ReviewReply reply = findReplyByReviewId(reviewId);
 
-        return ReviewReplyResponse.from(reply);
+        return ReviewReplyResponse.toDto(reply);
     }
 
     // 사장님 리뷰 답글 수정
@@ -56,7 +56,7 @@ public class ReviewReplyService {
 
         reply.update(request.getContent());
 
-        return ReviewReplyResponse.from(reply);
+        return ReviewReplyResponse.toDto(reply);
     }
 
     // 사장님 리뷰 답글 삭제

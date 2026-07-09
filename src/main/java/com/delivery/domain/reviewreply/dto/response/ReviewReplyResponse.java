@@ -29,7 +29,7 @@ public class ReviewReplyResponse {
     // 생성자
     private String createdBy;
 
-    public static ReviewReplyResponse from(ReviewReply reply) {
+    public static ReviewReplyResponse toDto(ReviewReply reply) {
         return ReviewReplyResponse.builder()
                 .reviewReplyId(reply.getId())
                 .reviewId(reply.getReview().getId())
