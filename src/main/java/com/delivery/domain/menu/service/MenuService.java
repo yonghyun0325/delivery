@@ -5,6 +5,8 @@ import com.delivery.domain.ai.exception.AiException;
 import com.delivery.domain.ai.service.AiService;
 import com.delivery.domain.menu.dto.response.MenuResponse;
 import com.delivery.domain.menu.dto.response.MenuSnapshot;
+import com.delivery.domain.menu.dto.response.MenuView;
+import com.delivery.domain.menu.dto.response.PublicMenuResponse;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
@@ -73,17 +75,50 @@ public class MenuService {
     // 메뉴 목록 조회
     // 클래스 레벨 @Transactional(readOnly = true) 적용
     // 읽기 전용 -> 더티체킹/flush 생략. 조회 성능 높임.
-    public List<MenuResponse> getStoreMenus(UUID storeId) {
-        return menuRepository.findAllByStoreIdAndDeletedAtIsNull(storeId).stream()
-                .map(MenuResponse::from)
-                .toList();
+    // 역할별 응답 분기(3차): 그 가게 소유자이거나 MANAGER/MASTER면 숨김 메뉴도 포함해서
+    // 전체 필드(MenuResponse)로, 아니면 숨김 메뉴는 빼고 공개 필드(PublicMenuResponse)로.
+    public List<MenuView> getStoreMenus(UUID storeId, Long requesterId, boolean isElevatedRole) {
+        boolean canViewHidden = canViewHiddenMenus(storeId, requesterId, isElevatedRole);
+
+        List<MenuEntity> menus =
+                canViewHidden
+                        ? menuRepository.findAllByStoreIdAndDeletedAtIsNull(storeId)
+                        : menuRepository.findAllByStoreIdAndDeletedAtIsNullAndHiddenIsFalse(
+                                storeId);
+
+        return menus.stream().map(menu -> (MenuView) toMenuView(menu, canViewHidden)).toList();
     }
 
     // 메뉴 단건 조회
     // 클래스 레벨 @Transactional(readOnly = true) 적용
     // 읽기 전용 -> 더티체킹/flush 생략. 조회 성능 높임.
-    public MenuResponse getMenu(UUID menuId) {
-        return MenuResponse.from(findMenu(menuId));
+    // 숨김 메뉴를 볼 권한이 없는 조회자에게는 403이 아니라 404(MENU_NOT_FOUND)로 응답 -
+    // 다른 404 응답들과 동일하게 존재 여부 자체를 노출하지 않기 위함.
+    public MenuView getMenu(UUID menuId, Long requesterId, boolean isElevatedRole) {
+        MenuEntity menu = findMenu(menuId);
+        boolean canViewHidden = canViewHiddenMenus(menu.getStoreId(), requesterId, isElevatedRole);
+
+        if (menu.isHidden() && !canViewHidden) {
+            throw new MenuException(MenuErrorCode.MENU_NOT_FOUND);
+        }
+
+        return toMenuView(menu, canViewHidden);
+    }
+
+    private MenuView toMenuView(MenuEntity menu, boolean canViewHidden) {
+        return canViewHidden ? MenuResponse.from(menu) : PublicMenuResponse.from(menu);
+    }
+
+    // MANAGER/MASTER는 항상 가능, 그 외(OWNER 포함)는 해당 가게의 실제 소유자일 때만 가능.
+    // 가게가 존재하지 않으면(연결이 끊긴 storeId 등) 안전하게 false로 처리.
+    private boolean canViewHiddenMenus(UUID storeId, Long requesterId, boolean isElevatedRole) {
+        if (isElevatedRole) {
+            return true;
+        }
+        return storeRepository
+                .findByStoreIdAndDeletedAtIsNull(storeId)
+                .map(store -> store.getUserId().equals(requesterId))
+                .orElse(false);
     }
 
     // 메뉴 수정

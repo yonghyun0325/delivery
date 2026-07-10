@@ -5,6 +5,7 @@ import com.delivery.domain.menu.dto.request.CreateMenuRequest;
 import com.delivery.domain.menu.dto.request.UpdateMenuRequest;
 import com.delivery.domain.menu.dto.request.UpdateMenuVisibilityRequest;
 import com.delivery.domain.menu.dto.response.MenuResponse;
+import com.delivery.domain.menu.dto.response.MenuView;
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.user.enums.Role;
 import com.delivery.global.security.config.CustomUserDetails;
@@ -57,22 +58,32 @@ public class MenuController {
     }
 
     // 메뉴 목록 조회
+    // 가게 소유자/MANAGER/MASTER에게는 숨김 메뉴 포함 전체 필드, 그 외(손님)에게는
+    // 숨김 메뉴를 뺀 공개 필드만 반환한다(MenuView 참고).
     @Operation(summary = "가게별 메뉴 목록 조회", description = "가게에 등록된 삭제되지 않은 메뉴 목록을 조회합니다.")
     @GetMapping("/api/v1/stores/{storeId}/menus")
-    public ResponseEntity<RestApiResponse<List<MenuResponse>>> getStoreMenus(
-            @PathVariable UUID storeId) {
+    public ResponseEntity<RestApiResponse<List<MenuView>>> getStoreMenus(
+            @PathVariable UUID storeId, @AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
-                        HttpStatus.OK, "메뉴 목록 조회에 성공했습니다.", menuService.getStoreMenus(storeId)));
+                        HttpStatus.OK,
+                        "메뉴 목록 조회에 성공했습니다.",
+                        menuService.getStoreMenus(
+                                storeId, principal.getId(), hasElevatedRole(principal))));
     }
 
     // 메뉴 단건 조회
+    // 숨김 메뉴를 볼 권한이 없으면 404로 응답한다(MenuService 참고 - 존재 여부 비노출).
     @Operation(summary = "메뉴 단건 조회", description = "메뉴 ID로 메뉴 한 건을 조회합니다.")
     @GetMapping("/api/v1/menus/{menuId}")
-    public ResponseEntity<RestApiResponse<MenuResponse>> getMenu(@PathVariable UUID menuId) {
+    public ResponseEntity<RestApiResponse<MenuView>> getMenu(
+            @PathVariable UUID menuId, @AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
-                        HttpStatus.OK, "메뉴 조회에 성공했습니다.", menuService.getMenu(menuId)));
+                        HttpStatus.OK,
+                        "메뉴 조회에 성공했습니다.",
+                        menuService.getMenu(
+                                menuId, principal.getId(), hasElevatedRole(principal))));
     }
 
     // 메뉴 수정

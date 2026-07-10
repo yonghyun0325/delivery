@@ -16,6 +16,7 @@ import com.delivery.domain.menu.dto.request.CreateMenuRequest;
 import com.delivery.domain.menu.dto.request.UpdateMenuRequest;
 import com.delivery.domain.menu.dto.request.UpdateMenuVisibilityRequest;
 import com.delivery.domain.menu.dto.response.MenuResponse;
+import com.delivery.domain.menu.dto.response.PublicMenuResponse;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
@@ -174,16 +175,42 @@ class MenuControllerTest {
     class GetStoreMenus {
 
         @Test
-        @DisplayName("메뉴 목록을 200과 함께 반환한다")
-        void getStoreMenus_returns200() throws Exception {
-            MenuResponse response = MenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
-            given(menuService.getStoreMenus(STORE_ID)).willReturn(List.of(response));
+        @DisplayName("소유자가 조회하면 hidden 필드가 포함된 목록을 반환한다")
+        void getStoreMenus_returns200_withHiddenField_whenOwner() throws Exception {
+            setAuthenticatedPrincipal(1L, "owner1", "ROLE_OWNER");
+            try {
+                MenuResponse response =
+                        MenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
+                given(menuService.getStoreMenus(STORE_ID, 1L, false)).willReturn(List.of(response));
 
-            mockMvc.perform(get("/api/v1/stores/{storeId}/menus", STORE_ID))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.length()").value(1))
-                    .andExpect(jsonPath("$.data[0].name").value("김치찌개"));
+                mockMvc.perform(get("/api/v1/stores/{storeId}/menus", STORE_ID))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.success").value(true))
+                        .andExpect(jsonPath("$.data.length()").value(1))
+                        .andExpect(jsonPath("$.data[0].name").value("김치찌개"))
+                        .andExpect(jsonPath("$.data[0].hidden").exists());
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+        }
+
+        @Test
+        @DisplayName("손님이 조회하면 hidden 필드가 없는 공개 목록을 반환한다")
+        void getStoreMenus_returns200_withoutHiddenField_whenNotOwner() throws Exception {
+            setAuthenticatedPrincipal(2L, "customer1", "ROLE_CUSTOMER");
+            try {
+                PublicMenuResponse response =
+                        PublicMenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
+                given(menuService.getStoreMenus(STORE_ID, 2L, false)).willReturn(List.of(response));
+
+                mockMvc.perform(get("/api/v1/stores/{storeId}/menus", STORE_ID))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.data[0].name").value("김치찌개"))
+                        .andExpect(jsonPath("$.data[0].hidden").doesNotExist())
+                        .andExpect(jsonPath("$.data[0].updatedAt").doesNotExist());
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
         }
     }
 
@@ -192,31 +219,63 @@ class MenuControllerTest {
     class GetMenu {
 
         @Test
-        @DisplayName("존재하면 200과 메뉴 정보를 반환한다")
-        void getMenu_returns200_whenExists() throws Exception {
+        @DisplayName("소유자가 조회하면 hidden 필드가 포함된 정보를 반환한다")
+        void getMenu_returns200_withHiddenField_whenOwner() throws Exception {
             UUID menuId = UUID.randomUUID();
-            MenuResponse response = MenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
-            given(menuService.getMenu(menuId)).willReturn(response);
+            setAuthenticatedPrincipal(1L, "owner1", "ROLE_OWNER");
+            try {
+                MenuResponse response =
+                        MenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
+                given(menuService.getMenu(menuId, 1L, false)).willReturn(response);
 
-            mockMvc.perform(get("/api/v1/menus/{menuId}", menuId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.name").value("김치찌개"));
+                mockMvc.perform(get("/api/v1/menus/{menuId}", menuId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.success").value(true))
+                        .andExpect(jsonPath("$.data.name").value("김치찌개"))
+                        .andExpect(jsonPath("$.data.hidden").exists());
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+        }
+
+        @Test
+        @DisplayName("손님이 조회하면 hidden 필드가 없는 공개 정보를 반환한다")
+        void getMenu_returns200_withoutHiddenField_whenNotOwner() throws Exception {
+            UUID menuId = UUID.randomUUID();
+            setAuthenticatedPrincipal(2L, "customer1", "ROLE_CUSTOMER");
+            try {
+                PublicMenuResponse response =
+                        PublicMenuResponse.from(new MenuEntity(STORE_ID, "김치찌개", "설명", 8000));
+                given(menuService.getMenu(menuId, 2L, false)).willReturn(response);
+
+                mockMvc.perform(get("/api/v1/menus/{menuId}", menuId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.data.name").value("김치찌개"))
+                        .andExpect(jsonPath("$.data.hidden").doesNotExist());
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
         }
 
         @Test
         @DisplayName("존재하지 않으면 404와 MENU_NOT_FOUND 에러를 반환한다")
         void getMenu_returns404_whenNotFound() throws Exception {
             UUID menuId = UUID.randomUUID();
-            given(menuService.getMenu(menuId))
-                    .willThrow(new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+            setAuthenticatedPrincipal(1L, "owner1", "ROLE_OWNER");
+            try {
+                given(menuService.getMenu(menuId, 1L, false))
+                        .willThrow(new MenuException(MenuErrorCode.MENU_NOT_FOUND));
 
-            mockMvc.perform(get("/api/v1/menus/{menuId}", menuId))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.error").value("MENU_NOT_FOUND"))
-                    .andExpect(
-                            jsonPath("$.message").value(MenuErrorCode.MENU_NOT_FOUND.getMessage()));
+                mockMvc.perform(get("/api/v1/menus/{menuId}", menuId))
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.success").value(false))
+                        .andExpect(jsonPath("$.error").value("MENU_NOT_FOUND"))
+                        .andExpect(
+                                jsonPath("$.message")
+                                        .value(MenuErrorCode.MENU_NOT_FOUND.getMessage()));
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
         }
     }
 

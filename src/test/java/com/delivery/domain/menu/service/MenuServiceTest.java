@@ -12,6 +12,8 @@ import com.delivery.domain.ai.exception.AiException;
 import com.delivery.domain.ai.service.AiService;
 import com.delivery.domain.menu.dto.response.MenuResponse;
 import com.delivery.domain.menu.dto.response.MenuSnapshot;
+import com.delivery.domain.menu.dto.response.MenuView;
+import com.delivery.domain.menu.dto.response.PublicMenuResponse;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
@@ -187,16 +189,68 @@ class MenuServiceTest {
     class GetMenu {
 
         @Test
-        @DisplayName("존재하면 응답을 반환한다")
-        void getMenu_returnsResponse_whenExists() {
+        @DisplayName("가게 소유자가 조회하면 숨김 메뉴도 전체 필드로 반환한다")
+        void getMenu_returnsMenuResponse_whenOwner() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+            menu.updateHidden(true);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
+
+            MenuView result = menuService.getMenu(menuId, OWNER_ID, false);
+
+            assertThat(result).isEqualTo(MenuResponse.from(menu));
+        }
+
+        @Test
+        @DisplayName("손님이 숨김 아닌 메뉴를 조회하면 공개 필드로 반환한다")
+        void getMenu_returnsPublicResponse_whenNotOwnerAndNotHidden() {
 
             UUID menuId = UUID.randomUUID();
             MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
 
             given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
                     .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
 
-            MenuResponse result = menuService.getMenu(menuId);
+            MenuView result = menuService.getMenu(menuId, OTHER_USER_ID, false);
+
+            assertThat(result).isEqualTo(PublicMenuResponse.from(menu));
+        }
+
+        @Test
+        @DisplayName("손님이 숨김 메뉴를 조회하면 MENU_NOT_FOUND 예외를 던진다")
+        void getMenu_throws_whenNotOwnerAndHidden() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+            menu.updateHidden(true);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
+
+            assertThatExceptionOfType(MenuException.class)
+                    .isThrownBy(() -> menuService.getMenu(menuId, OTHER_USER_ID, false))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(MenuErrorCode.MENU_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 소유자가 아니어도 숨김 메뉴를 전체 필드로 조회한다")
+        void getMenu_returnsMenuResponse_whenElevatedRole() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+            menu.updateHidden(true);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+
+            MenuView result = menuService.getMenu(menuId, OTHER_USER_ID, true);
 
             assertThat(result).isEqualTo(MenuResponse.from(menu));
         }
@@ -211,7 +265,7 @@ class MenuServiceTest {
                     .willReturn(Optional.empty());
 
             assertThatExceptionOfType(MenuException.class)
-                    .isThrownBy(() -> menuService.getMenu(menuId))
+                    .isThrownBy(() -> menuService.getMenu(menuId, OWNER_ID, false))
                     .extracting(BusinessException::getErrorCode)
                     .isEqualTo(MenuErrorCode.MENU_NOT_FOUND);
         }
@@ -222,16 +276,51 @@ class MenuServiceTest {
     class GetStoreMenus {
 
         @Test
-        @DisplayName("삭제되지 않은 메뉴 목록을 반환한다")
-        void getStoreMenus_returnsList() {
+        @DisplayName("가게 소유자가 조회하면 숨김 메뉴를 포함해 전체 필드로 반환한다")
+        void getStoreMenus_returnsMenuResponses_whenOwner() {
 
-            MenuEntity menu = new MenuEntity(STORE_ID, "메뉴1", null, 1000);
+            MenuEntity visible = new MenuEntity(STORE_ID, "메뉴1", null, 1000);
+            MenuEntity hidden = new MenuEntity(STORE_ID, "메뉴2", null, 2000);
+            hidden.updateHidden(true);
+
+            stubStoreOwnedBy(OWNER_ID);
             given(menuRepository.findAllByStoreIdAndDeletedAtIsNull(STORE_ID))
-                    .willReturn(List.of(menu));
+                    .willReturn(List.of(visible, hidden));
 
-            List<MenuResponse> result = menuService.getStoreMenus(STORE_ID);
+            List<MenuView> result = menuService.getStoreMenus(STORE_ID, OWNER_ID, false);
 
-            assertThat(result).containsExactly(MenuResponse.from(menu));
+            assertThat(result)
+                    .containsExactly(MenuResponse.from(visible), MenuResponse.from(hidden));
+        }
+
+        @Test
+        @DisplayName("손님이 조회하면 숨김 메뉴를 뺀 공개 필드 목록만 반환한다")
+        void getStoreMenus_returnsPublicResponses_whenNotOwner() {
+
+            MenuEntity visible = new MenuEntity(STORE_ID, "메뉴1", null, 1000);
+
+            stubStoreOwnedBy(OWNER_ID);
+            given(menuRepository.findAllByStoreIdAndDeletedAtIsNullAndHiddenIsFalse(STORE_ID))
+                    .willReturn(List.of(visible));
+
+            List<MenuView> result = menuService.getStoreMenus(STORE_ID, OTHER_USER_ID, false);
+
+            assertThat(result).containsExactly(PublicMenuResponse.from(visible));
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 소유자가 아니어도 숨김 메뉴를 포함해 전체 필드로 반환한다")
+        void getStoreMenus_returnsMenuResponses_whenElevatedRole() {
+
+            MenuEntity hidden = new MenuEntity(STORE_ID, "메뉴2", null, 2000);
+            hidden.updateHidden(true);
+
+            given(menuRepository.findAllByStoreIdAndDeletedAtIsNull(STORE_ID))
+                    .willReturn(List.of(hidden));
+
+            List<MenuView> result = menuService.getStoreMenus(STORE_ID, OTHER_USER_ID, true);
+
+            assertThat(result).containsExactly(MenuResponse.from(hidden));
         }
     }
 
