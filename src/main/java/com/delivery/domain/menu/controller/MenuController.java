@@ -94,7 +94,7 @@ public class MenuController {
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/api/v1/menus/{menuId}/visibility")
     public ResponseEntity<RestApiResponse<MenuResponse>> updateMenuVisibility(
-            @PathVariable UUID menuId, @RequestBody UpdateMenuVisibilityRequest request) {
+            @PathVariable UUID menuId, @Valid @RequestBody UpdateMenuVisibilityRequest request) {
         MenuResponse response = menuService.updateVisibility(menuId, request.hidden());
         return ResponseEntity.ok(
                 RestApiResponse.success(HttpStatus.OK, "메뉴 숨김 상태가 변경되었습니다.", response));

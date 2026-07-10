@@ -240,6 +240,19 @@ class MenuControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.hidden").value(true));
         }
+
+        @Test
+        @DisplayName("hidden 값이 없으면 400과 MENU_HIDDEN_STATUS_REQUIRED를 반환한다")
+        void updateVisibility_withoutHidden_returnsBadRequest() throws Exception {
+            UUID menuId = UUID.randomUUID();
+
+            mockMvc.perform(
+                            patch("/api/v1/menus/{menuId}/visibility", menuId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content("{}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("MENU_HIDDEN_STATUS_REQUIRED"));
+        }
     }
 
     @Nested
