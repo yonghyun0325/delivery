@@ -162,6 +162,13 @@ docker-compose up -d
 
 ---
 
+### API 문서
+```bash
+Swagger : http://localhost:8080/swagger-ui/index.html
+
+Scalar : http://localhost:8080/scalar
+```
+
 # 👥 팀원 및 역할 분담
 
 | 이름   | 담당                                              |
