@@ -11,7 +11,7 @@ public interface AddressRepository extends JpaRepository<Address, UUID> {
 
     boolean existsByUserIdAndIsDefaultAndDeletedAtIsNull(Long userId, boolean isDefault);
 
-    List<Address> findAllByUserIdAndDeletedAtIsNull(Long userId);
+    List<Address> findAllByUserIdAndDeletedAtIsNullOrderByCreatedAt(Long userId);
 
     Optional<Address> findByIdAndUserIdAndDeletedAtIsNull(UUID addressId, Long userId);
 

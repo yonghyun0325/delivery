@@ -28,11 +28,11 @@ public class AddressService {
             throw new UserException(UserErrorCode.EXCEED_MAX_ADDRESS);
         }
 
+        User user = userService.findActiveUser(userId);
+
         if (request.isDefault()) {
             resetDefault(userId);
         }
-
-        User user = userService.findActiveUser(userId);
 
         Address address =
                 Address.create(
@@ -42,42 +42,38 @@ public class AddressService {
 
     @Transactional(readOnly = true)
     public List<AddressResponse> findAddresses(Long userId) {
-        return addressRepository.findAllByUserIdAndDeletedAtIsNull(userId).stream()
+        return addressRepository.findAllByUserIdAndDeletedAtIsNullOrderByCreatedAt(userId).stream()
                 .map(UserDtoMapper::toDto)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public AddressResponse findAddress(Long userId, UUID addressId) {
-        return UserDtoMapper.toDto(
-                addressRepository
-                        .findByIdAndUserIdAndDeletedAtIsNull(addressId, userId)
-                        .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_ADDRESS)));
+        return UserDtoMapper.toDto(findAddressOrThrow(addressId, userId));
     }
 
-    @Transactional
     public AddressResponse updateAddress(
             Long userId, UUID addressId, UpdateAddressRequest request) {
+        Address address = findAddressOrThrow(addressId, userId);
+
         if (request.isDefault()) {
             resetDefault(userId);
         }
 
-        Address address =
-                addressRepository
-                        .findByIdAndUserIdAndDeletedAtIsNull(addressId, userId)
-                        .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_ADDRESS));
         address.update(request.address(), request.addressDetail(), request.isDefault());
 
         return UserDtoMapper.toDto(address);
     }
 
-    @Transactional
     public void deleteAddress(Long userId, String username, UUID addressId) {
-        Address address =
-                addressRepository
-                        .findByIdAndUserIdAndDeletedAtIsNull(addressId, userId)
-                        .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_ADDRESS));
+        Address address = findAddressOrThrow(addressId, userId);
         address.delete(userId + "_" + username);
+    }
+
+    private Address findAddressOrThrow(UUID addressId, Long userId) {
+        return addressRepository
+                .findByIdAndUserIdAndDeletedAtIsNull(addressId, userId)
+                .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_ADDRESS));
     }
 
     private void resetDefault(Long userId) {

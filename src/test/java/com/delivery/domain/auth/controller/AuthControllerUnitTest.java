@@ -11,6 +11,7 @@ import com.delivery.domain.auth.dto.request.SignUpRequest;
 import com.delivery.domain.auth.dto.response.AuthResponse;
 import com.delivery.domain.auth.service.AuthService;
 import com.delivery.domain.user.enums.Role;
+import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.stream.Stream;
@@ -22,11 +23,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+@Import(ErrorCodeRegistry.class)
 @AutoConfigureMockMvc(addFilters = false)
 @RequiredArgsConstructor
 @WebMvcTest(AuthController.class)
@@ -141,14 +144,14 @@ class AuthControllerUnitTest {
                                 post("/api/v1/auth/login")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsString(request)))
-                        .andExpect(status().isUnauthorized())
-                        .andExpect(jsonPath("$.message").value("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다."));
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.message").value("아이디를 입력해주세요."));
                 mockMvc.perform(
                                 post("/api/v1/auth/login")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsString(request2)))
-                        .andExpect(status().isUnauthorized())
-                        .andExpect(jsonPath("$.message").value("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다."));
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.message").value("비밀번호를 입력해주세요."));
             }
         }
     }

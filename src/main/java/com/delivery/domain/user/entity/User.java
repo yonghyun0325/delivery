@@ -15,10 +15,11 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "p_user")
 public class User extends BaseEntity {
-    // TODO : 추후 userStatus 삭제(삭제 유저는 deletedAt으로 구분 가능)
+    // CREATE SEQUENCE user_seq START WITH 1 INCREMENT BY 50;
     @Id
     @Column(name = "user_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq_gen")
     private Long id;
 
     @Column(nullable = false, unique = true, length = 10)
