@@ -47,6 +47,10 @@ public class MenuService {
         validateStoreOwnership(storeId, requesterId, bypassOwnership);
         validateMenu(name, price);
 
+        // AI 생성은 DB 저장(saveMenu)보다 먼저, 트랜잭션 밖에서 끝까지 실행됨.
+        // generateProductDescription이 예외를 던지면 그대로 위로 전파되어 saveMenu 자체가
+        // 호출되지 않으므로("AI 실패 시 메뉴 등록 전체 실패" 정책), 트랜잭션이 롤백되는 게
+        // 아니라 애초에 트랜잭션이 열릴 기회조차 없다.
         String finalDescription = description;
         if (aiGeneration) {
             if (aiPrompt == null || aiPrompt.isBlank()) {
