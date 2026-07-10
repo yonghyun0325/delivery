@@ -8,12 +8,14 @@ import com.delivery.domain.order.dto.response.OrderListResponse;
 import com.delivery.domain.order.dto.response.OrderStatusResponse;
 import com.delivery.domain.order.enums.OrderStatus;
 import com.delivery.domain.order.service.OrderService;
+import com.delivery.global.security.config.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -28,12 +30,13 @@ public class OrderController {
 
     // 고객 주문 생성
     @PostMapping("/orders")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderCreateResponse>> createOrder(
-            @Valid @RequestBody OrderCreateRequest request
+            @Valid @RequestBody OrderCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        // TODO: Spring Security/JWT 적용 후 인증 객체에서 로그인 사용자 ID 가져오기
-
-        Long currentUserId = 2L;
+        // JWT 인증이 완료된 현재 로그인 고객의 ID 사용
+        Long currentUserId = userDetails.getId();
 
         OrderCreateResponse response = orderService.createOrder(request, currentUserId);
 
@@ -48,13 +51,14 @@ public class OrderController {
 
     // 주문 단건 조회
     @GetMapping("/orders/{orderId}")
-    // TODO: Spring Security/JWT 연동 후 역할 기반 접근 권한 적용
-//    @PreAuthorize("hasAnyRole('CUSTOMER', 'OWNER', 'MANAGER', 'MASTER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderDetailResponse>> getOrder(
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
             ){
-        // TODO: Spring Security/JWT 적용 후 인증 객체에서 로그인 사용자 ID 추출
-        Long currentUserId = 1L;
+
+        // 현재 로그인 사용자 ID를 Service에 전달
+        Long currentUserId = userDetails.getId();
 
         OrderDetailResponse response = orderService.getOrder(orderId, currentUserId);
 
@@ -70,8 +74,7 @@ public class OrderController {
 
     // 고객 본인 주문 내역 조회
     @GetMapping("/orders/me")
-    // TODO: Spring Security/JWT 연동 후 역할 기반 접근 권한 적용
-    // @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderListResponse>> getMyOrders(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -91,10 +94,12 @@ public class OrderController {
             int size,
 
             @RequestParam(defaultValue = "createdAt,desc")
-            String sort
+            String sort,
+
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // TODO: Spring Security/JWT 적용 후 인증 객체에서 로그인 사용자 ID 추출
-        Long currentUserId = 1L;
+        // JWT 인증이 완료된 현재 로그인 고객 ID
+        Long currentUserId = userDetails.getId();
 
         OrderListResponse response = orderService.getMyOrders(
                 currentUserId,
@@ -118,8 +123,7 @@ public class OrderController {
 
     // 가게 주문 내역 조회
     @GetMapping("/stores/{storeId}/orders")
-    // TODO: Spring Security/JWT 연동 후 OWNER, MANAGER, MASTER(역할 기반 접근) 권한 적용
-    // @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderListResponse>> getStoreOrders(
             @PathVariable UUID storeId,
 
@@ -141,10 +145,17 @@ public class OrderController {
             int size,
 
             @RequestParam(defaultValue = "createdAt,desc")
-            String sort
+            String sort,
+
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+
+        // 현재 로그인 사용자 ID
+        Long currentUserId = userDetails.getId();
+
         OrderListResponse response = orderService.getStoreOrders(
                 storeId,
+                currentUserId,
                 startDate,
                 endDate,
                 status,
@@ -164,13 +175,13 @@ public class OrderController {
 
     // 관리자 주문 삭제
     @DeleteMapping("/admin/orders/{orderId}")
-    // TODO: Spring Security/JWT 연동 후 관리자 권한 적용
-    // @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<Void>> deleteOrder(
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // TODO: Spring Security/JWT 연동 후 인증 객체에서 관리자 ID 추출
-        Long currentAdminId = 1L;
+        // 실제 로그인 관리자 ID
+        Long currentAdminId = userDetails.getId();
 
         // 관리자 ID와 삭제 대상 주문 ID를 Service에 전달
         orderService.deleteOrder(orderId, currentAdminId);
@@ -191,13 +202,13 @@ public class OrderController {
 
     // 고객 주문 취소
     @PatchMapping("/orders/{orderId}/cancel")
-    // TODO: Spring Security/JWT 연동 후 CUSTOMER 권한 적용
-    // @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> cancelOrder(
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // TODO: JWT 적용 후 인증 객체에서 로그인 고객 ID 추출
-        Long currentUserId = 1L;
+        // 실제 로그인 고객 ID
+        Long currentUserId = userDetails.getId();
 
         OrderStatusResponse response =
                 orderService.cancelOrder(orderId, currentUserId);
@@ -213,14 +224,14 @@ public class OrderController {
 
     // 가게 주문 거절
     @PatchMapping("/stores/{storeId}/orders/{orderId}/reject")
-    // TODO: Spring Security/JWT 연동 후 OWNER 권한 적용
-    // @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> rejectOrder(
             @PathVariable UUID storeId,
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // TODO: JWT 적용 후 인증 객체에서 로그인 가게 사장 ID 추출
-        Long currentUserId = 1L;
+        // 현재 로그인한 가게 처리 담당 사용자 ID
+        Long currentUserId = userDetails.getId();
 
         OrderStatusResponse response =
                 orderService.changeStoreOrderStatus(
@@ -242,13 +253,14 @@ public class OrderController {
 
     // 가게 주문 수락
     @PatchMapping("/stores/{storeId}/orders/{orderId}/accept")
-    // TODO: Spring Security/JWT 연동 후 OWNER 권한 적용
-    // @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> acceptOrder(
             @PathVariable UUID storeId,
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long currentUserId = 1L;
+        // 현재 로그인한 가게 처리 담당 사용자 ID
+        Long currentUserId = userDetails.getId();
 
         OrderStatusResponse response =
                 orderService.changeStoreOrderStatus(
@@ -269,13 +281,14 @@ public class OrderController {
 
     // 가게 조리 중 변경
     @PatchMapping("/stores/{storeId}/orders/{orderId}/cook")
-    // TODO: Spring Security/JWT 연동 후 OWNER 권한 적용
-    // @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> startCooking(
             @PathVariable UUID storeId,
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long currentUserId = 1L;
+        // 현재 로그인한 가게 처리 담당 사용자 ID
+        Long currentUserId = userDetails.getId();
 
         OrderStatusResponse response =
                 orderService.changeStoreOrderStatus(
@@ -296,13 +309,15 @@ public class OrderController {
 
     // 배달 중 변경
     @PatchMapping("/stores/{storeId}/orders/{orderId}/deliver")
-    // TODO: Spring Security/JWT 연동 후 OWNER 권한 적용
-    // @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> startDelivery(
             @PathVariable UUID storeId,
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long currentUserId = 1L;
+
+        // 현재 로그인한 가게 처리 담당 사용자 ID
+        Long currentUserId = userDetails.getId();
 
         OrderStatusResponse response =
                 orderService.changeStoreOrderStatus(
@@ -323,13 +338,15 @@ public class OrderController {
 
     // 배달 완료 변경
     @PatchMapping("/stores/{storeId}/orders/{orderId}/delivered")
-    // TODO: Spring Security/JWT 연동 후 OWNER 권한 적용
-    // @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> completeDelivery(
             @PathVariable UUID storeId,
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long currentUserId = 1L;
+
+        // 현재 로그인한 가게 처리 담당 사용자 ID
+        Long currentUserId = userDetails.getId();
 
         OrderStatusResponse response =
                 orderService.changeStoreOrderStatus(
@@ -351,13 +368,13 @@ public class OrderController {
 
     // 고객 주문 최종 완료
     @PatchMapping("/orders/{orderId}/complete")
-    // TODO: Spring Security/JWT 연동 후 CUSTOMER 권한 적용
-    // @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> completeOrder(
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // TODO: JWT 적용 후 인증 객체에서 로그인 고객 ID 추출
-        Long currentUserId = 1L;
+        // 실제 로그인 고객 ID
+        Long currentUserId = userDetails.getId();
 
         OrderStatusResponse response =
                 orderService.completeOrder(orderId, currentUserId);

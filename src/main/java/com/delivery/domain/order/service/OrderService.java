@@ -44,9 +44,6 @@ public class OrderService {
         // 아직 가게(store) 도메인 구조를 몰라 메서드만 분리해둠
         validateStoreExists(request.storeId());
 
-        // TODO: BaseEntity / JPA Auditing 정책 확정 후 제거
-        // 현재는 p_order.created_by 컬럼 저장을 위해 로그인 사용자 ID를 임시 사용
-//        String temporaryCreatedBy = String.valueOf(currentUserId);
 
         // 주문 엔티티 생성
         /* userId는 요청값이 아니라 JWT에서 가져온 로그인 사용자 ID를 사용
@@ -110,6 +107,9 @@ public class OrderService {
 
         /*
          * TODO: Spring Security/JWT 및 권한(Role) 적용 후 접근 권한 검증 로직 확장 필요
+         * TODO: Security/JWT + Role 기반 접근 정책 확정 후 보완 필요
+         *
+         * 현재는 currentUserId만 전달받아 CUSTOMER 기준의 본인 주문 여부만 검증하고 있음
          *
          * 주문 단건 조회 접근 정책:
          * 1. CUSTOMER
@@ -127,6 +127,11 @@ public class OrderService {
          * 4. MASTER
          *    - 최종 관리자 권한
          *    - 전체 주문 조회 가능
+         *
+         * 필요한 추가 작업:
+         * 1. Controller에서 CustomUserDetails의 role 정보까지 Service에 전달할지 검토
+         * 2. Store 도메인 연동 후 storeId 기준 OWNER 소유 가게 검증 추가
+         * 3. MANAGER / MASTER는 별도 소유권 검증 없이 조회 허용할지 정책 확정
          */
 
         // 현재는 인증/인가 구조가 확정되지 않았으므로, CUSTOMER 기준으로 currentUserId와 order.userId만 임시 검증
@@ -195,6 +200,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderListResponse getStoreOrders(
             UUID storeId,
+            Long currentUserId,         // Store 엔티티 연동 후 실제 소유권 검증을 넣을 핵심 지점
             LocalDate startDate,
             LocalDate endDate,
             OrderStatus status,
@@ -280,6 +286,8 @@ public class OrderService {
                 );
 
         // TODO: Spring Security/JWT 연동 후 MANAGER, MASTER 권한 검증
+        // MANAGER, MASTER 권한으로 회원가입을 할 수 없어 우선 보류
+
         // 현재는 관리자 권한 검증 전이므로 Soft Delete 동작만 우선 확인
         // 현재 currentAdminId 임시값이며, 추후 인증된 관리자 ID로 교체
 
@@ -297,7 +305,6 @@ public class OrderService {
         Order order = findActiveOrder(orderId);
 
         // 고객 본인 주문인지 검증
-        // TODO: Security/JWT 연동 후 currentUserId를 인증 객체에서 가져오도록 수정
         validateOrderAccessForCustomer(order, currentUserId);
 
         // REQUESTED 상태에서만 취소 가능
@@ -321,7 +328,6 @@ public class OrderService {
         Order order = findActiveOrder(orderId);
 
         // 고객 본인 주문인지 검증
-        // TODO: Security/JWT 연동 후 currentUserId를 인증 객체에서 가져오도록 수정
         validateOrderAccessForCustomer(order, currentUserId);
 
         // DELIVERED 상태에서만 COMPLETED로 변경 가능
