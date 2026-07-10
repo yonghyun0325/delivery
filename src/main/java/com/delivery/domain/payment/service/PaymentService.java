@@ -5,7 +5,9 @@ import com.delivery.domain.payment.dto.response.PaymentResponse;
 import com.delivery.domain.payment.entity.Payment;
 import com.delivery.domain.payment.entity.PaymentStatus;
 import com.delivery.domain.payment.repository.PaymentRepository;
-import com.delivery.domain.user.entity.Role;
+import com.delivery.domain.store.entity.Store;
+import com.delivery.domain.store.repository.StoreRepository;
+import com.delivery.domain.user.enums.Role;
 import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.GlobalErrorCode;
 import com.delivery.global.security.config.CustomUserDetails;
@@ -24,14 +26,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final StoreRepository storeRepository;
 
     public PaymentResponse getPayment(UUID paymentId, CustomUserDetails userDetail) {
         Payment payment = getPaymentOrThrow(paymentId);
-
-        if (hasRole(userDetail, Role.CUSTOMER) && !payment.isOwnedBy(userDetail.getId())) {
-            throw new BusinessException(GlobalErrorCode.FORBIDDEN);
-        }
-
+        validatePaymentAccess(payment, userDetail);
         return PaymentResponse.from(payment);
     }
 
@@ -51,11 +50,11 @@ public class PaymentService {
     }
 
     public PaymentPageResponse getStorePayments(
-            UUID storeId, int page, int size, PaymentStatus status) {
+            UUID storeId, CustomUserDetails userDetail, int page, int size, PaymentStatus status) {
         validatePageRequest(page, size);
+        validateStoreAccess(storeId, userDetail);
 
-        // TODO: Add store-owner ownership verification when Store to Owner mapping is available.
-        Pageable pageable = createUnsortedPageable(page, size);
+        Pageable pageable = PageRequest.of(page, size);
         Page<PaymentResponse> payments =
                 (status == null
                                 ? paymentRepository.findByStoreId(storeId, pageable)
@@ -70,10 +69,7 @@ public class PaymentService {
     public PaymentResponse cancelPayment(
             UUID paymentId, String cancelReason, CustomUserDetails userDetail) {
         Payment payment = getPaymentOrThrow(paymentId);
-
-        if (hasRole(userDetail, Role.CUSTOMER) && !payment.isOwnedBy(userDetail.getId())) {
-            throw new BusinessException(GlobalErrorCode.FORBIDDEN);
-        }
+        validateCancelAccess(payment, userDetail);
 
         if (payment.isCanceled()) {
             throw new BusinessException(GlobalErrorCode.BAD_REQUEST);
@@ -93,8 +89,68 @@ public class PaymentService {
         return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "paidAt"));
     }
 
-    private Pageable createUnsortedPageable(int page, int size) {
-        return PageRequest.of(page, size);
+    private void validatePaymentAccess(Payment payment, CustomUserDetails userDetail) {
+        if (hasAnyRole(userDetail, Role.MANAGER, Role.MASTER)) {
+            return;
+        }
+
+        if (hasRole(userDetail, Role.OWNER)) {
+            UUID storeId = getStoreIdByPaymentId(payment.getPaymentId());
+            validateStoreOwnership(storeId, userDetail.getId());
+            return;
+        }
+
+        if (hasRole(userDetail, Role.CUSTOMER) && payment.isOwnedBy(userDetail.getId())) {
+            return;
+        }
+
+        throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+    }
+
+    private void validateStoreAccess(UUID storeId, CustomUserDetails userDetail) {
+        if (hasAnyRole(userDetail, Role.MANAGER, Role.MASTER)) {
+            return;
+        }
+
+        if (hasRole(userDetail, Role.OWNER)) {
+            validateStoreOwnership(storeId, userDetail.getId());
+            return;
+        }
+
+        throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+    }
+
+    private void validateCancelAccess(Payment payment, CustomUserDetails userDetail) {
+        if (hasAnyRole(userDetail, Role.MANAGER, Role.MASTER)) {
+            return;
+        }
+
+        if (hasRole(userDetail, Role.OWNER)) {
+            throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+        }
+
+        if (hasRole(userDetail, Role.CUSTOMER) && payment.isOwnedBy(userDetail.getId())) {
+            return;
+        }
+
+        throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+    }
+
+    private void validateStoreOwnership(UUID storeId, Long userId) {
+        Store store =
+                storeRepository
+                        .findByStoreIdAndDeletedAtIsNull(storeId)
+                        .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
+
+        if (!store.getUserId().equals(userId)) {
+            throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+        }
+    }
+
+    private UUID getStoreIdByPaymentId(UUID paymentId) {
+        return paymentRepository
+                .findStoreIdByPaymentId(paymentId)
+                .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
     }
 
     private void validatePageRequest(int page, int size) {
@@ -106,5 +162,14 @@ public class PaymentService {
     private boolean hasRole(CustomUserDetails userDetail, Role role) {
         return userDetail.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals(role.getAuthority()));
+    }
+
+    private boolean hasAnyRole(CustomUserDetails userDetail, Role... roles) {
+        for (Role role : roles) {
+            if (hasRole(userDetail, role)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -69,7 +69,7 @@ class PaymentControllerUnitTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.data").doesNotExist())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"));
+                .andExpect(jsonPath("$.error").value("INVALID_PARAMETER_TYPE"));
     }
 
     @Test
@@ -104,7 +104,8 @@ class PaymentControllerUnitTest {
                         null,
                         null);
 
-        when(paymentService.getPayment(eq(paymentId), any(CustomUserDetails.class))).thenReturn(response);
+        when(paymentService.getPayment(eq(paymentId), any(CustomUserDetails.class)))
+                .thenReturn(response);
 
         mockMvc.perform(get("/api/v1/payments/{paymentId}", paymentId))
                 .andExpect(status().isOk())
@@ -118,10 +119,14 @@ class PaymentControllerUnitTest {
     @DisplayName("가게 결제 목록 조회 성공 시 공통 성공 wrapper를 반환한다")
     void getStorePayments_success_returns_wrapper() throws Exception {
         UUID storeId = UUID.randomUUID();
-        PaymentPageResponse response =
-                new PaymentPageResponse(List.of(), 0, 10, 0, 0, false);
+        PaymentPageResponse response = new PaymentPageResponse(List.of(), 0, 10, 0, 0, false);
 
-        when(paymentService.getStorePayments(eq(storeId), eq(0), eq(10), eq(PaymentStatus.PAID)))
+        when(paymentService.getStorePayments(
+                        eq(storeId),
+                        any(CustomUserDetails.class),
+                        eq(0),
+                        eq(10),
+                        eq(PaymentStatus.PAID)))
                 .thenReturn(response);
 
         mockMvc.perform(

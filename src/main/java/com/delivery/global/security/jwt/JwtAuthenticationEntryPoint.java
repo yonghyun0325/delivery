@@ -2,17 +2,20 @@ package com.delivery.global.security.jwt;
 
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.auth.exception.AuthErrorCode;
+import com.delivery.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -24,17 +27,19 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException)
             throws IOException {
-        String contentType = "application/json;charset=UTF-8";
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.setContentType(contentType);
-        response.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
-        response.getWriter()
-                .write(
-                        objectMapper.writeValueAsString(
-                                RestApiResponse.fail(
-                                        AuthErrorCode.TOKEN_NOT_FOUND.getHttpStatus(),
-                                        AuthErrorCode.TOKEN_NOT_FOUND.getMessage(),
-                                        AuthErrorCode.TOKEN_NOT_FOUND.getName())));
+        ErrorCode errorCode = AuthErrorCode.TOKEN_NOT_FOUND;
+        HttpStatus httpStatus = errorCode.getHttpStatus();
+        String message = errorCode.getMessage();
+        String error = errorCode.getName();
+
+        log.warn("{} : {}", error, message, authException);
+
+        response.setStatus(httpStatus.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        var errorResponse = RestApiResponse.fail(httpStatus, message, error);
+
+        objectMapper.writeValue(response.getWriter(), errorResponse);
     }
 }

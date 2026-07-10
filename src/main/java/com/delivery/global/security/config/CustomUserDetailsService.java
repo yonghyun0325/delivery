@@ -2,8 +2,8 @@ package com.delivery.global.security.config;
 
 import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;
+import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.global.exception.BusinessException;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +12,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
@@ -24,8 +22,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) {
         User user =
                 userRepository
-                        .findByUsernameAndDeletedAtIsNull(username)
-                        .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_EXIST_USER));
+                        .findWithRolesByUsernameAndDeletedAtIsNull(username)
+                        .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_USER));
 
         List<GrantedAuthority> authorities =
                 user.getRoles().stream()

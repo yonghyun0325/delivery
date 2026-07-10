@@ -1,7 +1,6 @@
 package com.delivery.global.security.config;
 
 import com.delivery.global.security.jwt.JwtAuthenticationEntryPoint;
-import com.delivery.global.security.jwt.JwtAccessDeniedHandler;
 import com.delivery.global.security.jwt.JwtRequestFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -25,8 +25,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtRequestFilter jwtRequestFilter;
+    private final AccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -45,7 +45,12 @@ public class SecurityConfig {
 
         httpSecurity.authorizeHttpRequests(
                 (requests) ->
-                        requests.requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
+                        requests.requestMatchers(
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
+                                        "/scalar",
+                                        "/scalar/**",
+                                        "/webjars/**")
                                 .permitAll()
 
                                 // 공통 권한
@@ -60,6 +65,9 @@ public class SecurityConfig {
                                 .requestMatchers(
                                         HttpMethod.GET, "/api/v1/stores", "/api/v1/stores/*")
                                 .permitAll()
+                                .requestMatchers(
+                                        HttpMethod.GET, "/api/v1/categories", "/api/v1/regions")
+                                .permitAll()
 
                                 // 관리자
                                 .requestMatchers("/api/v1/users", "/api/v1/users/*")
@@ -71,7 +79,7 @@ public class SecurityConfig {
         httpSecurity.exceptionHandling(
                 config ->
                         config.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                                .accessDeniedHandler(jwtAccessDeniedHandler));
+                                .accessDeniedHandler(accessDeniedHandler));
 
         httpSecurity.sessionManagement(
                 sessionManagement ->

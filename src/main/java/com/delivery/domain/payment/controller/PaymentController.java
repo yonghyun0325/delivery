@@ -51,13 +51,15 @@ public class PaymentController {
     }
 
     @GetMapping("/owner/stores/{storeId}/payments")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<PaymentPageResponse>> getStorePayments(
             @PathVariable UUID storeId,
+            @AuthenticationPrincipal CustomUserDetails userDetail,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) PaymentStatus status) {
-        PaymentPageResponse response = paymentService.getStorePayments(storeId, page, size, status);
+        PaymentPageResponse response =
+                paymentService.getStorePayments(storeId, userDetail, page, size, status);
         return ResponseEntity.ok(
                 RestApiResponse.success(HttpStatus.OK, "가게 결제 목록 조회에 성공했습니다.", response));
     }

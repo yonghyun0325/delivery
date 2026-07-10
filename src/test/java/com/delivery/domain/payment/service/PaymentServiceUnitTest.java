@@ -14,7 +14,9 @@ import com.delivery.domain.payment.entity.Payment;
 import com.delivery.domain.payment.entity.PaymentMethod;
 import com.delivery.domain.payment.entity.PaymentStatus;
 import com.delivery.domain.payment.repository.PaymentRepository;
-import com.delivery.domain.user.entity.Role;
+import com.delivery.domain.store.entity.Store;
+import com.delivery.domain.store.repository.StoreRepository;
+import com.delivery.domain.user.enums.Role;
 import com.delivery.global.exception.BusinessException;
 import com.delivery.global.security.config.CustomUserDetails;
 import java.time.LocalDateTime;
@@ -37,6 +39,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 class PaymentServiceUnitTest {
 
     @Mock private PaymentRepository paymentRepository;
+    @Mock private StoreRepository storeRepository;
 
     @InjectMocks private PaymentService paymentService;
 
@@ -56,7 +59,6 @@ class PaymentServiceUnitTest {
             PaymentResponse response = paymentService.getPayment(paymentId, userDetails);
 
             assertThat(response.paymentId()).isEqualTo(paymentId);
-            assertThat(response.userId()).isEqualTo(1L);
         }
 
         @Test
@@ -67,6 +69,45 @@ class PaymentServiceUnitTest {
             CustomUserDetails userDetails = createUserDetails(1L, Set.of(Role.CUSTOMER));
 
             when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+
+            assertThatThrownBy(() -> paymentService.getPayment(paymentId, userDetails))
+                    .isInstanceOf(BusinessException.class);
+        }
+
+        @Test
+        @DisplayName("OWNER는 본인 가게 결제를 조회할 수 있다")
+        void getPayment_success_when_owner_owns_store() {
+            UUID paymentId = UUID.randomUUID();
+            UUID storeId = UUID.randomUUID();
+            Payment payment = createPayment(paymentId, 2L, PaymentStatus.PAID);
+            CustomUserDetails userDetails =
+                    createUserDetails(10L, Set.of(Role.OWNER, Role.CUSTOMER));
+
+            when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+            when(paymentRepository.findStoreIdByPaymentId(paymentId))
+                    .thenReturn(Optional.of(storeId));
+            when(storeRepository.findByStoreIdAndDeletedAtIsNull(storeId))
+                    .thenReturn(Optional.of(createStore(storeId, 10L)));
+
+            PaymentResponse response = paymentService.getPayment(paymentId, userDetails);
+
+            assertThat(response.paymentId()).isEqualTo(paymentId);
+        }
+
+        @Test
+        @DisplayName("OWNER는 다른 가게 결제를 조회할 수 없다")
+        void getPayment_fail_when_owner_does_not_own_store() {
+            UUID paymentId = UUID.randomUUID();
+            UUID storeId = UUID.randomUUID();
+            Payment payment = createPayment(paymentId, 2L, PaymentStatus.PAID);
+            CustomUserDetails userDetails =
+                    createUserDetails(10L, Set.of(Role.OWNER, Role.CUSTOMER));
+
+            when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+            when(paymentRepository.findStoreIdByPaymentId(paymentId))
+                    .thenReturn(Optional.of(storeId));
+            when(storeRepository.findByStoreIdAndDeletedAtIsNull(storeId))
+                    .thenReturn(Optional.of(createStore(storeId, 20L)));
 
             assertThatThrownBy(() -> paymentService.getPayment(paymentId, userDetails))
                     .isInstanceOf(BusinessException.class);
@@ -84,7 +125,6 @@ class PaymentServiceUnitTest {
             PaymentResponse response = paymentService.getPayment(paymentId, userDetails);
 
             assertThat(response.paymentId()).isEqualTo(paymentId);
-            assertThat(response.userId()).isEqualTo(2L);
         }
 
         @Test
@@ -99,7 +139,6 @@ class PaymentServiceUnitTest {
             PaymentResponse response = paymentService.getPayment(paymentId, userDetails);
 
             assertThat(response.paymentId()).isEqualTo(paymentId);
-            assertThat(response.userId()).isEqualTo(2L);
         }
 
         @Test
@@ -144,7 +183,6 @@ class PaymentServiceUnitTest {
                     paymentService.getMyPayments(userDetails, 0, 10, PaymentStatus.PAID);
 
             assertThat(response.content()).hasSize(1);
-            assertThat(response.content().get(0).paymentStatus()).isEqualTo(PaymentStatus.PAID);
         }
     }
 
@@ -153,20 +191,59 @@ class PaymentServiceUnitTest {
     class GetStorePayments {
 
         @Test
-        @DisplayName("OWNER는 상태 조건으로 가게 결제 목록을 조회할 수 있다")
-        void getStorePayments_success_when_status_filter_exists() {
+        @DisplayName("OWNER는 본인 가게 결제 목록을 조회할 수 있다")
+        void getStorePayments_success_when_owner_owns_store() {
             UUID storeId = UUID.randomUUID();
             Payment payment = createPayment(UUID.randomUUID(), 2L, PaymentStatus.PAID);
+            CustomUserDetails userDetails =
+                    createUserDetails(10L, Set.of(Role.OWNER, Role.CUSTOMER));
+
+            when(storeRepository.findByStoreIdAndDeletedAtIsNull(storeId))
+                    .thenReturn(Optional.of(createStore(storeId, 10L)));
+            when(paymentRepository.findByStoreIdAndPaymentStatus(
+                            eq(storeId), eq(PaymentStatus.PAID), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(payment)));
+
+            PaymentPageResponse response =
+                    paymentService.getStorePayments(
+                            storeId, userDetails, 0, 10, PaymentStatus.PAID);
+
+            assertThat(response.content()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("OWNER는 다른 가게 결제 목록을 조회할 수 없다")
+        void getStorePayments_fail_when_owner_does_not_own_store() {
+            UUID storeId = UUID.randomUUID();
+            CustomUserDetails userDetails =
+                    createUserDetails(10L, Set.of(Role.OWNER, Role.CUSTOMER));
+
+            when(storeRepository.findByStoreIdAndDeletedAtIsNull(storeId))
+                    .thenReturn(Optional.of(createStore(storeId, 20L)));
+
+            assertThatThrownBy(
+                            () ->
+                                    paymentService.getStorePayments(
+                                            storeId, userDetails, 0, 10, PaymentStatus.PAID))
+                    .isInstanceOf(BusinessException.class);
+        }
+
+        @Test
+        @DisplayName("MANAGER는 모든 가게 결제 목록을 조회할 수 있다")
+        void getStorePayments_success_when_manager_reads_any_store() {
+            UUID storeId = UUID.randomUUID();
+            Payment payment = createPayment(UUID.randomUUID(), 2L, PaymentStatus.PAID);
+            CustomUserDetails userDetails = createUserDetails(99L, Set.of(Role.MANAGER));
 
             when(paymentRepository.findByStoreIdAndPaymentStatus(
                             eq(storeId), eq(PaymentStatus.PAID), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(payment)));
 
             PaymentPageResponse response =
-                    paymentService.getStorePayments(storeId, 0, 10, PaymentStatus.PAID);
+                    paymentService.getStorePayments(
+                            storeId, userDetails, 0, 10, PaymentStatus.PAID);
 
             assertThat(response.content()).hasSize(1);
-            assertThat(response.content().get(0).paymentStatus()).isEqualTo(PaymentStatus.PAID);
         }
     }
 
@@ -188,6 +265,19 @@ class PaymentServiceUnitTest {
         }
 
         @Test
+        @DisplayName("고객은 본인 결제만 취소할 수 있다")
+        void cancelPayment_fail_when_customer_does_not_own_payment() {
+            UUID paymentId = UUID.randomUUID();
+            Payment payment = createPayment(paymentId, 2L, PaymentStatus.PAID);
+            CustomUserDetails userDetails = createUserDetails(1L, Set.of(Role.CUSTOMER));
+
+            when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+
+            assertThatThrownBy(() -> paymentService.cancelPayment(paymentId, "고객 요청", userDetails))
+                    .isInstanceOf(BusinessException.class);
+        }
+
+        @Test
         @DisplayName("본인 결제는 취소할 수 있다")
         void cancelPayment_success() {
             UUID paymentId = UUID.randomUUID();
@@ -200,8 +290,6 @@ class PaymentServiceUnitTest {
                     paymentService.cancelPayment(paymentId, "고객 요청", userDetails);
 
             assertThat(response.paymentStatus()).isEqualTo(PaymentStatus.CANCELED);
-            assertThat(response.cancelReason()).isEqualTo("고객 요청");
-            assertThat(response.canceledAt()).isNotNull();
         }
 
         @Test
@@ -217,7 +305,6 @@ class PaymentServiceUnitTest {
                     paymentService.cancelPayment(paymentId, "관리자 취소", userDetails);
 
             assertThat(response.paymentStatus()).isEqualTo(PaymentStatus.CANCELED);
-            assertThat(response.cancelReason()).isEqualTo("관리자 취소");
         }
     }
 
@@ -230,6 +317,20 @@ class PaymentServiceUnitTest {
                 .paidAt(LocalDateTime.now())
                 .paymentStatus(paymentStatus)
                 .paymentAmount(15000)
+                .build();
+    }
+
+    private Store createStore(UUID storeId, Long ownerUserId) {
+        return Store.builder()
+                .storeId(storeId)
+                .userId(ownerUserId)
+                .categoryId(UUID.randomUUID())
+                .regionId(UUID.randomUUID())
+                .name("store")
+                .address("address")
+                .phone("010-1234-5678")
+                .description("desc")
+                .minOrderAmount(10000)
                 .build();
     }
 

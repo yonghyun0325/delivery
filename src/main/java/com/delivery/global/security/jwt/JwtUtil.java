@@ -57,11 +57,19 @@ public class JwtUtil implements Serializable {
     }
 
     public Claims getAllClaimsFromAccessToken(String token) {
-        return getAllClaimsFromToken(token, getSecretKey(accessSecretKey));
+        Key signingKey =
+                new SecretKeySpec(
+                        Base64.getDecoder().decode(accessSecretKey),
+                        SignatureAlgorithm.HS256.getJcaName());
+        return getAllClaimsFromToken(token, signingKey);
     }
 
     public Claims getAllClaimsFromRefreshToken(String token) {
-        return getAllClaimsFromToken(token, getSecretKey(refreshSecretKey));
+        Key signingKey =
+                new SecretKeySpec(
+                        Base64.getDecoder().decode(refreshSecretKey),
+                        SignatureAlgorithm.HS256.getJcaName());
+        return getAllClaimsFromToken(token, signingKey);
     }
 
     private Boolean isTokenExpired(String token) {
@@ -86,13 +94,19 @@ public class JwtUtil implements Serializable {
     }
 
     public String generateAccessToken(UserDetails userDetails, Long memberId) {
-        return generateToken(
-                userDetails, memberId, getSecretKey(accessSecretKey), ACCESS_TOKEN_VALIDITY);
+        Key signingKey =
+                new SecretKeySpec(
+                        Base64.getDecoder().decode(accessSecretKey),
+                        SignatureAlgorithm.HS256.getJcaName());
+        return generateToken(userDetails, memberId, signingKey, ACCESS_TOKEN_VALIDITY);
     }
 
     public String generateRefreshToken(UserDetails userDetails, Long memberId) {
-        return generateToken(
-                userDetails, memberId, getSecretKey(refreshSecretKey), REFRESH_TOKEN_VALIDITY);
+        Key signingKey =
+                new SecretKeySpec(
+                        Base64.getDecoder().decode(refreshSecretKey),
+                        SignatureAlgorithm.HS256.getJcaName());
+        return generateToken(userDetails, memberId, signingKey, REFRESH_TOKEN_VALIDITY);
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
@@ -111,10 +125,5 @@ public class JwtUtil implements Serializable {
             return bearerToken.substring(7);
         }
         return null;
-    }
-
-    public Key getSecretKey(String SecretKey) {
-        return new SecretKeySpec(
-                Base64.getDecoder().decode(SecretKey), SignatureAlgorithm.HS256.getJcaName());
     }
 }

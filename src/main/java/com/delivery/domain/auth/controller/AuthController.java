@@ -23,16 +23,16 @@ public class AuthController {
     @PostMapping
     public ResponseEntity<RestApiResponse<AuthResponseDto>> signUp(
             @Valid @RequestBody SignUpRequestDto request) {
-        AuthResponseDto response = authService.signUp(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(RestApiResponse.success(HttpStatus.CREATED, "회원가입 성공", response));
+                .body(
+                        RestApiResponse.success(
+                                HttpStatus.CREATED, "회원가입 성공", authService.signUp(request)));
     }
 
     @PostMapping("/login")
     public ResponseEntity<RestApiResponse<AuthResponseDto>> login(
             @Valid @RequestBody LoginRequestDto request) {
-        AuthResponseDto response = authService.login(request);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(RestApiResponse.success(HttpStatus.OK, "로그인 성공", response));
+        return ResponseEntity.ok(
+                RestApiResponse.success(HttpStatus.OK, "로그인 성공", authService.login(request)));
     }
 }

@@ -14,8 +14,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
 
-    Optional<User> findByIdAndCreatedAtIsNull(Long id);
+    Optional<User> findByIdAndDeletedAtIsNull(Long id);
 
     @EntityGraph(attributePaths = "roles")
+    Optional<User> findWithRolesByUsernameAndDeletedAtIsNull(String username);
+
     Optional<User> findByUsernameAndDeletedAtIsNull(String id);
 }
