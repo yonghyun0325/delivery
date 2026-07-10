@@ -22,7 +22,7 @@ public class Review extends BaseEntity {
     private UUID orderId;
 
     @Column(name = "user_id", nullable = false)
-    private UUID userId;
+    private Long userId;
 
     @Column(name = "store_id", nullable = false)
     private UUID storeId;
@@ -33,7 +33,7 @@ public class Review extends BaseEntity {
     @Column(name = "content", nullable = false, length = 1000)
     private String content;
 
-    protected Review(UUID orderId, UUID userId, UUID storeId, Integer rating, String content) {
+    protected Review(UUID orderId, Long userId, UUID storeId, Integer rating, String content) {
         this.orderId = orderId;
         this.userId = userId;
         this.storeId = storeId;
@@ -42,7 +42,7 @@ public class Review extends BaseEntity {
     }
 
     public static Review create(
-            UUID orderId, UUID userId, UUID storeId, Integer rating, String content) {
+            UUID orderId, Long userId, UUID storeId, Integer rating, String content) {
         return new Review(orderId, userId, storeId, rating, content);
     }
 
