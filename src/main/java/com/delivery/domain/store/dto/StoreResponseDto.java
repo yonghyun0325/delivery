@@ -1,10 +1,11 @@
 package com.delivery.domain.store.dto;
 
 import com.delivery.domain.store.entity.Store;
-import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Builder

@@ -57,13 +57,6 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += [
-            '-processor',
-            'lombok.launch.AnnotationProcessorHider$AnnotationProcessor'
-    ]
-}
-
 spotless {
     java {
         googleJavaFormat('1.22.0').aosp().reflowLongStrings()

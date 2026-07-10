@@ -7,7 +7,6 @@ import com.delivery.domain.store.dto.response.StoreResponse;
 import com.delivery.domain.store.service.StoreService;
 import com.delivery.global.security.config.CustomUserDetails;
 import jakarta.validation.Valid;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/stores")
@@ -76,7 +77,8 @@ public class StoreController {
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @DeleteMapping("/{storeId}")
     public ResponseEntity<RestApiResponse<Void>> deleteStore(
-            @PathVariable UUID storeId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @PathVariable UUID storeId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getId();
         storeService.deleteStore(storeId, userId);
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "가게 삭제 성공", null));
