@@ -7,6 +7,8 @@ import com.delivery.domain.menu.dto.request.UpdateMenuVisibilityRequest;
 import com.delivery.domain.menu.dto.response.MenuResponse;
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.global.security.config.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -23,14 +25,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "메뉴", description = "메뉴 CRUD 및 AI 설명 생성 API")
 @RestController
 @RequiredArgsConstructor
 public class MenuController {
+
+    private static final String STORE_NOT_LINKED_NOTICE =
+            " (Store 도메인 연동 전이라 현재는 Role 기반 권한만 검증하며, 실제 가게 소유권 검증은 하지 않습니다.)";
 
     private final MenuService menuService;
 
     // 메뉴 등록
     // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
+    @Operation(
+            summary = "메뉴 등록",
+            description = "가게에 메뉴를 등록합니다. AI 설명 생성 옵션을 지원합니다." + STORE_NOT_LINKED_NOTICE)
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PostMapping("/api/v1/stores/{storeId}/menus")
     public ResponseEntity<RestApiResponse<MenuResponse>> createMenu(
@@ -48,6 +57,7 @@ public class MenuController {
     }
 
     // 메뉴 목록 조회
+    @Operation(summary = "가게별 메뉴 목록 조회", description = "가게에 등록된 삭제되지 않은 메뉴 목록을 조회합니다.")
     @GetMapping("/api/v1/stores/{storeId}/menus")
     public ResponseEntity<RestApiResponse<List<MenuResponse>>> getStoreMenus(
             @PathVariable UUID storeId) {
@@ -57,6 +67,7 @@ public class MenuController {
     }
 
     // 메뉴 단건 조회
+    @Operation(summary = "메뉴 단건 조회", description = "메뉴 ID로 메뉴 한 건을 조회합니다.")
     @GetMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<MenuResponse>> getMenu(@PathVariable UUID menuId) {
         return ResponseEntity.ok(
@@ -66,6 +77,7 @@ public class MenuController {
 
     // 메뉴 수정
     // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
+    @Operation(summary = "메뉴 수정", description = "메뉴의 이름/설명/가격을 수정합니다." + STORE_NOT_LINKED_NOTICE)
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<MenuResponse>> updateMenu(
@@ -78,6 +90,7 @@ public class MenuController {
 
     // 숨김 상태 업데이트
     // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
+    @Operation(summary = "메뉴 숨김 상태 변경", description = "메뉴를 숨김/노출 처리합니다." + STORE_NOT_LINKED_NOTICE)
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/api/v1/menus/{menuId}/visibility")
     public ResponseEntity<RestApiResponse<MenuResponse>> updateMenuVisibility(
@@ -89,6 +102,7 @@ public class MenuController {
 
     // 메뉴 삭제 (Soft Delete)
     // TODO: Store 연동 후 실제 소유권(owner) 검증 추가 필요 — 지금은 역할(Role)만 체크
+    @Operation(summary = "메뉴 삭제", description = "메뉴를 소프트 삭제 처리합니다." + STORE_NOT_LINKED_NOTICE)
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @DeleteMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<Void>> deleteMenu(
