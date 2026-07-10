@@ -13,7 +13,7 @@ public class ReviewResponse {
     // 주문 ID
     private UUID orderId;
     // 리뷰 작성자 ID
-    private UUID userId;
+    private Long userId;
     // 가게 ID
     private UUID storeId;
     // 평점

@@ -1,5 +1,6 @@
-package com.delivery.global.exception;
+package com.delivery.domain.review.exception;
 
+import com.delivery.global.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
