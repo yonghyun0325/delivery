@@ -7,13 +7,19 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record SignUpRequest(
-        @NotBlank @Size(min = 4, max = 10) @Pattern(regexp = "^[a-z0-9]+$") String username,
-        @NotBlank
+        @NotBlank(message = "REQUIRED_VALUE")
+                @Size(min = 4, max = 10)
+                @Pattern(regexp = "^[a-z0-9]+$")
+                String username,
+        @NotBlank(message = "REQUIRED_VALUE")
                 @Size(min = 8, max = 15)
                 @Pattern(
                         regexp =
                                 "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?`~]).+$")
                 String password,
-        @NotBlank @Size(min = 2, max = 16) @Pattern(regexp = "^[a-zA-Z0-9가-힣]+$") String nickName,
+        @NotBlank(message = "REQUIRED_VALUE")
+                @Size(min = 2, max = 16)
+                @Pattern(regexp = "^[a-zA-Z0-9가-힣]+$")
+                String nickName,
         @Size(min = 11, max = 11) @Pattern(regexp = "^010\\d+$") String phoneNumber,
-        @NotNull Role role) {}
+        @NotNull(message = "REQUIRED_VALUE") Role role) {}

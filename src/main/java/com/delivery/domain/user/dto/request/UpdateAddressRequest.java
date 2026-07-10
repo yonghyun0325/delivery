@@ -4,4 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record UpdateAddressRequest(
-        @NotBlank String address, @NotBlank String addressDetail, @NotNull Boolean isDefault) {}
+        @NotBlank(message = "REQUIRED_VALUE") String address,
+        @NotBlank(message = "REQUIRED_VALUE") String addressDetail,
+        @NotNull(message = "REQUIRED_VALUE") Boolean isDefault) {}
