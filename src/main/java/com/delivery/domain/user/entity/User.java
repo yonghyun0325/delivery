@@ -1,6 +1,7 @@
 package com.delivery.domain.user.entity;
 
 import com.delivery.common.base.BaseEntity;
+import com.delivery.common.util.CryptoConverter;
 import com.delivery.domain.user.enums.Role;
 import com.delivery.domain.user.enums.UserStatus;
 import jakarta.persistence.*;
@@ -31,7 +32,8 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true, length = 20)
     private String nickName;
 
-    @Column(nullable = false, length = 20)
+    @Convert(converter = CryptoConverter.class)
+    @Column(nullable = false, length = 255)
     private String phoneNumber;
 
     @Column(nullable = false)
