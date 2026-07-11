@@ -15,28 +15,25 @@ import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.stream.Stream;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @Import(ErrorCodeRegistry.class)
-@AutoConfigureMockMvc(addFilters = false)
-@RequiredArgsConstructor
 @WebMvcTest(AuthController.class)
-@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerUnitTest {
-    private final MockMvc mockMvc;
-    private final ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
 
     @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private AuthService authService;

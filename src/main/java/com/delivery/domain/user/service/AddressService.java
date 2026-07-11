@@ -1,10 +1,10 @@
 package com.delivery.domain.user.service;
 
+import com.delivery.common.util.SsnEncryptor;
 import com.delivery.domain.user.dto.request.CreateAddressRequest;
 import com.delivery.domain.user.dto.request.UpdateAddressRequest;
 import com.delivery.domain.user.dto.response.AddressResponse;
 import com.delivery.domain.user.entity.Address;
-import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.mapper.UserDtoMapper;
@@ -20,15 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AddressService {
     private final AddressRepository addressRepository;
-    private final UserService userService;
+    private final SsnEncryptor ssnEncryptor;
 
-    // TODO : 테스트 시 삭제 배송지 확인해봐야함, 동시성 문제 생길 확률 높음
     public AddressResponse createAddress(Long userId, CreateAddressRequest request) {
         if (addressRepository.countByUserIdAndDeletedAtIsNull(userId) >= 10) {
             throw new UserException(UserErrorCode.EXCEED_MAX_ADDRESS);
         }
-
-        User user = userService.findActiveUser(userId);
 
         if (request.isDefault()) {
             resetDefault(userId);
@@ -36,7 +33,7 @@ public class AddressService {
 
         Address address =
                 Address.create(
-                        user, request.address(), request.addressDetail(), request.isDefault());
+                        userId, request.address(), request.addressDetail(), request.isDefault());
         return UserDtoMapper.toDto(addressRepository.save(address));
     }
 
@@ -81,4 +78,10 @@ public class AddressService {
                 .findByUserIdAndIsDefaultTrueAndDeletedAtIsNull(userId)
                 .ifPresent(address -> address.updateDefault(false));
     }
+
+    //    private AddressResponse toDto(Address address) {
+    //        String decryptedAddress = ssnEncryptor.decrypt(address.getAddress());
+    //        String decryptedAddressDetail = ssnEncryptor.decrypt(address.getAddressDetail());
+    //        return UserDtoMapper.toDto(address,  decryptedAddress, decryptedAddressDetail);
+    //    }
 }

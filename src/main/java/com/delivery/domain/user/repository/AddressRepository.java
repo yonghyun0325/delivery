@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AddressRepository extends JpaRepository<Address, UUID> {
     long countByUserIdAndDeletedAtIsNull(Long userId);
 
-    boolean existsByUserIdAndIsDefaultAndDeletedAtIsNull(Long userId, boolean isDefault);
-
     List<Address> findAllByUserIdAndDeletedAtIsNullOrderByCreatedAt(Long userId);
 
     Optional<Address> findByIdAndUserIdAndDeletedAtIsNull(UUID addressId, Long userId);

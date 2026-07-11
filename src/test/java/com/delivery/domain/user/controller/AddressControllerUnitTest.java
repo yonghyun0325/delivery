@@ -20,24 +20,21 @@ import com.delivery.testconfig.WithMockCustomUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@RequiredArgsConstructor
 @WebMvcTest(AddressController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class AddressControllerUnitTest {
-    private final MockMvc mockMvc;
-    private final ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
 
     @MockitoBean private AddressService addressService;
     @MockitoBean private JwtUtil jwtUtil;
@@ -49,7 +46,7 @@ class AddressControllerUnitTest {
 
     @Nested
     @DisplayName("배송지 등록")
-    class createAddress {
+    class CreateAddress {
         @Test
         @WithMockCustomUser(id = 1L, role = "CUSTOMER")
         @DisplayName("로그인 유저가 배송지 생성에 성공한다.")
@@ -101,7 +98,7 @@ class AddressControllerUnitTest {
     @Nested
     @DisplayName("배송지 조회 테스트")
     @WithMockCustomUser(id = 1L, role = "CUSTOMER")
-    class getAddress {
+    class GetAddress {
         @Test
         @DisplayName("배송지 조회 성공 시 200과 배송지 정보를 반환한다..")
         void getAddress_success() throws Exception {
@@ -163,7 +160,7 @@ class AddressControllerUnitTest {
     @Nested
     @DisplayName("배송지 수정 테스트")
     @WithMockCustomUser(id = 1L, role = "CUSTOMER")
-    class updateAddress {
+    class UpdateAddress {
         @Test
         @DisplayName("등록한 배송지를 수정 한다.")
         void updateAddress_success() throws Exception {
