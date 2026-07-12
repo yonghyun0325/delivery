@@ -57,4 +57,12 @@ public class GlobalExceptionHandler {
                                 errorCode.getMessage(),
                                 errorCode.getName()));
     }
+
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<RestApiResponse<?>> handleException(Exception e) {
+        ErrorCode errorCode = GlobalErrorCode.INTERNAL_SERVER_ERROR;
+        log.warn("{} : {}", errorCode.getName(), errorCode.getMessage(), e);
+
+        return buildResponseEntity(errorCode);
+    }
 }

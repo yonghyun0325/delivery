@@ -3,17 +3,17 @@ package com.delivery.domain.user.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import com.delivery.domain.user.dto.request.SignUpRequest;
+import com.delivery.domain.user.dto.UserDtoMapper;
 import com.delivery.domain.user.dto.request.CreateAddressRequest;
+import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.request.UpdateAddressRequest;
 import com.delivery.domain.user.dto.response.AddressResponse;
 import com.delivery.domain.user.entity.Address;
+import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
-import com.delivery.domain.user.enums.Role;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.fixture.AddressFixture;
 import com.delivery.domain.user.fixture.UserFixture;
-import com.delivery.domain.user.mapper.UserDtoMapper;
 import com.delivery.domain.user.repository.AddressRepository;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.testconfig.AbstractIntegrationTest;
@@ -109,7 +109,8 @@ public class AddressServiceIntegrationTest extends AbstractIntegrationTest {
                     addressRepository
                             .findByUserIdAndIsDefaultTrueAndDeletedAtIsNull(userId)
                             .orElseThrow();
-            System.out.println("defaultAddress = " + UserDtoMapper.toDto(defaultAddress));
+            System.out.println(
+                    "defaultAddress = " + UserDtoMapper.toAddressResponse(defaultAddress));
             System.out.println("savedAddress = " + savedAddress);
 
             // then

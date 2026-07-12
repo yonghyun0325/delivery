@@ -6,12 +6,11 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.delivery.domain.user.controller.AuthController;
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
-import com.delivery.domain.user.response.AuthResponse;
+import com.delivery.domain.user.dto.response.AuthResponse;
+import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.service.AuthService;
-import com.delivery.domain.user.enums.Role;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,7 +49,7 @@ class AuthControllerUnitTest {
                     new SignUpRequest(
                             "test1234", "Testtest123!", "test", "01012345678", Role.CUSTOMER);
 
-            AuthResponse response = new AuthResponse(1L, "test1234", "test", "accessToken");
+            AuthResponse response = new AuthResponse("test1234", "test", "accessToken");
 
             given(authService.signUp((any(SignUpRequest.class)))).willReturn(response);
 
@@ -61,7 +60,6 @@ class AuthControllerUnitTest {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.data.id").value(1L))
                     .andExpect(jsonPath("$.data.username").value("test1234"))
                     .andExpect(jsonPath("$.data.nickName").value("test"))
                     .andExpect(jsonPath("$.data.accessToken").value("accessToken"));
@@ -110,7 +108,7 @@ class AuthControllerUnitTest {
                 // given
                 LoginRequest request = new LoginRequest("test1234", "Testtest123!");
 
-                AuthResponse response = new AuthResponse(1L, "test1234", "test", "accessToken");
+                AuthResponse response = new AuthResponse("test1234", "test", "accessToken");
 
                 given(authService.login(any(LoginRequest.class))).willReturn(response);
 
@@ -121,7 +119,6 @@ class AuthControllerUnitTest {
                                         .content(objectMapper.writeValueAsString(request)))
                         .andExpect(status().isOk())
                         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(jsonPath("$.data.id").value(1L))
                         .andExpect(jsonPath("$.data.username").value("test1234"))
                         .andExpect(jsonPath("$.data.nickName").value("test"))
                         .andExpect(jsonPath("$.data.accessToken").value("accessToken"));

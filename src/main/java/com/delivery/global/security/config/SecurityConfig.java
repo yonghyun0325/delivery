@@ -71,12 +71,13 @@ public class SecurityConfig {
                                 .permitAll()
 
                                 // 관리자
-                                .requestMatchers("/api/v1/users", "/api/v1/users/*")
+                                .requestMatchers("/api/v1/admin/users", "/api/v1/admin/users/*")
                                 .hasAnyRole("MASTER", "MANAGER")
 
                                 // 나머지
                                 .anyRequest()
                                 .authenticated());
+
         httpSecurity.exceptionHandling(
                 config ->
                         config.authenticationEntryPoint(jwtAuthenticationEntryPoint)

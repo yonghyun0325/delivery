@@ -4,12 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
-import com.delivery.domain.user.response.AuthResponse;
+import com.delivery.domain.user.dto.response.AuthResponse;
+import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
-import com.delivery.domain.user.enums.Role;
-import com.delivery.domain.user.enums.UserStatus;
+import com.delivery.domain.user.entity.UserStatus;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.domain.user.service.AuthService;
 import com.delivery.testconfig.AbstractIntegrationTest;
 import com.delivery.testutil.ConcurrencyTestingUtil;
 import java.util.HashSet;
@@ -19,11 +18,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 class AuthServiceIntegrationTest extends AbstractIntegrationTest {
+    @Autowired private ApplicationEventPublisher applicationEventPublisher;
     @Autowired private AuthService authService;
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
@@ -46,7 +47,6 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
                         .orElseThrow();
 
         // then
-        assertThat(savedUser.getId()).isEqualTo(response.id());
         assertThat(savedUser.getUsername()).isEqualTo(response.username());
         assertThat(passwordEncoder.matches("testtest1234!", savedUser.getPassword())).isTrue();
         assertThat(savedUser.getNickName()).isEqualTo(response.nickName());
@@ -106,7 +106,6 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         AuthResponse loginResponse = authService.login(loginRequest);
 
         // then
-        assertThat(loginResponse.id()).isEqualTo(savedUser.getId());
         assertThat(loginResponse.username()).isEqualTo(savedUser.getUsername());
         assertThat(loginResponse.nickName()).isEqualTo(savedUser.getNickName());
         assertThat(loginResponse.accessToken()).isNotBlank();

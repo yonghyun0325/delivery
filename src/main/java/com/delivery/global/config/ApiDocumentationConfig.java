@@ -12,6 +12,7 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/** Swagger Config */
 @Configuration
 public class ApiDocumentationConfig {
     @Bean
@@ -41,36 +42,14 @@ public class ApiDocumentationConfig {
 
                         ## 🚀 팀원 및 역할분담
 
-                        - 안예지 팀장 : 주문
-                        - 이용현 팀원 : 리뷰
-                        - 정수민 팀원 : 음식점
-                        - 임은택 팀원 : 메뉴
-                        - 송채영 팀원 : 결제
-                        - 이강석 팀원 : 사용자
+                        - 안예지 팀장 : 주문(Order)
+                        - 이용현 팀원 : 리뷰(Review)
+                        - 정수민 팀원 : 가게(Store)
+                        - 임은택 팀원 : 메뉴(Menu)
+                        - 송채영 팀원 : 결제(Payment)
+                        - 이강석 팀원 : 회원(User)
 
-                        ## 🔐 Authentication
-
-                        Request Header:
-
-                        ```
-                        Authorization: Bearer {accessToken}
-                        ```
-
-                        ## 📌 Response Format
-
-                        성공 응답 예시
-
-                        ```
-                        {
-                          "success": true,
-                          "code": 200,
-                          "message": "조회 성공",
-                          "data": {...},
-                          "error": null
-                        }
-                        ```
-
-                        ## 🛠 Tech Stack
+                        ## 🛠 기술 스택
                         ### BACKEND
                         - Java 17
                         - Spring Boot 3.5.16
@@ -78,8 +57,16 @@ public class ApiDocumentationConfig {
 
                         ### DATABASE
                         - PostgreSQL 17
+
+                        ## DevOps
+
+                        * Docker
+                        * Docker Compose
+
+                        ## Build Tool
+
+                        * Gradle
                         """)
-                .version("v1.0.0")
                 .contact(new Contact().name("코딩의 민족"));
     }
 

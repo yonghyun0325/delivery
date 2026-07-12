@@ -61,14 +61,6 @@ public class JwtUtil implements Serializable {
         return getAllClaimsFromToken(token, signingKey);
     }
 
-    public Claims getAllClaimsFromRefreshToken(String token) {
-        Key signingKey =
-                new SecretKeySpec(
-                        Base64.getDecoder().decode(refreshSecretKey),
-                        SignatureAlgorithm.HS256.getJcaName());
-        return getAllClaimsFromToken(token, signingKey);
-    }
-
     private Boolean isTokenExpired(String token) {
         Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
@@ -98,20 +90,7 @@ public class JwtUtil implements Serializable {
         return generateToken(userDetails, userUuid, signingKey, ACCESS_TOKEN_VALIDITY);
     }
 
-    public String generateRefreshToken(UserDetails userDetails, String userUuid) {
-        Key signingKey =
-                new SecretKeySpec(
-                        Base64.getDecoder().decode(refreshSecretKey),
-                        SignatureAlgorithm.HS256.getJcaName());
-        return generateToken(userDetails, userUuid, signingKey, REFRESH_TOKEN_VALIDITY);
-    }
-
     public Boolean validateToken(String token, UserDetails userDetails) {
-        String username = getUserUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
-
-    public Boolean validateRefreshToken(String token, UserDetails userDetails) {
         String username = getUserUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
@@ -123,5 +102,26 @@ public class JwtUtil implements Serializable {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    public Claims getAllClaimsFromRefreshToken(String token) {
+        Key signingKey =
+                new SecretKeySpec(
+                        Base64.getDecoder().decode(refreshSecretKey),
+                        SignatureAlgorithm.HS256.getJcaName());
+        return getAllClaimsFromToken(token, signingKey);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails, String userUuid) {
+        Key signingKey =
+                new SecretKeySpec(
+                        Base64.getDecoder().decode(refreshSecretKey),
+                        SignatureAlgorithm.HS256.getJcaName());
+        return generateToken(userDetails, userUuid, signingKey, REFRESH_TOKEN_VALIDITY);
+    }
+
+    public Boolean validateRefreshToken(String token, UserDetails userDetails) {
+        String username = getUserUsernameFromToken(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }

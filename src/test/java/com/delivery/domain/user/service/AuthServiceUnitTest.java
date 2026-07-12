@@ -6,11 +6,10 @@ import static org.mockito.Mockito.*;
 
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
+import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.exception.AuthException;
-import com.delivery.domain.user.enums.Role;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.domain.user.service.AuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

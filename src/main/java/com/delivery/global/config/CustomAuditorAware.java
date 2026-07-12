@@ -20,14 +20,8 @@ public class CustomAuditorAware implements AuditorAware<String> {
                 || authentication instanceof AnonymousAuthenticationToken) {
             return Optional.of("SYSTEM");
         }
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof CustomUserDetails) {
-            CustomUserDetails customUserDetails = (CustomUserDetails) principal;
-            return Optional.of(customUserDetails.getId() + "_" + customUserDetails.getUsername());
-        }
-
-        return Optional.of(authentication.getName());
+        return Optional.of(user.getId() + "_" + user.getUsername());
     }
 }

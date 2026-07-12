@@ -100,7 +100,7 @@ class AddressControllerUnitTest {
     @WithMockCustomUser(id = 1L, role = "CUSTOMER")
     class GetAddress {
         @Test
-        @DisplayName("배송지 조회 성공 시 200과 배송지 정보를 반환한다..")
+        @DisplayName("배송지 조회 성공 시 200과 배송지 정보를 반환한다.")
         void getAddress_success() throws Exception {
             // given
             AddressResponse response = new AddressResponse(addressId, "주소1", "상세주소1", true);
