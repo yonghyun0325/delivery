@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+/** 배송지 컨트롤러 */
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")

@@ -15,19 +15,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** 인증 / 인가 컨트롤러 */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 public class AuthController implements AuthApi {
     private final AuthService authService;
 
-    /**
-     * TODO : 전화번호는 개인정보므로 양방향 암호화로 변경해야함, DTO에 뒷번호 4자리 가린 상태로 프론트로 전달 관리자는 상관없이 볼 수 있어야함. 전화번호 컬럼길이
-     * 수정할 것
-     *
-     * @param request
-     * @return
-     */
     @PostMapping
     public ResponseEntity<RestApiResponse<AuthResponse>> signUp(
             @Valid @RequestBody SignUpRequest request) {

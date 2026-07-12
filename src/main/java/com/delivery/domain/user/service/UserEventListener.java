@@ -10,7 +10,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class UserEventListener {
     private final AuthService authService;
 
-    // 회원 탈퇴 이벤트 리스너 - 로그아웃
+    /**
+     * 회원 탈퇴 리스너 회원 로그아웃 처리
+     *
+     * @param event
+     */
     @TransactionalEventListener
     public void handleUserDeleteEvent(UserDeletedEvent event) {
         // TODO : 로그아웃

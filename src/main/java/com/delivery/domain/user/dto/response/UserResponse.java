@@ -9,4 +9,4 @@ public record UserResponse(
         @Schema(description = "아이디", example = "test1234") String username,
         @Schema(description = "닉네임", example = "닉네임") String nickName,
         @Schema(description = "연락처", example = "0101234****") String phoneNumber,
-        Set<Role> roles) {}
+        @Schema(description = "권한", example = "[\"CUSTOMER\"]") Set<Role> roles) {}

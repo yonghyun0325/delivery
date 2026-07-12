@@ -1,5 +1,7 @@
 package com.delivery.domain.user.entity;
 
+import static com.delivery.domain.user.entity.Role.*;
+
 import com.delivery.common.base.BaseEntity;
 import com.delivery.common.util.CryptoConverter;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -69,20 +71,33 @@ public class User extends BaseEntity {
                 .build();
     }
 
-    public void update(String nickName, String phoneNumber) {
+    public void updateNickName(String nickName) {
         if (nickName != null && !nickName.isBlank()) {
             this.nickName = nickName;
         }
+    }
+
+    public void updatePhoneNumber(String phoneNumber) {
         if (phoneNumber != null && !phoneNumber.isBlank()) {
             this.phoneNumber = phoneNumber;
         }
+    }
+
+    public void updateRoles(Role role) {
+        this.roles =
+                switch (role) {
+                    case CUSTOMER -> Set.of(CUSTOMER);
+                    case OWNER -> Set.of(CUSTOMER, OWNER);
+                    case MANAGER -> Set.of(CUSTOMER, OWNER, MANAGER);
+                    case MASTER -> Set.of(CUSTOMER, OWNER, MANAGER, MASTER);
+                };
     }
 
     public void delete(String deletedBy) {
         this.userStatus = UserStatus.DELETED;
         this.username = username + "_" + UUID.randomUUID().toString();
         this.nickName = "탈퇴회원" + "_" + UUID.randomUUID().toString();
-        super.delete( this.getId() + "_" + deletedBy);
+        super.delete(this.getId() + "_" + deletedBy);
     }
 
     public static String maskingPhoneNumber(String phoneNumber) {

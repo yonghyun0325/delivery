@@ -33,6 +33,12 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
+    /**
+     * 회원가입 회원 가입 후 액세스 토큰을 발급하여 반환
+     *
+     * @param request 회원 가입 요청 객체
+     * @return 로그인 정보 객체
+     */
     public AuthResponse signUp(SignUpRequest request) {
         validateDuplicateUsername(request.username());
         validateDuplicateNickName(request.nickName());
@@ -54,9 +60,15 @@ public class AuthService {
         String accessToken =
                 jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid().toString());
 
-        return UserDtoMapper.toDto(userDetails, accessToken);
+        return UserDtoMapper.toAuthResponse(userDetails, accessToken);
     }
 
+    /**
+     * 로그인 사용자 인증 후 액세스 토큰 발급하여 반환
+     *
+     * @param request
+     * @return
+     */
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         try {
@@ -69,7 +81,7 @@ public class AuthService {
             String accessToken =
                     jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid().toString());
 
-            return UserDtoMapper.toDto(userDetails, accessToken);
+            return UserDtoMapper.toAuthResponse(userDetails, accessToken);
 
         } catch (InternalAuthenticationServiceException | BadCredentialsException e) {
             throw new AuthException(AuthErrorCode.INVALID_LOGIN);
@@ -80,12 +92,22 @@ public class AuthService {
         throw new UnsupportedOperationException("개발 중 입니다.");
     }
 
+    /**
+     * 회원 중복 아이디 체크
+     *
+     * @param username
+     */
     private void validateDuplicateUsername(String username) {
         if (userRepository.existsByUsername(username)) {
             throw new UserException(UserErrorCode.DUPLICATE_USERNAME);
         }
     }
 
+    /**
+     * 회원 중복 닉네임 체크
+     *
+     * @param nickName
+     */
     private void validateDuplicateNickName(String nickName) {
         if (userRepository.existsByNickName(nickName)) {
             throw new UserException(UserErrorCode.DUPLICATE_NICKNAME);
