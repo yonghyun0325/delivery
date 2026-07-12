@@ -5,7 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.delivery.domain.auth.controller.AuthController;
-import com.delivery.domain.auth.dto.SignUpRequestDto;
+import com.delivery.domain.auth.dto.request.SignUpRequest;
 import com.delivery.domain.auth.service.AuthService;
 import com.delivery.domain.menu.controller.MenuController;
 import com.delivery.domain.menu.dto.request.CreateMenuRequest;
@@ -63,8 +63,8 @@ class MenuExceptionHandlerScopeTest {
         @Test
         @DisplayName("AuthController의 검증 실패는 MenuExceptionHandler의 영향을 받지 않고 그대로 처리된다")
         void authValidationFailure_notAffectedByMenuHandler() throws Exception {
-            SignUpRequestDto request =
-                    SignUpRequestDto.builder()
+            SignUpRequest request =
+                    SignUpRequest.builder()
                             .username("아이디") // 패턴 위반(소문자/숫자만 허용)
                             .password("Testtest123!")
                             .nickName("test")

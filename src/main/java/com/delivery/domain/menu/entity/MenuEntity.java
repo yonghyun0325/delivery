@@ -19,8 +19,8 @@ import org.hibernate.annotations.Check;
 @Table(
         name = "p_menu",
         indexes = {
-            @Index(name = "idx_menu_store", columnList = "store_id, deleted_at"),
-            @Index(name = "idx_menu_created", columnList = "created_at DESC")
+                @Index(name = "idx_menu_store", columnList = "store_id, deleted_at"),
+                @Index(name = "idx_menu_created", columnList = "created_at DESC")
         })
 @Check(constraints = "price > 0")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
