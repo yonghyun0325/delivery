@@ -1,8 +1,8 @@
 package com.delivery.domain.auth.service;
 
-import com.delivery.domain.auth.dto.AuthResponseDto;
-import com.delivery.domain.auth.dto.LoginRequestDto;
-import com.delivery.domain.auth.dto.SignUpRequestDto;
+import com.delivery.domain.auth.dto.request.LoginRequest;
+import com.delivery.domain.auth.dto.request.SignUpRequest;
+import com.delivery.domain.auth.dto.response.AuthResponse;
 import com.delivery.domain.auth.exception.AuthErrorCode;
 import com.delivery.domain.auth.exception.AuthException;
 import com.delivery.domain.user.entity.User;
@@ -33,21 +33,21 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
-    public AuthResponseDto signUp(SignUpRequestDto request) {
-        validateDuplicateUsername(request.getUsername());
-        validateDuplicateNickName(request.getNickName());
-        Role.validateSignupRole(request.getRole());
+    public AuthResponse signUp(SignUpRequest request) {
+        validateDuplicateUsername(request.username());
+        validateDuplicateNickName(request.nickName());
+        Role.validateSignupRole(request.role());
 
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        Set<Role> roles = Role.getDefaultRoles(request.getRole());
+        String encodedPassword = passwordEncoder.encode(request.password());
+        Set<Role> roles = Role.getDefaultRoles(request.role());
 
         User savedUser =
                 userRepository.save(
                         User.create(
-                                request.getUsername(),
+                                request.username(),
                                 encodedPassword,
-                                request.getNickName(),
-                                request.getPhoneNumber(),
+                                request.nickName(),
+                                request.phoneNumber(),
                                 roles));
         CustomUserDetails userDetails = CustomUserDetails.from(savedUser);
 
@@ -56,12 +56,12 @@ public class AuthService {
         return UserDtoMapper.toDto(userDetails, accessToken);
     }
 
-    public AuthResponseDto login(LoginRequestDto request) {
+    public AuthResponse login(LoginRequest request) {
         try {
             Authentication authentication =
                     authenticationManager.authenticate(
                             new UsernamePasswordAuthenticationToken(
-                                    request.getUsername(), request.getPassword()));
+                                    request.username(), request.password()));
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String accessToken = jwtUtil.generateAccessToken(userDetails, userDetails.getId());

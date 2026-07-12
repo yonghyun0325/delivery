@@ -1,12 +1,10 @@
 package com.delivery.domain.store.entity;
 
 import com.delivery.common.base.BaseEntity;
-// import com.delivery.domain.store.dto.StoreRequestDto;
+import com.delivery.domain.store.dto.request.StoreRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
-
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -54,15 +52,15 @@ public class Store extends BaseEntity {
     @Column(name = "average_rating", nullable = false)
     private Double averageRating = 0.0;
 
-    /*public void update(StoreRequestDto request) {
-        this.categoryId = request.getCategoryId();
-        this.regionId = request.getRegionId();
-        this.name = request.getName();
-        this.address = request.getAddress();
-        this.phone = request.getPhone();
-        this.description = request.getDescription();
-        this.minOrderAmount = request.getMinOrderAmount();
-    }*/
+    public void update(StoreRequest request) {
+        this.categoryId = request.categoryId();
+        this.regionId = request.regionId();
+        this.name = request.name();
+        this.address = request.address();
+        this.phone = request.phone();
+        this.description = request.description();
+        this.minOrderAmount = request.minOrderAmount();
+    }
 
     public void updateStatus(Boolean isOpen) {
         this.isOpen = isOpen;

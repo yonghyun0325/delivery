@@ -1,0 +1,15 @@
+*   [33m1905949[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/address-test[m[33m)[m Merge branch 'develop' into feature/address-test
+[31m|[m[32m\[m  
+[31m|[m * [33m208589b[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m docs: README API 문서 항목 추가
+* [32m|[m [33m7c55168[m[33m ([m[1;31morigin/feature/address-test[m[33m)[m feat: WithMockCustomUser 생성 - 테스트 환경에서 사용자 정보를 주입을 위해 WithMockCustomUser 인증 객체 생성
+* [32m|[m [33me99533d[m refactor: DTO 패키지 구조화 및 DTO 클래스 record 클래스로 변경
+* [32m|[m [33m3c040b9[m init: 테스트 코드 클래스 생성
+[32m|[m[32m/[m  
+[32m|[m * [33m27db4a4[m[33m ([m[1;31morigin/feature/store[m[33m)[m refactor: Controller 응답 RestApiResponse로 통일
+[32m|[m * [33m0689ff1[m refactor: DTO record 타입으로 변경 및 request/response 패키지 분리
+[32m|[m * [33m5e433f8[m[33m ([m[1;32mfeature/store[m[33m)[m feat: Store 도메인 예외처리 커스텀
+[32m|[m *   [33m7656abc[m Merge branch 'develop' of https://github.com/yonghyun0325/delivery into feature/store
+[32m|[m [34m|[m[32m\[m  
+[32m|[m [34m|[m[32m/[m  
+[32m|[m[32m/[m[34m|[m   
+* [34m|[m [33m19d722f[m Update README.md

@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 public enum AuthErrorCode implements ErrorCode {
     // 400 Bad Request
     INVALID_ROLE(HttpStatus.BAD_REQUEST, "MASTER나 MANAGER 권한으로 가입할 수 없습니다."),
+    REQUIRED_USER_ID(HttpStatus.BAD_REQUEST, "아이디를 입력해주세요."),
+    REQUIRED_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호를 입력해주세요."),
 
     // 401 Unauthorized
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT 토큰입니다."),

@@ -1,6 +1,7 @@
 package com.delivery.domain.user.entity;
 
 import com.delivery.common.base.BaseEntity;
+import com.delivery.common.util.CryptoConverter;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -21,13 +22,14 @@ public class Address extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private Long userId;
 
+    @Convert(converter = CryptoConverter.class)
     @Column(nullable = false, length = 255)
     private String address;
 
+    @Convert(converter = CryptoConverter.class)
     @Column(nullable = false, length = 100)
     private String addressDetail;
 
@@ -35,19 +37,18 @@ public class Address extends BaseEntity {
     private boolean isDefault;
 
     public static Address create(
-            User user, String address, String addressDetail, boolean isDefault) {
+            long userId, String address, String addressDetail, boolean isDefault) {
         return Address.builder()
-                .user(user)
+                .userId(userId)
                 .address(address)
                 .addressDetail(addressDetail)
                 .isDefault(isDefault)
-                .createdBy(user.getId() + "_" + user.getUsername())
                 .build();
     }
 
-    public void update(String address, String AddressDetail, boolean isDefault) {
+    public void update(String address, String addressDetail, boolean isDefault) {
         this.address = address;
-        this.addressDetail = AddressDetail;
+        this.addressDetail = addressDetail;
         this.isDefault = isDefault;
     }
 

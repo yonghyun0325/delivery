@@ -24,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtRequestFilter jwtRequestFilter;
     private final AccessDeniedHandler accessDeniedHandler;
@@ -64,6 +65,9 @@ public class SecurityConfig {
                                 .permitAll()
                                 .requestMatchers(
                                         HttpMethod.GET, "/api/v1/stores", "/api/v1/stores/*")
+                                .permitAll()
+                                .requestMatchers(
+                                        HttpMethod.GET, "/api/v1/categories", "/api/v1/regions")
                                 .permitAll()
 
                                 // 관리자

@@ -9,9 +9,10 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum GlobalErrorCode implements ErrorCode {
     // 400 Bad Request
-    BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다"),
+    BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     INVALID_PAGE_REQUEST(HttpStatus.BAD_REQUEST, "페이지 요청 값이 올바르지 않습니다."),
     INVALID_PARAMETER_TYPE(HttpStatus.BAD_REQUEST, "잘못된 형식의 데이터 입니다."),
+    REQUIRED_VALUE(HttpStatus.BAD_REQUEST, "필수 입력값이 누락되었습니다."),
 
     // 403 Forbidden
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
