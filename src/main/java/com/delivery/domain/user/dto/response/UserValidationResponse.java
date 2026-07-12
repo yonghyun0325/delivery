@@ -1,4 +1,3 @@
 package com.delivery.domain.user.dto.response;
 
-public class UserValidationResponse {
-}
+public class UserValidationResponse {}

@@ -4,10 +4,16 @@ import com.delivery.common.base.BaseEntity;
 import com.delivery.common.util.CryptoConverter;
 import com.delivery.domain.user.enums.Role;
 import com.delivery.domain.user.enums.UserStatus;
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
-import java.util.Set;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -45,6 +51,10 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
+    // TODO : API 문서 및 데이터 정의서, ERD에 UUID 컬럼 추가
+    @Column(nullable = false, unique = true, name = "user_uuid")
+    UUID userUuid;
+
     public static User create(
             String username,
             String password,
@@ -59,5 +69,12 @@ public class User extends BaseEntity {
                 .roles(roles)
                 .userStatus(UserStatus.ACTIVE)
                 .build();
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.userUuid == null) {
+            this.userUuid = UuidCreator.getTimeOrderedEpoch();
+        }
     }
 }

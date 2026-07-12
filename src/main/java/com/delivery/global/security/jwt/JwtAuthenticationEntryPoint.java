@@ -1,7 +1,7 @@
 package com.delivery.global.security.jwt;
 
 import com.delivery.common.RestApiResponse;
-import com.delivery.domain.auth.exception.AuthErrorCode;
+import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

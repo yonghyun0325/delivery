@@ -8,10 +8,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.security.Key;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,11 +75,11 @@ public class JwtUtil implements Serializable {
     }
 
     private String generateToken(
-            UserDetails userDetails, Long userId, Key signingKey, long validity) {
+            UserDetails userDetails, String userUuid, Key signingKey, long validity) {
         Map<String, Object> claims = new HashMap<>();
         Date date = new Date();
 
-        claims.put("userId", userId);
+        claims.put("userUuid", userUuid);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -93,20 +90,20 @@ public class JwtUtil implements Serializable {
                 .compact();
     }
 
-    public String generateAccessToken(UserDetails userDetails, Long memberId) {
+    public String generateAccessToken(UserDetails userDetails, String userUuid) {
         Key signingKey =
                 new SecretKeySpec(
                         Base64.getDecoder().decode(accessSecretKey),
                         SignatureAlgorithm.HS256.getJcaName());
-        return generateToken(userDetails, memberId, signingKey, ACCESS_TOKEN_VALIDITY);
+        return generateToken(userDetails, userUuid, signingKey, ACCESS_TOKEN_VALIDITY);
     }
 
-    public String generateRefreshToken(UserDetails userDetails, Long memberId) {
+    public String generateRefreshToken(UserDetails userDetails, String userUuid) {
         Key signingKey =
                 new SecretKeySpec(
                         Base64.getDecoder().decode(refreshSecretKey),
                         SignatureAlgorithm.HS256.getJcaName());
-        return generateToken(userDetails, memberId, signingKey, REFRESH_TOKEN_VALIDITY);
+        return generateToken(userDetails, userUuid, signingKey, REFRESH_TOKEN_VALIDITY);
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {

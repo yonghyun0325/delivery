@@ -17,11 +17,14 @@ public record SignUpRequest(
                 @Size(min = 8, max = 15, message = "INVALID_PASSWORD")
                 @Pattern(
                         regexp =
-                                "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?`~]).+$", message = "INVALID_PASSWORD")
+                                "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?`~]).+$",
+                        message = "INVALID_PASSWORD")
                 String password,
         @NotBlank(message = "REQUIRED_VALUE")
                 @Size(min = 2, max = 11, message = "INVALID_NICKNAME")
                 @Pattern(regexp = "^[a-zA-Z0-9가-힣]+$", message = "INVALID_NICKNAME")
                 String nickName,
-        @Size(min = 11, max = 11, message = "INVALID_PHONE_NUMBER") @Pattern(regexp = "^010\\d+$", message = "INVALID_PHONE_NUMBER") String phoneNumber,
+        @Size(min = 11, max = 11, message = "INVALID_PHONE_NUMBER")
+                @Pattern(regexp = "^010\\d+$", message = "INVALID_PHONE_NUMBER")
+                String phoneNumber,
         @NotNull(message = "REQUIRED_VALUE") Role role) {}

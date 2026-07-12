@@ -3,6 +3,7 @@ package com.delivery.global.security.config;
 import com.delivery.domain.user.entity.User;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,6 +18,7 @@ public class CustomUserDetails implements UserDetails {
     private String password;
     private String nickName;
     private String phoneNumber;
+    private UUID userUuid;
     private Collection<? extends GrantedAuthority> authorities;
 
     public static CustomUserDetails from(User user) {
@@ -31,6 +33,7 @@ public class CustomUserDetails implements UserDetails {
                 user.getPassword(),
                 user.getNickName(),
                 user.getPhoneNumber(),
+                user.getUserUuid(),
                 authorities);
     }
 }

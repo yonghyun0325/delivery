@@ -1,8 +1,8 @@
 package com.delivery.domain.user.mapper;
 
-import com.delivery.domain.user.response.AuthResponse;
 import com.delivery.domain.user.dto.response.AddressResponse;
 import com.delivery.domain.user.entity.Address;
+import com.delivery.domain.user.response.AuthResponse;
 import com.delivery.global.security.config.CustomUserDetails;
 import lombok.experimental.UtilityClass;
 

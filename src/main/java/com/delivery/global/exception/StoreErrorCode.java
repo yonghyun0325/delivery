@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum StoreErrorCode implements ErrorCode {
-
     DUPLICATE_STORE(HttpStatus.BAD_REQUEST, "이미 등록된 가게입니다."),
     DUPLICATE_CATEGORY(HttpStatus.BAD_REQUEST, "이미 등록된 카테고리입니다."),
     DUPLICATE_REGION(HttpStatus.BAD_REQUEST, "이미 등록된 지역입니다."),

@@ -2,15 +2,15 @@ package com.delivery.domain.user.service;
 
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
-import com.delivery.domain.user.response.AuthResponse;
-import com.delivery.domain.user.exception.AuthErrorCode;
-import com.delivery.domain.user.exception.AuthException;
 import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.enums.Role;
+import com.delivery.domain.user.exception.AuthErrorCode;
+import com.delivery.domain.user.exception.AuthException;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.mapper.UserDtoMapper;
 import com.delivery.domain.user.repository.UserRepository;
+import com.delivery.domain.user.response.AuthResponse;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
 import java.util.Set;
@@ -51,7 +51,7 @@ public class AuthService {
                                 roles));
         CustomUserDetails userDetails = CustomUserDetails.from(savedUser);
 
-        String accessToken = jwtUtil.generateAccessToken(userDetails, userDetails.getId());
+        String accessToken = jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid().toString());
 
         return UserDtoMapper.toDto(userDetails, accessToken);
     }
@@ -64,7 +64,7 @@ public class AuthService {
                                     request.username(), request.password()));
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            String accessToken = jwtUtil.generateAccessToken(userDetails, userDetails.getId());
+            String accessToken = jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid().toString());
 
             return UserDtoMapper.toDto(userDetails, accessToken);
 
