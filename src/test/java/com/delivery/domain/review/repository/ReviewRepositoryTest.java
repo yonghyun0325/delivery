@@ -23,7 +23,11 @@ class ReviewRepositoryTest {
         // given
         Review review =
                 Review.create(
-                        UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), 5, "정말 맛있었습니다!");
+                        UUID.randomUUID(),
+                        1L,             // userId가 Long 타입이라 수정했습니다
+                        UUID.randomUUID(),
+                        5,
+                        "정말 맛있었습니다!");
 
         // when
         Review savedReview = reviewRepository.save(review);
@@ -41,7 +45,7 @@ class ReviewRepositoryTest {
         Review review =
                 Review.create(
                         UUID.randomUUID(),
-                        UUID.randomUUID(),
+                        1L,             // userId가 Long 타입이라 수정했습니다
                         UUID.randomUUID(),
                         4,
                         "배송도 빠르고 맛있었습니다.");

@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: postgres1234
 
     ports:
-      - "5432:5432"
+      - "5433:5432"     # 로컬 포트번호 5433으로 변경함
 
     volumes:
       - delivery-postgres-data:/var/lib/postgresql/data

@@ -5,7 +5,6 @@ import com.delivery.domain.store.dto.request.StoreRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
-
 import java.util.UUID;
 
 @Entity
@@ -65,6 +64,10 @@ public class Store extends BaseEntity {
 
     public void updateStatus(Boolean isOpen) {
         this.isOpen = isOpen;
+    }
+
+    public void delete(String deletedBy) {
+        super.delete(deletedBy);
     }
 
     public void updateAverageRating(Double averageRating) {

@@ -3,6 +3,7 @@ package com.delivery.global.security.config;
 import com.delivery.domain.user.entity.User;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,5 +33,14 @@ public class CustomUserDetails implements UserDetails {
                 user.getNickName(),
                 user.getPhoneNumber(),
                 authorities);
+    }
+
+    // 주문 도메인에서 권한 검증할  때 사용하려고 추가했습니다
+     /* 현재 로그인 사용자가 가진 권한 이름 목록 반환
+     * 예:ROLE_CUSTOMER / ROLE_OWNER / ROLE_MANAGER / ROLE_MASTER */
+    public Set<String> getRoleNames() {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
     }
 }
