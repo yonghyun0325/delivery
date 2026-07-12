@@ -1,4 +1,4 @@
-package com.delivery.domain.user.enums;
+package com.delivery.domain.user.entity;
 
 public enum UserStatus {
     ACTIVE,

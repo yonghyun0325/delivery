@@ -1,4 +1,4 @@
-package com.delivery.domain.user.enums;
+package com.delivery.domain.user.entity;
 
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.domain.user.exception.AuthException;

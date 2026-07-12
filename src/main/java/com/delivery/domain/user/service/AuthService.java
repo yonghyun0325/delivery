@@ -1,16 +1,16 @@
 package com.delivery.domain.user.service;
 
+import com.delivery.domain.user.dto.UserDtoMapper;
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
+import com.delivery.domain.user.dto.response.AuthResponse;
+import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
-import com.delivery.domain.user.enums.Role;
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.domain.user.exception.AuthException;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
-import com.delivery.domain.user.mapper.UserDtoMapper;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.domain.user.response.AuthResponse;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
 import java.util.Set;
@@ -25,8 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
+@Transactional
 public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
@@ -51,11 +51,13 @@ public class AuthService {
                                 roles));
         CustomUserDetails userDetails = CustomUserDetails.from(savedUser);
 
-        String accessToken = jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid().toString());
+        String accessToken =
+                jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid().toString());
 
         return UserDtoMapper.toDto(userDetails, accessToken);
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         try {
             Authentication authentication =
@@ -64,13 +66,18 @@ public class AuthService {
                                     request.username(), request.password()));
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            String accessToken = jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid().toString());
+            String accessToken =
+                    jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid().toString());
 
             return UserDtoMapper.toDto(userDetails, accessToken);
 
         } catch (InternalAuthenticationServiceException | BadCredentialsException e) {
             throw new AuthException(AuthErrorCode.INVALID_LOGIN);
         }
+    }
+
+    public void logout() {
+        throw new UnsupportedOperationException("개발 중 입니다.");
     }
 
     private void validateDuplicateUsername(String username) {

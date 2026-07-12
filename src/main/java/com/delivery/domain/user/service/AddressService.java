@@ -1,13 +1,13 @@
 package com.delivery.domain.user.service;
 
 import com.delivery.common.util.SsnEncryptor;
+import com.delivery.domain.user.dto.UserDtoMapper;
 import com.delivery.domain.user.dto.request.CreateAddressRequest;
 import com.delivery.domain.user.dto.request.UpdateAddressRequest;
 import com.delivery.domain.user.dto.response.AddressResponse;
 import com.delivery.domain.user.entity.Address;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
-import com.delivery.domain.user.mapper.UserDtoMapper;
 import com.delivery.domain.user.repository.AddressRepository;
 import java.util.List;
 import java.util.UUID;
@@ -67,6 +67,7 @@ public class AddressService {
         address.delete(userId + "_" + username);
     }
 
+    @Transactional(readOnly = true)
     private Address findAddressOrThrow(UUID addressId, Long userId) {
         return addressRepository
                 .findByIdAndUserIdAndDeletedAtIsNull(addressId, userId)
@@ -78,10 +79,4 @@ public class AddressService {
                 .findByUserIdAndIsDefaultTrueAndDeletedAtIsNull(userId)
                 .ifPresent(address -> address.updateDefault(false));
     }
-
-    //    private AddressResponse toDto(Address address) {
-    //        String decryptedAddress = ssnEncryptor.decrypt(address.getAddress());
-    //        String decryptedAddressDetail = ssnEncryptor.decrypt(address.getAddressDetail());
-    //        return UserDtoMapper.toDto(address,  decryptedAddress, decryptedAddressDetail);
-    //    }
 }

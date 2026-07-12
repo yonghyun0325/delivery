@@ -2,18 +2,15 @@ package com.delivery.domain.user.entity;
 
 import com.delivery.common.base.BaseEntity;
 import com.delivery.common.util.CryptoConverter;
-import com.delivery.domain.user.enums.Role;
-import com.delivery.domain.user.enums.UserStatus;
 import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
+import java.util.Set;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.util.Set;
-import java.util.UUID;
 
 @Getter
 @Entity
@@ -23,19 +20,20 @@ import java.util.UUID;
 @Table(name = "p_user")
 public class User extends BaseEntity {
     // CREATE SEQUENCE user_seq START WITH 1 INCREMENT BY 50;
+    // TODO : 추후 User 테이블 명세서 Erd 수정해야함
     @Id
     @Column(name = "user_id")
     @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq", allocationSize = 50)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq_gen")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 10)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, unique = true, length = 60)
     private String nickName;
 
     @Convert(converter = CryptoConverter.class)
@@ -69,6 +67,26 @@ public class User extends BaseEntity {
                 .roles(roles)
                 .userStatus(UserStatus.ACTIVE)
                 .build();
+    }
+
+    public void update(String nickName, String phoneNumber) {
+        if (nickName != null && !nickName.isBlank()) {
+            this.nickName = nickName;
+        }
+        if (phoneNumber != null && !phoneNumber.isBlank()) {
+            this.phoneNumber = phoneNumber;
+        }
+    }
+
+    public void delete(String deletedBy) {
+        this.userStatus = UserStatus.DELETED;
+        this.username = username + "_" + UUID.randomUUID().toString();
+        this.nickName = "탈퇴회원" + "_" + UUID.randomUUID().toString();
+        super.delete( this.getId() + "_" + deletedBy);
+    }
+
+    public static String maskingPhoneNumber(String phoneNumber) {
+        return phoneNumber.substring(0, phoneNumber.length() - 4) + "****";
     }
 
     @PrePersist

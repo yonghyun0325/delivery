@@ -1,23 +1,25 @@
 package com.delivery.domain.user.controller;
 
 import com.delivery.common.RestApiResponse;
+import com.delivery.domain.user.controller.swagger.UserApi;
 import com.delivery.domain.user.dto.request.UpdateUserRequest;
-import com.delivery.domain.user.dto.response.UpdatedUserResponse;
+import com.delivery.domain.user.dto.response.UserResponse;
 import com.delivery.domain.user.dto.response.UserValidationResponse;
-import com.delivery.domain.user.response.UserResponse;
 import com.delivery.domain.user.service.UserService;
 import com.delivery.global.security.config.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
-public class UserController {
+@PreAuthorize("isAuthenticated()")
+public class UserController implements UserApi {
     private final UserService userService;
 
     @GetMapping("/me")
@@ -31,7 +33,7 @@ public class UserController {
     }
 
     @PatchMapping("/me") // TODO : API 문서 수정필요
-    public ResponseEntity<RestApiResponse<UpdatedUserResponse>> updateUser(
+    public ResponseEntity<RestApiResponse<UserResponse>> updateUser(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody UpdateUserRequest request) {
         return ResponseEntity.ok(
@@ -48,14 +50,16 @@ public class UserController {
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "회원 탈퇴 성공", null));
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("/check-id")
-    public ResponseEntity<RestApiResponse<UserValidationResponse>> isDuplicationId(
+    public ResponseEntity<RestApiResponse<UserValidationResponse>> isDuplicationUsername(
             @RequestParam String username) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
-                        HttpStatus.OK, "아이디 중복 체크 성공.", userService.isDuplicationId(username)));
+                        HttpStatus.OK, "아이디 중복 체크 성공.", userService.isDuplicationUsername(username)));
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("/check-nickname")
     public ResponseEntity<RestApiResponse<UserValidationResponse>> isDuplicationNickname(
             @RequestParam String nickName) {

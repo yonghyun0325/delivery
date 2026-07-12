@@ -1,6 +1,7 @@
 package com.delivery.domain.user.controller;
 
 import com.delivery.common.RestApiResponse;
+import com.delivery.domain.user.controller.swagger.AddressApi;
 import com.delivery.domain.user.dto.request.CreateAddressRequest;
 import com.delivery.domain.user.dto.request.UpdateAddressRequest;
 import com.delivery.domain.user.dto.response.AddressResponse;
@@ -20,9 +21,10 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/api/v1/users/me/addresses")
-public class AddressController {
+public class AddressController implements AddressApi {
     private final AddressService addressService;
 
+    @Override
     @PostMapping
     public ResponseEntity<RestApiResponse<AddressResponse>> createAddress(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -35,6 +37,7 @@ public class AddressController {
                                 addressService.createAddress(customUserDetails.getId(), request)));
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<RestApiResponse<List<AddressResponse>>> getAddressList(
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
@@ -45,6 +48,7 @@ public class AddressController {
                         addressService.findAddresses(customUserDetails.getId())));
     }
 
+    @Override
     @GetMapping("/{addressId}")
     public ResponseEntity<RestApiResponse<AddressResponse>> getAddress(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -57,6 +61,7 @@ public class AddressController {
     }
 
     // TODO : 배송지 수정 시 Body를 반환하도록 변경 API 문서 수정해야함.
+    @Override
     @PatchMapping("/{addressId}")
     public ResponseEntity<RestApiResponse<AddressResponse>> updateAddress(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -70,6 +75,7 @@ public class AddressController {
                                 customUserDetails.getId(), addressId, request)));
     }
 
+    @Override
     @DeleteMapping("/{addressId}")
     public ResponseEntity<RestApiResponse<Void>> deleteAddress(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
