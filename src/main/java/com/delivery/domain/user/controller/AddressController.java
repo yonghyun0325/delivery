@@ -1,9 +1,9 @@
 package com.delivery.domain.user.controller;
 
 import com.delivery.common.RestApiResponse;
-import com.delivery.domain.user.dto.AddressResponseDto;
-import com.delivery.domain.user.dto.CreateAddressRequest;
-import com.delivery.domain.user.dto.UpdateAddressRequestDto;
+import com.delivery.domain.user.dto.request.CreateAddressRequest;
+import com.delivery.domain.user.dto.request.UpdateAddressRequest;
+import com.delivery.domain.user.dto.response.AddressResponse;
 import com.delivery.domain.user.service.AddressService;
 import com.delivery.global.security.config.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -12,17 +12,19 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 @RequestMapping("/api/v1/users/me/addresses")
 public class AddressController {
     private final AddressService addressService;
 
     @PostMapping
-    public ResponseEntity<RestApiResponse<AddressResponseDto>> createAddress(
+    public ResponseEntity<RestApiResponse<AddressResponse>> createAddress(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody CreateAddressRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -34,7 +36,7 @@ public class AddressController {
     }
 
     @GetMapping
-    public ResponseEntity<RestApiResponse<List<AddressResponseDto>>> getAddressList(
+    public ResponseEntity<RestApiResponse<List<AddressResponse>>> getAddressList(
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
@@ -44,7 +46,7 @@ public class AddressController {
     }
 
     @GetMapping("/{addressId}")
-    public ResponseEntity<RestApiResponse<AddressResponseDto>> getAddress(
+    public ResponseEntity<RestApiResponse<AddressResponse>> getAddress(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable UUID addressId) {
         return ResponseEntity.ok(
@@ -56,10 +58,10 @@ public class AddressController {
 
     // TODO : 배송지 수정 시 Body를 반환하도록 변경 API 문서 수정해야함.
     @PatchMapping("/{addressId}")
-    public ResponseEntity<RestApiResponse<AddressResponseDto>> updateAddress(
+    public ResponseEntity<RestApiResponse<AddressResponse>> updateAddress(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable UUID addressId,
-            @Valid @RequestBody UpdateAddressRequestDto request) {
+            @Valid @RequestBody UpdateAddressRequest request) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
                         HttpStatus.OK,

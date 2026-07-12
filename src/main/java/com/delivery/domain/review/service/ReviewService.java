@@ -3,9 +3,10 @@ package com.delivery.domain.review.service;
 import com.delivery.domain.review.dto.request.ReviewRequest;
 import com.delivery.domain.review.dto.response.ReviewResponse;
 import com.delivery.domain.review.entity.Review;
+import com.delivery.domain.review.exception.ReviewErrorCode;
+import com.delivery.domain.review.exception.ReviewException;
 import com.delivery.domain.review.repository.ReviewRepository;
-import com.delivery.global.exception.ReviewErrorCode;
-import com.delivery.global.exception.ReviewException;
+import com.delivery.domain.store.service.StoreService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,47 +19,52 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
+    private final StoreService storeService;
 
     // 리뷰 등록
     @Transactional
-    public ReviewResponse createReview(ReviewRequest request) {
+    public ReviewResponse createReview(Long loginUserId, ReviewRequest request) {
         validateReviewRequest(request);
 
         Review review =
                 Review.create(
                         request.getOrderId(),
-                        request.getUserId(),
+                        loginUserId,
                         request.getStoreId(),
                         request.getRating(),
                         request.getContent());
 
         Review savedReview = reviewRepository.save(review);
 
+        storeService.updateAverageRating(savedReview.getStoreId());
+
         return ReviewResponse.toDto(savedReview);
     }
 
     // 리뷰 단건 조회
     public ReviewResponse getReview(UUID reviewId) {
-        Review review = findReviewById(reviewId);
+        Review review = findActiveReviewById(reviewId);
 
         return ReviewResponse.toDto(review);
     }
 
     // 리뷰 전체 조회
     public List<ReviewResponse> getReviews() {
-        return reviewRepository.findAll().stream().map(ReviewResponse::toDto).toList();
-    }
-
-    // 음식점 리뷰 목록 조회
-    public List<ReviewResponse> getReviewsByStore(UUID storeId) {
-        return reviewRepository.findAllByStoreId(storeId).stream()
+        return reviewRepository.findAllByDeletedAtIsNull().stream()
                 .map(ReviewResponse::toDto)
                 .toList();
     }
 
-    // 내 리뷰 목록 조회
-    public List<ReviewResponse> getMyReviews(UUID userId) {
-        return reviewRepository.findAllByUserId(userId).stream()
+    // 음식점 리뷰 목록 조회
+    public List<ReviewResponse> getReviewsByStore(UUID storeId) {
+        return reviewRepository.findAllByStoreIdAndDeletedAtIsNull(storeId).stream()
+                .map(ReviewResponse::toDto)
+                .toList();
+    }
+
+    // 로그인한 사용자의 리뷰 목록 조회
+    public List<ReviewResponse> getMyReviews(Long loginUserId) {
+        return reviewRepository.findAllByUserIdAndDeletedAtIsNull(loginUserId).stream()
                 .map(ReviewResponse::toDto)
                 .toList();
     }
@@ -77,34 +83,55 @@ public class ReviewService {
 
     // 리뷰 수정
     @Transactional
-    public ReviewResponse updateReview(UUID reviewId, ReviewRequest request) {
+    public ReviewResponse updateReview(
+            UUID reviewId,
+            Long loginUserId,
+            ReviewRequest request) {
+
         validateReviewRequest(request);
 
-        Review review = findReviewById(reviewId);
+        Review review = findActiveReviewById(reviewId);
+
+        validateReviewOwner(review, loginUserId);
 
         review.update(request.getRating(), request.getContent());
+
+        storeService.updateAverageRating(review.getStoreId());
 
         return ReviewResponse.toDto(review);
     }
 
     // 리뷰 삭제
     @Transactional
-    public void deleteReview(UUID reviewId, String deletedBy) {
-        Review review = findReviewById(reviewId);
+    public void deleteReview(UUID reviewId, Long loginUserId) {
+        Review review = findActiveReviewById(reviewId);
 
-        review.delete(deletedBy);
+        validateReviewOwner(review, loginUserId);
+
+        review.delete(loginUserId.toString());
+
+        storeService.updateAverageRating(review.getStoreId());
     }
 
-    // 리뷰 조회 공통 메서드
-    private Review findReviewById(UUID reviewId) {
+    // 삭제되지 않은 리뷰 조회
+    private Review findActiveReviewById(UUID reviewId) {
         return reviewRepository
-                .findById(reviewId)
+                .findByIdAndDeletedAtIsNull(reviewId)
                 .orElseThrow(() -> new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND));
+    }
+
+    // 리뷰 작성자 검증
+    private void validateReviewOwner(Review review, Long loginUserId) {
+        if (!review.getUserId().equals(loginUserId)) {
+            throw new ReviewException(ReviewErrorCode.REVIEW_ACCESS_DENIED);
+        }
     }
 
     // 리뷰 요청 데이터 검증
     private void validateReviewRequest(ReviewRequest request) {
-        if (request.getRating() == null || request.getRating() < 1 || request.getRating() > 5) {
+        if (request.getRating() == null
+                || request.getRating() < 1
+                || request.getRating() > 5) {
             throw new ReviewException(ReviewErrorCode.INVALID_RATING);
         }
 
