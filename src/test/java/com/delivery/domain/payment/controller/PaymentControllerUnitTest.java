@@ -14,12 +14,14 @@ import com.delivery.domain.payment.entity.PaymentMethod;
 import com.delivery.domain.payment.entity.PaymentStatus;
 import com.delivery.domain.payment.service.PaymentService;
 import com.delivery.global.exception.BusinessException;
+import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.exception.GlobalErrorCode;
 import com.delivery.global.exception.GlobalExceptionHandler;
 import com.delivery.global.security.config.CustomUserDetails;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,7 +43,7 @@ class PaymentControllerUnitTest {
     void setUp() {
         mockMvc =
                 MockMvcBuilders.standaloneSetup(new PaymentController(paymentService))
-                        .setControllerAdvice(new GlobalExceptionHandler())
+                        .setControllerAdvice(new GlobalExceptionHandler(new ErrorCodeRegistry()))
                         .build();
     }
 
@@ -57,7 +59,7 @@ class PaymentControllerUnitTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value(404))
-                .andExpect(jsonPath("$.data").doesNotExist())
+                .andExpect(jsonPath("$.data").value(Matchers.nullValue()))
                 .andExpect(jsonPath("$.error").value("NOT_FOUND"));
     }
 
@@ -68,7 +70,7 @@ class PaymentControllerUnitTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.data").doesNotExist())
+                .andExpect(jsonPath("$.data").value(Matchers.nullValue()))
                 .andExpect(jsonPath("$.error").value("INVALID_PARAMETER_TYPE"));
     }
 
@@ -84,8 +86,8 @@ class PaymentControllerUnitTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.data").doesNotExist())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"));
+                .andExpect(jsonPath("$.data").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.error").value("REQUIRED_VALUE"));
     }
 
     @Test
@@ -112,7 +114,7 @@ class PaymentControllerUnitTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.paymentId").value(paymentId.toString()))
-                .andExpect(jsonPath("$.error").doesNotExist());
+                .andExpect(jsonPath("$.error").value(Matchers.nullValue()));
     }
 
     @Test
@@ -138,6 +140,6 @@ class PaymentControllerUnitTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.content").isArray())
-                .andExpect(jsonPath("$.error").doesNotExist());
+                .andExpect(jsonPath("$.error").value(Matchers.nullValue()));
     }
 }
