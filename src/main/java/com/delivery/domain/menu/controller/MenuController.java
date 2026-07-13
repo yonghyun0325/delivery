@@ -7,7 +7,7 @@ import com.delivery.domain.menu.dto.request.UpdateMenuVisibilityRequest;
 import com.delivery.domain.menu.dto.response.MenuResponse;
 import com.delivery.domain.menu.dto.response.MenuView;
 import com.delivery.domain.menu.service.MenuService;
-import com.delivery.domain.user.enums.Role;
+import com.delivery.domain.user.entity.Role;
 import com.delivery.global.security.config.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
