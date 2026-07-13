@@ -27,6 +27,7 @@ public class MenuExceptionHandler {
                 switch (fieldError != null ? fieldError.getField() : "") {
                     case "name" -> MenuErrorCode.INVALID_MENU_NAME;
                     case "price" -> MenuErrorCode.INVALID_MENU_PRICE;
+                    case "hidden" -> MenuErrorCode.MENU_HIDDEN_STATUS_REQUIRED;
                     default -> GlobalErrorCode.BAD_REQUEST;
                 };
 

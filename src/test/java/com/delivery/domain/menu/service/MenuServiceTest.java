@@ -12,10 +12,14 @@ import com.delivery.domain.ai.exception.AiException;
 import com.delivery.domain.ai.service.AiService;
 import com.delivery.domain.menu.dto.response.MenuResponse;
 import com.delivery.domain.menu.dto.response.MenuSnapshot;
+import com.delivery.domain.menu.dto.response.MenuView;
+import com.delivery.domain.menu.dto.response.PublicMenuResponse;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
 import com.delivery.domain.menu.repository.MenuRepository;
+import com.delivery.domain.store.entity.Store;
+import com.delivery.domain.store.repository.StoreRepository;
 import com.delivery.global.exception.BusinessException;
 import java.util.List;
 import java.util.Optional;
@@ -34,8 +38,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 class MenuServiceTest {
 
     private static final UUID STORE_ID = UUID.randomUUID();
+    private static final Long OWNER_ID = 1L;
+    private static final Long OTHER_USER_ID = 2L;
 
     @Mock private MenuRepository menuRepository;
+
+    @Mock private StoreRepository storeRepository;
 
     @Mock private AiService aiService;
 
@@ -54,6 +62,13 @@ class MenuServiceTest {
                         });
     }
 
+    // STORE_ID 가게가 OWNER_ID 소유라고 스텁
+    private void stubStoreOwnedBy(Long ownerId) {
+        Store store = Store.builder().storeId(STORE_ID).userId(ownerId).build();
+        given(storeRepository.findByStoreIdAndDeletedAtIsNull(STORE_ID))
+                .willReturn(Optional.of(store));
+    }
+
     @Nested
     @DisplayName("메뉴 생성")
     class CreateMenu {
@@ -63,11 +78,14 @@ class MenuServiceTest {
         void createMenu_savesAndReturns() {
 
             stubTransactionTemplateToRunCallback();
+            stubStoreOwnedBy(OWNER_ID);
             MenuEntity saved = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
 
             given(menuRepository.save(any(MenuEntity.class))).willReturn(saved);
 
-            MenuResponse result = menuService.createMenu(STORE_ID, "김치찌개", "설명", 8000, false, null);
+            MenuResponse result =
+                    menuService.createMenu(
+                            STORE_ID, "김치찌개", "설명", 8000, false, null, OWNER_ID, false);
 
             assertThat(result).isEqualTo(MenuResponse.from(saved));
             verify(menuRepository).save(any(MenuEntity.class));
@@ -78,12 +96,14 @@ class MenuServiceTest {
         void createMenu_withAiGeneration_usesGeneratedDescription() {
 
             stubTransactionTemplateToRunCallback();
+            stubStoreOwnedBy(OWNER_ID);
             given(aiService.generateProductDescription("김치찌개 설명 써줘")).willReturn("AI가 만든 설명");
             given(menuRepository.save(any(MenuEntity.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
             MenuResponse result =
-                    menuService.createMenu(STORE_ID, "김치찌개", null, 8000, true, "김치찌개 설명 써줘");
+                    menuService.createMenu(
+                            STORE_ID, "김치찌개", null, 8000, true, "김치찌개 설명 써줘", OWNER_ID, false);
 
             assertThat(result.description()).isEqualTo("AI가 만든 설명");
         }
@@ -92,13 +112,75 @@ class MenuServiceTest {
         @DisplayName("aiGeneration이 true인데 aiPrompt가 비어있으면 AI_PROMPT_REQUIRED 예외를 던진다")
         void createMenu_withAiGenerationButNoPrompt_throws() {
 
+            stubStoreOwnedBy(OWNER_ID);
+
             assertThatExceptionOfType(AiException.class)
                     .isThrownBy(
-                            () -> menuService.createMenu(STORE_ID, "김치찌개", null, 8000, true, " "))
+                            () ->
+                                    menuService.createMenu(
+                                            STORE_ID, "김치찌개", null, 8000, true, " ", OWNER_ID,
+                                            false))
                     .extracting(BusinessException::getErrorCode)
                     .isEqualTo(AiErrorCode.AI_PROMPT_REQUIRED);
 
             verifyNoInteractions(aiService);
+        }
+
+        @Test
+        @DisplayName("가게가 존재하지 않으면 MENU_STORE_NOT_FOUND 예외를 던진다")
+        void createMenu_throws_whenStoreNotFound() {
+
+            given(storeRepository.findByStoreIdAndDeletedAtIsNull(STORE_ID))
+                    .willReturn(Optional.empty());
+
+            assertThatExceptionOfType(MenuException.class)
+                    .isThrownBy(
+                            () ->
+                                    menuService.createMenu(
+                                            STORE_ID, "김치찌개", "설명", 8000, false, null, OWNER_ID,
+                                            false))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(MenuErrorCode.MENU_STORE_NOT_FOUND);
+
+            verifyNoInteractions(aiService, menuRepository, transactionTemplate);
+        }
+
+        @Test
+        @DisplayName("가게 소유자가 아니면 NOT_MENU_STORE_OWNER 예외를 던진다")
+        void createMenu_throws_whenNotStoreOwner() {
+
+            stubStoreOwnedBy(OWNER_ID);
+
+            assertThatExceptionOfType(MenuException.class)
+                    .isThrownBy(
+                            () ->
+                                    menuService.createMenu(
+                                            STORE_ID,
+                                            "김치찌개",
+                                            "설명",
+                                            8000,
+                                            false,
+                                            null,
+                                            OTHER_USER_ID,
+                                            false))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(MenuErrorCode.NOT_MENU_STORE_OWNER);
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 가게 소유자가 아니어도 생성할 수 있다(우회)")
+        void createMenu_bypassesOwnership_forElevatedRole() {
+
+            stubTransactionTemplateToRunCallback();
+            stubStoreOwnedBy(OWNER_ID);
+            MenuEntity saved = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+            given(menuRepository.save(any(MenuEntity.class))).willReturn(saved);
+
+            MenuResponse result =
+                    menuService.createMenu(
+                            STORE_ID, "김치찌개", "설명", 8000, false, null, OTHER_USER_ID, true);
+
+            assertThat(result).isEqualTo(MenuResponse.from(saved));
         }
     }
 
@@ -107,16 +189,68 @@ class MenuServiceTest {
     class GetMenu {
 
         @Test
-        @DisplayName("존재하면 응답을 반환한다")
-        void getMenu_returnsResponse_whenExists() {
+        @DisplayName("가게 소유자가 조회하면 숨김 메뉴도 전체 필드로 반환한다")
+        void getMenu_returnsMenuResponse_whenOwner() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+            menu.updateHidden(true);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
+
+            MenuView result = menuService.getMenu(menuId, OWNER_ID, false);
+
+            assertThat(result).isEqualTo(MenuResponse.from(menu));
+        }
+
+        @Test
+        @DisplayName("손님이 숨김 아닌 메뉴를 조회하면 공개 필드로 반환한다")
+        void getMenu_returnsPublicResponse_whenNotOwnerAndNotHidden() {
 
             UUID menuId = UUID.randomUUID();
             MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
 
             given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
                     .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
 
-            MenuResponse result = menuService.getMenu(menuId);
+            MenuView result = menuService.getMenu(menuId, OTHER_USER_ID, false);
+
+            assertThat(result).isEqualTo(PublicMenuResponse.from(menu));
+        }
+
+        @Test
+        @DisplayName("손님이 숨김 메뉴를 조회하면 MENU_NOT_FOUND 예외를 던진다")
+        void getMenu_throws_whenNotOwnerAndHidden() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+            menu.updateHidden(true);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
+
+            assertThatExceptionOfType(MenuException.class)
+                    .isThrownBy(() -> menuService.getMenu(menuId, OTHER_USER_ID, false))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(MenuErrorCode.MENU_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 소유자가 아니어도 숨김 메뉴를 전체 필드로 조회한다")
+        void getMenu_returnsMenuResponse_whenElevatedRole() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+            menu.updateHidden(true);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+
+            MenuView result = menuService.getMenu(menuId, OTHER_USER_ID, true);
 
             assertThat(result).isEqualTo(MenuResponse.from(menu));
         }
@@ -131,7 +265,7 @@ class MenuServiceTest {
                     .willReturn(Optional.empty());
 
             assertThatExceptionOfType(MenuException.class)
-                    .isThrownBy(() -> menuService.getMenu(menuId))
+                    .isThrownBy(() -> menuService.getMenu(menuId, OWNER_ID, false))
                     .extracting(BusinessException::getErrorCode)
                     .isEqualTo(MenuErrorCode.MENU_NOT_FOUND);
         }
@@ -142,16 +276,51 @@ class MenuServiceTest {
     class GetStoreMenus {
 
         @Test
-        @DisplayName("삭제되지 않은 메뉴 목록을 반환한다")
-        void getStoreMenus_returnsList() {
+        @DisplayName("가게 소유자가 조회하면 숨김 메뉴를 포함해 전체 필드로 반환한다")
+        void getStoreMenus_returnsMenuResponses_whenOwner() {
 
-            MenuEntity menu = new MenuEntity(STORE_ID, "메뉴1", null, 1000);
+            MenuEntity visible = new MenuEntity(STORE_ID, "메뉴1", null, 1000);
+            MenuEntity hidden = new MenuEntity(STORE_ID, "메뉴2", null, 2000);
+            hidden.updateHidden(true);
+
+            stubStoreOwnedBy(OWNER_ID);
             given(menuRepository.findAllByStoreIdAndDeletedAtIsNull(STORE_ID))
-                    .willReturn(List.of(menu));
+                    .willReturn(List.of(visible, hidden));
 
-            List<MenuResponse> result = menuService.getStoreMenus(STORE_ID);
+            List<MenuView> result = menuService.getStoreMenus(STORE_ID, OWNER_ID, false);
 
-            assertThat(result).containsExactly(MenuResponse.from(menu));
+            assertThat(result)
+                    .containsExactly(MenuResponse.from(visible), MenuResponse.from(hidden));
+        }
+
+        @Test
+        @DisplayName("손님이 조회하면 숨김 메뉴를 뺀 공개 필드 목록만 반환한다")
+        void getStoreMenus_returnsPublicResponses_whenNotOwner() {
+
+            MenuEntity visible = new MenuEntity(STORE_ID, "메뉴1", null, 1000);
+
+            stubStoreOwnedBy(OWNER_ID);
+            given(menuRepository.findAllByStoreIdAndDeletedAtIsNullAndHiddenIsFalse(STORE_ID))
+                    .willReturn(List.of(visible));
+
+            List<MenuView> result = menuService.getStoreMenus(STORE_ID, OTHER_USER_ID, false);
+
+            assertThat(result).containsExactly(PublicMenuResponse.from(visible));
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 소유자가 아니어도 숨김 메뉴를 포함해 전체 필드로 반환한다")
+        void getStoreMenus_returnsMenuResponses_whenElevatedRole() {
+
+            MenuEntity hidden = new MenuEntity(STORE_ID, "메뉴2", null, 2000);
+            hidden.updateHidden(true);
+
+            given(menuRepository.findAllByStoreIdAndDeletedAtIsNull(STORE_ID))
+                    .willReturn(List.of(hidden));
+
+            List<MenuView> result = menuService.getStoreMenus(STORE_ID, OTHER_USER_ID, true);
+
+            assertThat(result).containsExactly(MenuResponse.from(hidden));
         }
     }
 
@@ -168,12 +337,34 @@ class MenuServiceTest {
 
             given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
                     .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
 
-            MenuResponse result = menuService.updateMenu(menuId, "된장찌개", "새 설명", 9000);
+            MenuResponse result =
+                    menuService.updateMenu(menuId, "된장찌개", "새 설명", 9000, OWNER_ID, false);
 
             assertThat(result.name()).isEqualTo("된장찌개");
             assertThat(result.description()).isEqualTo("새 설명");
             assertThat(result.price()).isEqualTo(9000);
+        }
+
+        @Test
+        @DisplayName("가게 소유자가 아니면 NOT_MENU_STORE_OWNER 예외를 던진다")
+        void updateMenu_throws_whenNotStoreOwner() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
+
+            assertThatExceptionOfType(MenuException.class)
+                    .isThrownBy(
+                            () ->
+                                    menuService.updateMenu(
+                                            menuId, "된장찌개", "새 설명", 9000, OTHER_USER_ID, false))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(MenuErrorCode.NOT_MENU_STORE_OWNER);
         }
     }
 
@@ -190,8 +381,25 @@ class MenuServiceTest {
 
             given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
                     .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
 
-            MenuResponse result = menuService.updateVisibility(menuId, true);
+            MenuResponse result = menuService.updateVisibility(menuId, true, OWNER_ID, false);
+
+            assertThat(result.hidden()).isTrue();
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 가게 소유자가 아니어도 변경할 수 있다(우회)")
+        void updateVisibility_bypassesOwnership_forElevatedRole() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
+
+            MenuResponse result = menuService.updateVisibility(menuId, true, OTHER_USER_ID, true);
 
             assertThat(result.hidden()).isTrue();
         }
@@ -210,11 +418,31 @@ class MenuServiceTest {
 
             given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
                     .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
 
-            menuService.deleteMenu(menuId, "owner1");
+            menuService.deleteMenu(menuId, "owner1", OWNER_ID, false);
 
             assertThat(menu.isDeleted()).isTrue();
             assertThat(menu.getDeletedBy()).isEqualTo("owner1");
+        }
+
+        @Test
+        @DisplayName("가게 소유자가 아니면 NOT_MENU_STORE_OWNER 예외를 던지고 삭제되지 않는다")
+        void deleteMenu_throws_whenNotStoreOwner() {
+
+            UUID menuId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(STORE_ID, "김치찌개", "설명", 8000);
+
+            given(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .willReturn(Optional.of(menu));
+            stubStoreOwnedBy(OWNER_ID);
+
+            assertThatExceptionOfType(MenuException.class)
+                    .isThrownBy(() -> menuService.deleteMenu(menuId, "other", OTHER_USER_ID, false))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(MenuErrorCode.NOT_MENU_STORE_OWNER);
+
+            assertThat(menu.isDeleted()).isFalse();
         }
     }
 

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.delivery.domain.ai.client.GeminiClient;
+import com.delivery.domain.ai.dto.gemini.GeminiResponseException;
 import com.delivery.domain.ai.entity.AiRequestType;
 import com.delivery.domain.ai.exception.AiErrorCode;
 import com.delivery.domain.ai.exception.AiException;
@@ -85,6 +86,28 @@ class AiServiceTest {
                             isNull(),
                             eq(false),
                             eq("연결 실패"));
+        }
+
+        @Test
+        @DisplayName(
+                "Gemini가 세이프티 필터 등으로 빈 candidates를 반환하면 AI_GENERATION_FAILED 예외를 던지고 실패 로그를 저장한다")
+        void generateProductDescription_throwsAndLogsFailure_whenGeminiReturnsEmptyCandidates() {
+            given(geminiClient.generateContent(any()))
+                    .willThrow(new GeminiResponseException("Gemini 응답에 candidates가 없습니다"));
+
+            assertThatExceptionOfType(AiException.class)
+                    .isThrownBy(() -> aiService.generateProductDescription("김치찌개 설명 써줘"))
+                    .extracting(BusinessException::getErrorCode)
+                    .isEqualTo(AiErrorCode.AI_GENERATION_FAILED);
+
+            verify(aiLogService)
+                    .saveLog(
+                            eq(AiRequestType.PRODUCT_DESCRIPTION),
+                            isNull(),
+                            any(),
+                            isNull(),
+                            eq(false),
+                            eq("Gemini 응답에 candidates가 없습니다"));
         }
     }
 }

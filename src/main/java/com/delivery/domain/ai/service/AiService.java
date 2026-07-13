@@ -1,6 +1,7 @@
 package com.delivery.domain.ai.service;
 
 import com.delivery.domain.ai.client.GeminiClient;
+import com.delivery.domain.ai.dto.gemini.GeminiResponseException;
 import com.delivery.domain.ai.entity.AiRequestType;
 import com.delivery.domain.ai.exception.AiErrorCode;
 import com.delivery.domain.ai.exception.AiException;
@@ -32,7 +33,7 @@ public class AiService {
             aiLogService.saveLog(
                     AiRequestType.PRODUCT_DESCRIPTION, null, finalPrompt, response, true, null);
             return response;
-        } catch (RestClientException e) {
+        } catch (RestClientException | GeminiResponseException e) {
             log.error("Gemini 호출 실패: {}", e.getMessage(), e);
             aiLogService.saveLog(
                     AiRequestType.PRODUCT_DESCRIPTION,
