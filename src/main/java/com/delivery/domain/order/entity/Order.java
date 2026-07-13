@@ -1,6 +1,7 @@
 package com.delivery.domain.order.entity;
 
 import com.delivery.common.base.BaseEntity;
+import com.delivery.common.util.CryptoConverter;
 import com.delivery.domain.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -41,6 +42,7 @@ public class Order extends BaseEntity {
     @Column(name = "status", nullable = false, length = 30)
     private OrderStatus status;
 
+    @Convert(converter = CryptoConverter.class)
     @Column(name = "delivery_address", nullable = false, length = 255)
     private String deliveryAddress;
 
