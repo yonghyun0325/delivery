@@ -1,12 +1,13 @@
 package com.delivery.domain.order.service;
 
-import com.delivery.domain.menu.repository.MenuRepository;
+import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.order.dto.response.OrderDetailResponse;
 import com.delivery.domain.order.dto.response.OrderListResponse;
 import com.delivery.domain.order.dto.response.OrderStatusResponse;
 import com.delivery.domain.order.entity.Order;
 import com.delivery.domain.order.enums.OrderStatus;
 import com.delivery.domain.order.repository.OrderRepository;
+import com.delivery.domain.payment.service.PaymentService;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
 import com.delivery.global.exception.BusinessException;
@@ -45,7 +46,10 @@ class OrderServiceTest {
     private StoreRepository storeRepository;
 
     @Mock
-    private MenuRepository menuRepository;
+    private MenuService menuService;
+
+    @Mock
+    private PaymentService paymentService;
 
     @InjectMocks
     private OrderService orderService;

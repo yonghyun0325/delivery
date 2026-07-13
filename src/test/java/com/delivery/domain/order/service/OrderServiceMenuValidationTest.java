@@ -1,18 +1,33 @@
 package com.delivery.domain.order.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.delivery.domain.menu.dto.response.MenuSnapshot;
-import com.delivery.domain.menu.entity.MenuEntity;
+import com.delivery.domain.menu.exception.MenuErrorCode;
+import com.delivery.domain.menu.exception.MenuException;
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.order.dto.request.OrderCreateRequest;
 import com.delivery.domain.order.dto.request.OrderItemCreateRequest;
 import com.delivery.domain.order.entity.Order;
 import com.delivery.domain.order.entity.OrderItem;
-import com.delivery.domain.menu.exception.MenuErrorCode;
-import com.delivery.domain.menu.exception.MenuException;
 import com.delivery.domain.order.exception.OrderException;
 import com.delivery.domain.order.repository.OrderRepository;
+import com.delivery.domain.payment.entity.PaymentMethod;
+import com.delivery.domain.payment.exception.PaymentErrorCode;
+import com.delivery.domain.payment.exception.PaymentException;
+import com.delivery.domain.payment.service.PaymentService;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,170 +36,130 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderServiceMenuValidationTest {
-    // 주문 생성 중 메뉴 검증 로직 테스트
-    @Mock
-    private OrderRepository orderRepository;
+class OrderServiceMenuValidationTest {
 
-    @Mock
-    private StoreRepository storeRepository;
+    @Mock private OrderRepository orderRepository;
+    @Mock private StoreRepository storeRepository;
+    @Mock private MenuService menuService;
+    @Mock private PaymentService paymentService;
 
-    @Mock
-    private MenuService menuService;
-
-    @InjectMocks
-    private OrderService orderService;
+    @InjectMocks private OrderService orderService;
 
     private UUID storeId;
     private UUID menuId;
     private Long currentUserId;
-
     private Store store;
-
     private OrderCreateRequest request;
 
-    // given
     @BeforeEach
     void setUp() {
-        // 테스트에서 공통으로 사용할 식별자
         storeId = UUID.randomUUID();
         menuId = UUID.randomUUID();
         currentUserId = 1L;
-
-        // 메뉴 검증 전에 필요한 가게 정보를 Mock 객체로 사용
-        store = mock(Store.class);
-
-        // 기본 주문 요청: 메뉴 1개를 1개 주문
+        store = mockStore();
         request = createOrderRequest(1);
 
-        // 메뉴 검증 테스트가 실행되려면
-        // 먼저 가게 존재 및 영업 여부 검증을 통과해야 함
         when(storeRepository.findByStoreIdAndDeletedAtIsNull(storeId))
                 .thenReturn(Optional.of(store));
-
         when(store.getIsOpen()).thenReturn(true);
     }
 
-    // 주문 생성시 메뉴가 없는 경우
     @Test
-    @DisplayName("주문 생성 시 메뉴가 존재하지 않으면 MENU_NOT_FOUND 예외가 발생한다")
+    @DisplayName("주문 생성 중 메뉴가 없으면 MENU_NOT_FOUND 예외가 발생한다")
     void createOrder_menuNotFound() {
-
-        // given
         when(menuService.getOrderableMenu(menuId, storeId))
-                .thenThrow(
-                        new MenuException(MenuErrorCode.MENU_NOT_FOUND)
-                );
+                .thenThrow(new MenuException(MenuErrorCode.MENU_NOT_FOUND));
 
-        // when & then
-        assertThatThrownBy(() ->
-                orderService.createOrder(request, currentUserId)
-        )
+        assertThatThrownBy(() -> orderService.createOrder(request, currentUserId))
                 .isInstanceOf(MenuException.class)
                 .hasMessage(MenuErrorCode.MENU_NOT_FOUND.getMessage());
 
-        // OrderService가 MenuService에 메뉴 ID와 가게 ID를 올바르게 전달했는지 확인
-        verify(menuService)
-                .getOrderableMenu(menuId, storeId);
-
-        // 메뉴 조회 단계에서 실패했으므로 주문은 저장되지 않아야 함
+        verify(menuService).getOrderableMenu(menuId, storeId);
         verify(orderRepository, never()).save(any(Order.class));
+        verify(paymentService, never())
+                .createPayment(any(UUID.class), any(Long.class), any(Integer.class), any(PaymentMethod.class));
     }
 
-
-    // 정상 메뉴 주문 생성
     @Test
-    @DisplayName("주문 가능한 메뉴 스냅샷으로 주문이 생성된다")
+    @DisplayName("주문 가능한 메뉴면 주문을 생성하고 결제 생성 계약도 호출한다")
     void createOrder_success() {
-
-        // given
         int quantity = 2;
         int menuPrice = 12_000;
-
-        // 정상 케이스는 수량 2개로 별도 요청 생성
         OrderCreateRequest successRequest = createOrderRequest(quantity);
 
         when(store.getMinOrderAmount()).thenReturn(10_000);
-
-        // MenuService가 주문 가능 여부를 검증한 메뉴 스냅샷 반환
         when(menuService.getOrderableMenu(menuId, storeId))
-                .thenReturn(
-                        new MenuSnapshot(
-                                menuId,
-                                "불고기 피자",
-                                menuPrice
-                        )
-                );
-
-        // save()로 전달된 Order 객체를 그대로 반환
+                .thenReturn(new MenuSnapshot(menuId, "Burger", menuPrice));
         when(orderRepository.save(any(Order.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(
+                        invocation -> {
+                            Order order = invocation.getArgument(0);
+                            ReflectionTestUtils.setField(order, "id", UUID.randomUUID());
+                            return order;
+                        });
 
-        // when
         orderService.createOrder(successRequest, currentUserId);
 
-        // then
-        ArgumentCaptor<Order> orderCaptor =
-                ArgumentCaptor.forClass(Order.class);
-
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepository).save(orderCaptor.capture());
-
-        // MenuService에 menuId와 storeId가 올바른 순서로 전달됐는지 확인
         verify(menuService).getOrderableMenu(menuId, storeId);
 
         Order savedOrder = orderCaptor.getValue();
-
-        // 주문 기본 정보 확인
         assertThat(savedOrder.getUserId()).isEqualTo(currentUserId);
         assertThat(savedOrder.getStoreId()).isEqualTo(storeId);
         assertThat(savedOrder.getDeliveryAddress()).isEqualTo("서울시 강남구");
-
-        // 총 주문 금액 = 메뉴 가격 × 수량
-        assertThat(savedOrder.getTotalPrice())
-                .isEqualTo(24_000);
-
-        // 주문 상세 확인
+        assertThat(savedOrder.getTotalPrice()).isEqualTo(24_000);
         assertThat(savedOrder.getOrderItems()).hasSize(1);
 
-        OrderItem savedOrderItem =
-                savedOrder.getOrderItems().get(0);
-
+        OrderItem savedOrderItem = savedOrder.getOrderItems().get(0);
         assertThat(savedOrderItem.getMenuId()).isEqualTo(menuId);
-        assertThat(savedOrderItem.getMenuName()).isEqualTo("불고기 피자");
+        assertThat(savedOrderItem.getMenuName()).isEqualTo("Burger");
         assertThat(savedOrderItem.getMenuPrice()).isEqualTo(menuPrice);
         assertThat(savedOrderItem.getQuantity()).isEqualTo(quantity);
         assertThat(savedOrderItem.getSubtotalPrice()).isEqualTo(24_000);
+        assertThat(savedOrderItem.getOrder()).isSameAs(savedOrder);
 
-        // Order.addOrderItem()에서 양방향 연관관계가 연결됐는지 확인
-        assertThat(savedOrderItem.getOrder())
-                .isSameAs(savedOrder);
-
+        verify(paymentService)
+                .createPayment(
+                        savedOrder.getId(),
+                        currentUserId,
+                        savedOrder.getTotalPrice(),
+                        PaymentMethod.CARD);
     }
 
-    // 수량만 다르게 주문 요청을 만들기 위한 테스트 헬퍼 메서드
+    @Test
+    @DisplayName("결제 생성이 실패하면 주문 생성도 예외를 전파한다")
+    void createOrder_fail_when_payment_creation_fails() {
+        when(store.getMinOrderAmount()).thenReturn(10_000);
+        when(menuService.getOrderableMenu(menuId, storeId))
+                .thenReturn(new MenuSnapshot(menuId, "Burger", 12_000));
+        when(orderRepository.save(any(Order.class)))
+                .thenAnswer(
+                        invocation -> {
+                            Order order = invocation.getArgument(0);
+                            ReflectionTestUtils.setField(order, "id", UUID.randomUUID());
+                            return order;
+                        });
+        doThrow(new PaymentException(PaymentErrorCode.PAYMENT_ALREADY_EXISTS))
+                .when(paymentService)
+                .createPayment(any(UUID.class), eq(currentUserId), eq(12_000), eq(PaymentMethod.CARD));
+
+        assertThatThrownBy(() -> orderService.createOrder(createOrderRequest(1), currentUserId))
+                .isInstanceOf(PaymentException.class)
+                .hasMessage(PaymentErrorCode.PAYMENT_ALREADY_EXISTS.getMessage());
+    }
+
     private OrderCreateRequest createOrderRequest(int quantity) {
         return new OrderCreateRequest(
                 storeId,
                 "서울시 강남구",
-                List.of(
-                        new OrderItemCreateRequest(
-                                menuId,
-                                quantity
-                        )
-                )
-        );
+                List.of(new OrderItemCreateRequest(menuId, quantity)));
     }
 
-
+    private Store mockStore() {
+        return org.mockito.Mockito.mock(Store.class);
+    }
 }
