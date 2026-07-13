@@ -113,6 +113,15 @@ public class ReviewService {
         storeService.updateAverageRating(review.getStoreId());
     }
 
+    // 가게 삭제 시 해당 가게의 리뷰 전체 삭제
+    @Transactional
+    public void deleteReviewsByStoreId(UUID storeId, String deletedBy) {
+        List<Review> reviews =
+                reviewRepository.findAllByStoreIdAndDeletedAtIsNull(storeId);
+
+        reviews.forEach(review -> review.delete(deletedBy));
+    }
+
     // 삭제되지 않은 리뷰 조회
     private Review findActiveReviewById(UUID reviewId) {
         return reviewRepository
