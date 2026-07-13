@@ -61,9 +61,8 @@ public interface OrderControllerDocs {
                     responseCode = "400",
                     description = """
                             잘못된 주문 수량,
-                            다른 가게 소속 메뉴,
-                            숨김 메뉴,
-                            유효하지 않은 메뉴 가격,
+                            주문할 수 없는 메뉴,
+                            메뉴를 찾을 수 없음,
                             최소 주문 금액 미충족,
                             영업 중이 아닌 가게
                             """

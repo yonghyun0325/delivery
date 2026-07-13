@@ -1,7 +1,9 @@
 package com.delivery.domain.order.service;
 
+import com.delivery.domain.menu.dto.response.MenuSnapshot;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.domain.menu.repository.MenuRepository;
+import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.order.dto.request.OrderCreateRequest;
 import com.delivery.domain.order.dto.request.OrderItemCreateRequest;
 import com.delivery.domain.order.dto.response.OrderCreateResponse;
@@ -41,7 +43,7 @@ public class OrderService {
 
     private final StoreRepository storeRepository;
 
-    private final MenuRepository menuRepository;
+    private final MenuService menuService;
 
     // 고객 주문 생성
     @Transactional
@@ -73,17 +75,17 @@ public class OrderService {
 
             // 메뉴 존재, 소속 가게, 노출 여부, 가격 검증
             // 검증된 메뉴의 주문 당시 정보를 스냅샷으로 반환
-            MenuSnapshot menuSnapshot = getMenuSnapshot(
-                    request.storeId(),
-                    itemRequest.menuId()
+            MenuSnapshot menuSnapshot = menuService.getOrderableMenu(
+                    itemRequest.menuId(),
+                    request.storeId()
             );
 
             // 주문 상세 엔티티 생성
             // 주문 당시 메뉴명(menuName)과 가격(menuPrice)으로 주문 상세 생성
             OrderItem orderItem = new OrderItem(
                     menuSnapshot.menuId(),
-                    menuSnapshot.menuName(),
-                    menuSnapshot.menuPrice(),
+                    menuSnapshot.name(),
+                    menuSnapshot.price(),
                     itemRequest.quantity()
             );
 
@@ -570,76 +572,6 @@ public class OrderService {
         if (quantity == null || quantity < 1) {
             throw new OrderException(OrderErrorCode.INVALID_ORDER_QUANTITY);
         }
-    }
-
-    // 메뉴 조회 및 주문 당시 메뉴 정보 스냅샷 생성
-    private MenuSnapshot getMenuSnapshot(UUID storeId, UUID menuId) {
-
-        // menuId로 존재하고 Soft Delete되지 않은 메뉴 조회
-        MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
-                .orElseThrow(() ->
-                        new OrderException(OrderErrorCode.MENU_NOT_FOUND)
-                );
-
-        // 조회한 메뉴가 주문 요청의 가게에 속하는지 검증
-        validateMenuBelongsToStore(menu, storeId);
-
-        // 고객이 주문할 수 있도록 노출된 메뉴인지 검증
-        validateMenuAvailable(menu);
-
-        // 메뉴 가격이 유효한지 검증
-        validateMenuPrice(menu);
-
-        // DB에서 조회한 메뉴명과 가격으로 주문 스냅샷 생성
-        return new MenuSnapshot(
-                menu.getMenuId(),
-                menu.getName(),
-                menu.getPrice()
-        );
-    }
-
-    // 메뉴가 주문 요청의 가게에 속한 메뉴인지 검증
-    private void validateMenuBelongsToStore(
-            MenuEntity menu,
-            UUID requestStoreId
-    ) {
-        if (!menu.getStoreId().equals(requestStoreId)) {
-            throw new OrderException(
-                    OrderErrorCode.MENU_STORE_MISMATCH
-            );
-        }
-    }
-
-    // 고객이 주문 가능한 메뉴인지 검증
-    // 숨김처리가 되어 있으면 주문 불가능
-    private void validateMenuAvailable(MenuEntity menu) {
-
-        if (menu.isHidden()) {
-            throw new OrderException(
-                    OrderErrorCode.MENU_NOT_AVAILABLE
-            );
-        }
-    }
-
-    // 주문 금액 계산에 사용할 메뉴 가격 검증
-    // 가격이 0 이하인지를 주문 도메인에서 한번더 검증
-    private void validateMenuPrice(MenuEntity menu) {
-
-        if (menu.getPrice() <= 0) {
-            throw new OrderException(
-                    OrderErrorCode.INVALID_MENU_PRICE
-            );
-        }
-    }
-
-
-    // 주문 도메인에서 MenuEntity의 필요한 정보만 전달받기 위한 내부 DTO
-// 주문 생성 시 메뉴명과 가격을 주문 당시 값으로 저장하기 위해 사용
-    private record MenuSnapshot(
-            UUID menuId,
-            String menuName,
-            Integer menuPrice
-    ) {
     }
 
 }
