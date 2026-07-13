@@ -1,5 +1,6 @@
 package com.delivery.domain.order.service;
 
+import com.delivery.domain.menu.repository.MenuRepository;
 import com.delivery.domain.order.dto.response.OrderDetailResponse;
 import com.delivery.domain.order.dto.response.OrderListResponse;
 import com.delivery.domain.order.dto.response.OrderStatusResponse;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -42,6 +44,10 @@ class OrderServiceTest {
     @Mock
     private StoreRepository storeRepository;
 
+    @Mock
+    private MenuRepository menuRepository;
+
+    @InjectMocks
     private OrderService orderService;
 
     private UUID storeId;
@@ -54,14 +60,6 @@ class OrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        /*
-         * @InjectMocks를 사용해도 되지만,
-         * 생성자를 직접 호출하면 테스트 대상의 의존성이 더 명확하게 보인다.
-         */
-        orderService = new OrderService(
-                orderRepository,
-                storeRepository
-        );
 
         storeId = UUID.randomUUID();
         otherStoreId = UUID.randomUUID();

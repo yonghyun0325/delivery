@@ -13,6 +13,8 @@ public enum OrderErrorCode implements ErrorCode {
     ORDER_STORE_MISMATCH(HttpStatus.BAD_REQUEST, "해당 가게의 주문이 아닙니다."),
     STORE_NOT_OPEN(HttpStatus.BAD_REQUEST, "현재 영업 중인 가게가 아닙니다."),
     MINIMUM_ORDER_AMOUNT_NOT_MET(HttpStatus.BAD_REQUEST, "최소 주문 금액을 충족하지 못했습니다."),
+    MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "현재 주문할 수 없는 메뉴입니다."),
+    INVALID_MENU_PRICE(HttpStatus.BAD_REQUEST, "메뉴 가격이 올바르지 않습니다."),
 
 
     // 조회 조건 검증

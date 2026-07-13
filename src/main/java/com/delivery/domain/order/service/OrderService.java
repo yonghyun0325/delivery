@@ -1,5 +1,7 @@
 package com.delivery.domain.order.service;
 
+import com.delivery.domain.menu.entity.MenuEntity;
+import com.delivery.domain.menu.repository.MenuRepository;
 import com.delivery.domain.order.dto.request.OrderCreateRequest;
 import com.delivery.domain.order.dto.request.OrderItemCreateRequest;
 import com.delivery.domain.order.dto.response.OrderCreateResponse;
@@ -13,7 +15,7 @@ import com.delivery.domain.order.enums.OrderStatus;
 import com.delivery.domain.order.repository.OrderRepository;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
-import com.delivery.global.exception.BusinessException;
+import com.delivery.domain.order.exception.OrderException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +41,8 @@ public class OrderService {
 
     private final StoreRepository storeRepository;
 
+    private final MenuRepository menuRepository;
+
     // 고객 주문 생성
     @Transactional
     public OrderCreateResponse createOrder(
@@ -49,7 +53,7 @@ public class OrderService {
         // 존재하지 않거나 Soft Delete된 가게이면 STORE_NOT_FOUND 예외 발생
         Store store = findActiveStore(request.storeId());
 
-        // 가게 영엽 여부 확인
+        // 가게 영업 여부 확인
         validateStoreOpen(store);
 
         // 주문 엔티티 생성
@@ -67,17 +71,15 @@ public class OrderService {
             // 수량 검증 (수량은 1개 이상)
             validateOrderQuantity(itemRequest.quantity());
 
-            // menuId로 메뉴 정보를 조회하고,
-            // TODO 해당 메뉴가 요청한 storeId에 속한 메뉴인지 확인
-            // 아직 메뉴 도메인 구조를 모르기 때문에 MenuSnapshot으로 필요한 값만 임시 정의
-            // TODO 고객 주문 생성시, 메뉴스냅샷 관련 코드 MENU 도메인 연결 후 작성하기
+            // 메뉴 존재, 소속 가게, 노출 여부, 가격 검증
+            // 검증된 메뉴의 주문 당시 정보를 스냅샷으로 반환
             MenuSnapshot menuSnapshot = getMenuSnapshot(
                     request.storeId(),
                     itemRequest.menuId()
             );
 
             // 주문 상세 엔티티 생성
-            // menuName, menuPrice는 주문 당시 값으로 저장하는 스냅샷 데이터
+            // 주문 당시 메뉴명(menuName)과 가격(menuPrice)으로 주문 상세 생성
             OrderItem orderItem = new OrderItem(
                     menuSnapshot.menuId(),
                     menuSnapshot.menuName(),
@@ -114,7 +116,7 @@ public class OrderService {
         // 삭제되지 않은 주문 주회
         // 주문 단건 응답에 메뉴 상세 목록이 포함되므로 orderItems도 함께 조회
         Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
 
         // 현재 사용자의 역할(role)과 주문 소유 관계(id)에 따라 접근 가능 여부 검증
@@ -239,7 +241,7 @@ public class OrderService {
     // 날짜 범위 검증 메서드
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            throw new BusinessException(OrderErrorCode.INVALID_ORDER_DATE_RANGE);
+            throw new OrderException(OrderErrorCode.INVALID_ORDER_DATE_RANGE);
         }
     }
 
@@ -274,7 +276,7 @@ public class OrderService {
     public void deleteOrder(UUID orderId, Long currentAdminId) {
         Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(() ->
-                        new BusinessException(OrderErrorCode.ORDER_NOT_FOUND)
+                        new OrderException(OrderErrorCode.ORDER_NOT_FOUND)
                 );
 
         // TODO: Spring Security/JWT 연동 후 MANAGER, MASTER 권한 검증
@@ -372,7 +374,7 @@ public class OrderService {
     private Order findActiveOrder(UUID orderId) {
         return orderRepository.findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(() ->
-                        new BusinessException(OrderErrorCode.ORDER_NOT_FOUND)
+                        new OrderException(OrderErrorCode.ORDER_NOT_FOUND)
                 );
     }
 
@@ -381,7 +383,7 @@ public class OrderService {
         // storeId에 해당하는 가게가 존재하고 Soft Delete되지 않았는지 조회
         return storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
                 .orElseThrow(() ->
-                        new BusinessException(OrderErrorCode.STORE_NOT_FOUND)
+                        new OrderException(OrderErrorCode.STORE_NOT_FOUND)
                 );
     }
 
@@ -390,7 +392,7 @@ public class OrderService {
         // Store.userId는 해당 가게를 소유한 OWNER의 사용자 ID
         // currentUserId는 JWT 인증 객체에서 가져온 현재 로그인 사용자 ID
         if (!store.getUserId().equals(currentUserId)) {
-            throw new BusinessException(
+            throw new OrderException(
                     OrderErrorCode.FORBIDDEN_STORE_ACCESS
             );
         }
@@ -415,7 +417,7 @@ public class OrderService {
 
         // 관리자가 아니라면 OWNER 본인 가게인지 확인
         if (!store.getUserId().equals(currentUserId)) {
-            throw new BusinessException(
+            throw new OrderException(
                     OrderErrorCode.FORBIDDEN_STORE_ACCESS
             );
         }
@@ -462,7 +464,7 @@ public class OrderService {
         }
 
         // 어떤 접근 조건도 충족하지 못하면 조회 차단
-        throw new BusinessException(
+        throw new OrderException(
                 OrderErrorCode.FORBIDDEN_ORDER_ACCESS
         );
     }
@@ -471,21 +473,21 @@ public class OrderService {
     // 주문이 해당 URL 가게의 주문인지 검증
     private void validateOrderBelongsToStore(Order order, UUID storeId) {
         if (!order.getStoreId().equals(storeId)) {
-            throw new BusinessException(OrderErrorCode.ORDER_STORE_MISMATCH);
+            throw new OrderException(OrderErrorCode.ORDER_STORE_MISMATCH);
         }
     }
 
     // 가게 영업 여부 검증
     private void validateStoreOpen(Store store) {
         if (!Boolean.TRUE.equals(store.getIsOpen())) {
-            throw new BusinessException(OrderErrorCode.STORE_NOT_OPEN);
+            throw new OrderException(OrderErrorCode.STORE_NOT_OPEN);
         }
     }
 
     // 최소 주문 금액 검증
     private void validateMinimumOrderAmount(Order order, Store store) {
         if (order.getTotalPrice() < store.getMinOrderAmount()) {
-            throw new BusinessException(
+            throw new OrderException(
                     OrderErrorCode.MINIMUM_ORDER_AMOUNT_NOT_MET
             );
         }
@@ -501,7 +503,7 @@ public class OrderService {
         if (currentStatus == OrderStatus.COMPLETED
                 || currentStatus == OrderStatus.REJECTED
                 || currentStatus == OrderStatus.CUSTOMER_CANCELLED) {
-            throw new BusinessException(OrderErrorCode.ORDER_ALREADY_TERMINATED);
+            throw new OrderException(OrderErrorCode.ORDER_ALREADY_TERMINATED);
         }
 
         // 현재 상태에서 다음 상태로 변경 가능한지 확인
@@ -539,7 +541,7 @@ public class OrderService {
 
         // 허용되지 않은 상태 변경이면 예외 발생
         if (!validTransition) {
-            throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS_TRANSITION);
+            throw new OrderException(OrderErrorCode.INVALID_ORDER_STATUS_TRANSITION);
         }
     }
 
@@ -549,7 +551,7 @@ public class OrderService {
         LocalDateTime cancelDeadline = order.getCreatedAt().plusMinutes(5);
 
         if (LocalDateTime.now().isAfter(cancelDeadline)) {
-            throw new BusinessException(OrderErrorCode.ORDER_CANCEL_TIME_EXPIRED);
+            throw new OrderException(OrderErrorCode.ORDER_CANCEL_TIME_EXPIRED);
         }
     }
 
@@ -557,7 +559,7 @@ public class OrderService {
     // Customer 검증 메서드
     private void validateOrderAccessForCustomer(Order order, Long currentUserId) {
         if (!order.getUserId().equals(currentUserId)) {
-            throw new BusinessException(OrderErrorCode.FORBIDDEN_ORDER_ACCESS);
+            throw new OrderException(OrderErrorCode.FORBIDDEN_ORDER_ACCESS);
         }
     }
 
@@ -566,35 +568,73 @@ public class OrderService {
         // Request DTO에서 @Min으로 검증하더라도
         // 서비스 계층에서도 핵심 비즈니스 규칙은 한 번 더 보호할 수 있음
         if (quantity == null || quantity < 1) {
-            throw new BusinessException(OrderErrorCode.INVALID_ORDER_QUANTITY);
+            throw new OrderException(OrderErrorCode.INVALID_ORDER_QUANTITY);
         }
     }
 
-    // 메뉴 스냅샷 저장
+    // 메뉴 조회 및 주문 당시 메뉴 정보 스냅샷 생성
     private MenuSnapshot getMenuSnapshot(UUID storeId, UUID menuId) {
-        // TODO: 메뉴 도메인 Repository 또는 Service 확정 후 구현
-        // TODO: 메뉴 도메인 Repository 또는 Service 확정 후 반드시 실제 조회 로직으로 교체
-        // 현재는 주문 생성 API 흐름 테스트를 위해 임시 메뉴 스냅샷을 반환
 
+        // menuId로 존재하고 Soft Delete되지 않은 메뉴 조회
+        MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
+                .orElseThrow(() ->
+                        new OrderException(OrderErrorCode.MENU_NOT_FOUND)
+                );
+
+        // 조회한 메뉴가 주문 요청의 가게에 속하는지 검증
+        validateMenuBelongsToStore(menu, storeId);
+
+        // 고객이 주문할 수 있도록 노출된 메뉴인지 검증
+        validateMenuAvailable(menu);
+
+        // 메뉴 가격이 유효한지 검증
+        validateMenuPrice(menu);
+
+        // DB에서 조회한 메뉴명과 가격으로 주문 스냅샷 생성
         return new MenuSnapshot(
-                menuId,
-                "테스트 메뉴",
-                10000
+                menu.getMenuId(),
+                menu.getName(),
+                menu.getPrice()
         );
-
-        // 구현해야 할 내용:
-        // 1. menuId로 메뉴 조회
-        // 2. 메뉴가 없으면 MENU_NOT_FOUND 예외 발생
-        // 3. 메뉴의 storeId와 요청 storeId 비교
-        // 4. 다르면 MENU_STORE_MISMATCH 예외 발생
-        // 5. menuId, menuName, menuPrice 반환
-
-//        throw new UnsupportedOperationException("메뉴 도메인 연결 후 구현 필요");
-
     }
 
-    // 주문 도메인에서 메뉴 도메인으로부터 필요한 값만 담는 내부 DTO
-    // 실제 Menu Entity 구조를 몰라도 주문 생성 흐름을 먼저 작성할 수 있게 해줌
+    // 메뉴가 주문 요청의 가게에 속한 메뉴인지 검증
+    private void validateMenuBelongsToStore(
+            MenuEntity menu,
+            UUID requestStoreId
+    ) {
+        if (!menu.getStoreId().equals(requestStoreId)) {
+            throw new OrderException(
+                    OrderErrorCode.MENU_STORE_MISMATCH
+            );
+        }
+    }
+
+    // 고객이 주문 가능한 메뉴인지 검증
+    // 숨김처리가 되어 있으면 주문 불가능
+    private void validateMenuAvailable(MenuEntity menu) {
+
+        if (menu.isHidden()) {
+            throw new OrderException(
+                    OrderErrorCode.MENU_NOT_AVAILABLE
+            );
+        }
+    }
+
+    // 주문 금액 계산에 사용할 메뉴 가격 검증
+    // 가격이 0 이하인지를 주문 도메인에서 한번더 검증
+    private void validateMenuPrice(MenuEntity menu) {
+
+        if (menu.getPrice() <= 0) {
+            throw new OrderException(
+                    OrderErrorCode.INVALID_MENU_PRICE
+            );
+        }
+    }
+
+
+    // 주문 도메인에서 MenuEntity의 필요한 정보만 전달받기 위한 내부 DTO
+// 주문 생성 시 메뉴명과 가격을 주문 당시 값으로 저장하기 위해 사용
     private record MenuSnapshot(
             UUID menuId,
             String menuName,
