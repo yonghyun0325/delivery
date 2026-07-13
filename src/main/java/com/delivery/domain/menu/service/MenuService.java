@@ -16,6 +16,10 @@ import com.delivery.domain.store.repository.StoreRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,6 +123,37 @@ public class MenuService {
                 .findByStoreIdAndDeletedAtIsNull(storeId)
                 .map(store -> store.getUserId().equals(requesterId))
                 .orElse(false);
+    }
+
+    // 메뉴 횡단 검색 - 특정 가게에 속하지 않은 전체 메뉴 대상 이름 검색(플랫 API).
+    // 여러 가게에 걸친 결과라 단건/목록 조회처럼 "그 가게 소유자" 개념이 성립하지 않으므로,
+    // MANAGER/MASTER만 숨김 메뉴를 포함해 보고 그 외에는 전부 숨김 메뉴를 제외한다.
+    public Page<MenuView> searchMenus(
+            String name, int page, int size, String sort, boolean isElevatedRole) {
+        String keyword = (name == null || name.isBlank()) ? null : name;
+        Pageable pageable = createPageable(page, normalizePageSize(size), sort);
+
+        Page<MenuEntity> menus =
+                isElevatedRole
+                        ? menuRepository.searchAllMenus(keyword, pageable)
+                        : menuRepository.searchVisibleMenus(keyword, pageable);
+
+        return menus.map(menu -> (MenuView) toMenuView(menu, isElevatedRole));
+    }
+
+    // 요구사항: size는 10/30/50만 허용하고 그 외 값은 에러가 아니라 10으로 보정
+    private int normalizePageSize(int size) {
+        if (size == 10 || size == 30 || size == 50) {
+            return size;
+        }
+        return 10;
+    }
+
+    // 기본 정렬은 생성일 내림차순 - sort=createdAt,asc로 요청한 경우만 오름차순으로 뒤집는다.
+    private Pageable createPageable(int page, int size, String sort) {
+        Sort.Direction direction =
+                "createdAt,asc".equalsIgnoreCase(sort) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return PageRequest.of(Math.max(page, 0), size, Sort.by(direction, "createdAt"));
     }
 
     // 메뉴 수정

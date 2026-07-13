@@ -3,6 +3,7 @@ package com.delivery.domain.menu.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -28,9 +29,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -321,6 +327,83 @@ class MenuServiceTest {
             List<MenuView> result = menuService.getStoreMenus(STORE_ID, OTHER_USER_ID, true);
 
             assertThat(result).containsExactly(MenuResponse.from(hidden));
+        }
+    }
+
+    @Nested
+    @DisplayName("메뉴 횡단 검색")
+    class SearchMenus {
+
+        @Test
+        @DisplayName("일반 조회자는 숨김 메뉴를 제외한 검색 결과를 공개 필드로 반환받는다")
+        void searchMenus_returnsPublicResponses_whenNotElevated() {
+
+            MenuEntity visible = new MenuEntity(STORE_ID, "김치찌개", null, 8000);
+
+            given(menuRepository.searchVisibleMenus(eq("김치"), any(Pageable.class)))
+                    .willReturn(new PageImpl<>(List.of(visible)));
+
+            Page<MenuView> result = menuService.searchMenus("김치", 0, 10, null, false);
+
+            assertThat(result.getContent()).containsExactly(PublicMenuResponse.from(visible));
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 숨김 메뉴를 포함한 검색 결과를 전체 필드로 반환받는다")
+        void searchMenus_returnsMenuResponses_whenElevated() {
+
+            MenuEntity hidden = new MenuEntity(STORE_ID, "김치찌개", null, 8000);
+            hidden.updateHidden(true);
+
+            given(menuRepository.searchAllMenus(eq("김치"), any(Pageable.class)))
+                    .willReturn(new PageImpl<>(List.of(hidden)));
+
+            Page<MenuView> result = menuService.searchMenus("김치", 0, 10, null, true);
+
+            assertThat(result.getContent()).containsExactly(MenuResponse.from(hidden));
+        }
+
+        @Test
+        @DisplayName("size가 10/30/50이 아니면 10으로 보정한다")
+        void searchMenus_normalizesInvalidSizeTo10() {
+
+            given(menuRepository.searchVisibleMenus(any(), any(Pageable.class)))
+                    .willReturn(new PageImpl<>(List.of()));
+
+            menuService.searchMenus(null, 0, 999, null, false);
+
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(menuRepository).searchVisibleMenus(any(), captor.capture());
+            assertThat(captor.getValue().getPageSize()).isEqualTo(10);
+        }
+
+        @Test
+        @DisplayName("이름이 빈 값이면 조건 없이(null) 검색한다")
+        void searchMenus_treatsBlankNameAsNull() {
+
+            given(menuRepository.searchVisibleMenus(any(), any(Pageable.class)))
+                    .willReturn(new PageImpl<>(List.of()));
+
+            menuService.searchMenus("   ", 0, 10, null, false);
+
+            ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+            verify(menuRepository).searchVisibleMenus(nameCaptor.capture(), any(Pageable.class));
+            assertThat(nameCaptor.getValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("기본 정렬은 생성일 내림차순이고, sort=createdAt,asc면 오름차순으로 뒤집는다")
+        void searchMenus_sortsByCreatedAt() {
+
+            given(menuRepository.searchVisibleMenus(any(), any(Pageable.class)))
+                    .willReturn(new PageImpl<>(List.of()));
+
+            menuService.searchMenus(null, 0, 10, "createdAt,asc", false);
+
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(menuRepository).searchVisibleMenus(any(), captor.capture());
+            assertThat(captor.getValue().getSort().getOrderFor("createdAt").getDirection())
+                    .isEqualTo(Sort.Direction.ASC);
         }
     }
 
