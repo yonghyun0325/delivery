@@ -2,7 +2,6 @@ package com.delivery.domain.cart.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -88,7 +87,8 @@ class CartControllerUnitTest {
         UUID cartItemId = UUID.randomUUID();
         CartResponse response = new CartResponse(null, 1L, null, null, List.of(), 3, 21000L);
 
-        when(cartService.updateCartItem(isNull(), eq(cartItemId), eq(3))).thenReturn(response);
+        when(cartService.updateCartItem(any(CustomUserDetails.class), eq(cartItemId), eq(3)))
+                .thenReturn(response);
 
         mockMvc.perform(
                         patch("/api/v1/carts/items/{cartItemId}", cartItemId)
@@ -125,7 +125,7 @@ class CartControllerUnitTest {
 
         doThrow(new BusinessException(GlobalErrorCode.FORBIDDEN))
                 .when(cartService)
-                .deleteCartItem(isNull(), eq(cartItemId));
+                .deleteCartItem(any(CustomUserDetails.class), eq(cartItemId));
 
         mockMvc.perform(delete("/api/v1/carts/items/{cartItemId}", cartItemId))
                 .andExpect(status().isForbidden())
