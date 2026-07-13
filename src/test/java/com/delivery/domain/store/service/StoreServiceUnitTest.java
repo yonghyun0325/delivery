@@ -172,7 +172,7 @@ class StoreServiceUnitTest {
                     .thenReturn(Optional.of(store));
 
             // when & then
-            assertThatThrownBy(() -> storeService.deleteStore(storeId, otherUserId, "ROLE_OWNER"))
+            assertThatThrownBy(() -> storeService.deleteStore(storeId, otherUserId, "ROLE_OWNER", "2_otheruser"))
                     .isInstanceOf(StoreException.class)
                     .hasMessage("해당 가게에 대한 권한이 없습니다.");
         }

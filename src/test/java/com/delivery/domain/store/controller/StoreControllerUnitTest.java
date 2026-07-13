@@ -76,7 +76,6 @@ class StoreControllerUnitTest {
     private StoreResponse createStoreResponse(UUID storeId) {
         return new StoreResponse(
                 storeId,
-                1L,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 "테스트 가게",
@@ -172,7 +171,7 @@ class StoreControllerUnitTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("가게 삭제 성공"));
 
-            verify(storeService).deleteStore(eq(storeId), any(), any());
+            verify(storeService).deleteStore(eq(storeId), any(), any(), any());
         }
     }
 }
