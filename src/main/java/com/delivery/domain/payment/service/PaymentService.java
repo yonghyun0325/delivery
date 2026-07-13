@@ -1,5 +1,8 @@
 package com.delivery.domain.payment.service;
 
+import com.delivery.domain.order.entity.Order;
+import com.delivery.domain.order.enums.OrderStatus;
+import com.delivery.domain.order.repository.OrderRepository;
 import com.delivery.domain.payment.dto.response.PaymentPageResponse;
 import com.delivery.domain.payment.dto.response.PaymentResponse;
 import com.delivery.domain.payment.entity.Payment;
@@ -14,6 +17,7 @@ import com.delivery.domain.user.entity.Role;
 import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.GlobalErrorCode;
 import com.delivery.global.security.config.CustomUserDetails;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +35,7 @@ public class PaymentService {
     private static final int DEFAULT_PAGE_SIZE = 10;
 
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
     private final StoreRepository storeRepository;
 
     @Transactional
@@ -92,12 +97,15 @@ public class PaymentService {
             UUID paymentId, String cancelReason, CustomUserDetails userDetail) {
         Payment payment = getPaymentOrThrow(paymentId);
         validateCancelAccess(payment, userDetail);
+        Order order = getOrderOrThrow(payment.getOrderId());
 
         if (payment.isCanceled()) {
-            throw new PaymentException(PaymentErrorCode.PAYMENT_ALREADY_CANCELLED);
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ALREADY_CANCELED);
         }
 
+        validateCancelableOrder(order);
         payment.cancel(cancelReason);
+        order.changeStatus(OrderStatus.CUSTOMER_CANCELLED);
         return PaymentResponse.from(payment);
     }
 
@@ -109,6 +117,23 @@ public class PaymentService {
 
     private Pageable createPageable(int page, int size) {
         return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "paidAt"));
+    }
+
+    private Order getOrderOrThrow(UUID orderId) {
+        return orderRepository
+                .findByIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+    }
+
+    private void validateCancelableOrder(Order order) {
+        if (order.getStatus() != OrderStatus.REQUESTED) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ORDER_STATE_INVALID);
+        }
+
+        LocalDateTime cancelDeadline = order.getCreatedAt().plusMinutes(5);
+        if (LocalDateTime.now().isAfter(cancelDeadline)) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_CANCEL_TIME_EXPIRED);
+        }
     }
 
     private void validatePaymentAccess(Payment payment, CustomUserDetails userDetail) {
@@ -126,7 +151,7 @@ public class PaymentService {
             return;
         }
 
-        throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
+        throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
     }
 
     private void validateStoreAccess(UUID storeId, CustomUserDetails userDetail) {
@@ -139,7 +164,7 @@ public class PaymentService {
             return;
         }
 
-        throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
+        throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
     }
 
     private void validateCancelAccess(Payment payment, CustomUserDetails userDetail) {
@@ -148,14 +173,14 @@ public class PaymentService {
         }
 
         if (hasRole(userDetail, Role.OWNER)) {
-            throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
         }
 
         if (hasRole(userDetail, Role.CUSTOMER) && payment.isOwnedBy(userDetail.getId())) {
             return;
         }
 
-        throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
+        throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
     }
 
     private void validateStoreOwnership(UUID storeId, Long userId) {
@@ -165,7 +190,7 @@ public class PaymentService {
                         .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         if (!store.getUserId().equals(userId)) {
-            throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
         }
     }
 
@@ -182,8 +207,16 @@ public class PaymentService {
     }
 
     private int normalizePageSize(int size) {
-        if (size == 10 || size == 30 || size == 50) {
-            return size;
+        if (size <= 10) {
+            return 10;
+        }
+
+        if (size <= 30) {
+            return 30;
+        }
+
+        if (size <= 50) {
+            return 50;
         }
 
         return DEFAULT_PAGE_SIZE;
