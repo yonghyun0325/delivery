@@ -1,14 +1,14 @@
 package com.delivery.domain.ai.entity;
 
 import com.delivery.common.base.BaseCreatedEntity;
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -25,8 +25,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AiLogEntity extends BaseCreatedEntity {
 
+    // UUID v7(시간 정렬 가능)로 직접 생성 - 계속 쌓이는 로그 테이블이라 랜덤 UUID(v4)보다
+    // 삽입 시 인덱스 성능 이점이 큼.
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "ai_log_id")
     private UUID aiLogId;
 
@@ -73,5 +74,12 @@ public class AiLogEntity extends BaseCreatedEntity {
             return value;
         }
         return value.substring(0, ERROR_MESSAGE_MAX_LENGTH);
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.aiLogId == null) {
+            this.aiLogId = UuidCreator.getTimeOrderedEpoch();
+        }
     }
 }

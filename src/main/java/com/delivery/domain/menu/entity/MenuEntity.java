@@ -1,12 +1,12 @@
 package com.delivery.domain.menu.entity;
 
 import com.delivery.common.base.BaseEntity;
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -26,8 +26,9 @@ import org.hibernate.annotations.Check;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MenuEntity extends BaseEntity {
 
+    // UUID v7(시간 정렬 가능)로 직접 생성 - Hibernate 기본 GenerationType.UUID(v4, 랜덤)는
+    // PK 인덱스에 삽입 시 페이지 분할을 유발해 시간순 정렬 가능한 값보다 성능이 떨어짐.
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "menu_id")
     private UUID menuId;
 
@@ -62,5 +63,12 @@ public class MenuEntity extends BaseEntity {
 
     public void updateHidden(boolean hidden) {
         this.hidden = hidden;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.menuId == null) {
+            this.menuId = UuidCreator.getTimeOrderedEpoch();
+        }
     }
 }
