@@ -18,7 +18,7 @@ public enum MenuErrorCode implements ErrorCode {
 
     // 404 Not Found
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "메뉴를 찾을 수 없습니다."),
-    MENU_STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "가게를 찾을 수 없습니다.");
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "가게를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

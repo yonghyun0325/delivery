@@ -25,11 +25,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class OrderController {
+public class OrderController implements OrderControllerDocs {
 
     private final OrderService orderService;
 
     // 고객 주문 생성
+    @Override
     @PostMapping("/orders")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderCreateResponse>> createOrder(
@@ -51,6 +52,7 @@ public class OrderController {
     }
 
     // 주문 단건 조회
+    @Override
     @GetMapping("/orders/{orderId}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderDetailResponse>> getOrder(
@@ -81,6 +83,7 @@ public class OrderController {
     }
 
     // 고객 본인 주문 내역 조회
+    @Override
     @GetMapping("/orders/me")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderListResponse>> getMyOrders(
@@ -130,6 +133,7 @@ public class OrderController {
 
 
     // 가게 주문 내역 조회
+    @Override
     @GetMapping("/stores/{storeId}/orders")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderListResponse>> getStoreOrders(
@@ -188,6 +192,7 @@ public class OrderController {
     }
 
     // 관리자 주문 삭제
+    @Override
     @DeleteMapping("/admin/orders/{orderId}")
     @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<Void>> deleteOrder(
@@ -215,6 +220,7 @@ public class OrderController {
     // 가게 주문 수락 -> 조리중 -> 배달 중 -> 배달 완료 -> 주문 최종 완료(리뷰 가능)
 
     // 고객 주문 취소
+    @Override
     @PatchMapping("/orders/{orderId}/cancel")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> cancelOrder(
@@ -237,6 +243,7 @@ public class OrderController {
     }
 
     // 가게 주문 거절
+    @Override
     @PatchMapping("/stores/{storeId}/orders/{orderId}/reject")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> rejectOrder(
@@ -271,6 +278,7 @@ public class OrderController {
 
 
     // 가게 주문 수락
+    @Override
     @PatchMapping("/stores/{storeId}/orders/{orderId}/accept")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> acceptOrder(
@@ -304,6 +312,7 @@ public class OrderController {
     }
 
     // 가게 조리 중 변경
+    @Override
     @PatchMapping("/stores/{storeId}/orders/{orderId}/cook")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> startCooking(
@@ -337,6 +346,7 @@ public class OrderController {
     }
 
     // 배달 중 변경
+    @Override
     @PatchMapping("/stores/{storeId}/orders/{orderId}/deliver")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> startDelivery(
@@ -371,6 +381,7 @@ public class OrderController {
     }
 
     // 배달 완료 변경
+    @Override
     @PatchMapping("/stores/{storeId}/orders/{orderId}/delivered")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> completeDelivery(
@@ -406,6 +417,7 @@ public class OrderController {
 
 
     // 고객 주문 최종 완료
+    @Override
     @PatchMapping("/orders/{orderId}/complete")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<RestApiResponse<OrderStatusResponse>> completeOrder(

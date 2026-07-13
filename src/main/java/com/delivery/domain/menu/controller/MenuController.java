@@ -5,6 +5,7 @@ import com.delivery.domain.menu.dto.request.CreateMenuRequest;
 import com.delivery.domain.menu.dto.request.UpdateMenuRequest;
 import com.delivery.domain.menu.dto.request.UpdateMenuVisibilityRequest;
 import com.delivery.domain.menu.dto.response.MenuResponse;
+import com.delivery.domain.menu.dto.response.MenuSearchView;
 import com.delivery.domain.menu.dto.response.MenuView;
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.user.entity.Role;
@@ -15,6 +16,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "메뉴", description = "메뉴 CRUD 및 AI 설명 생성 API")
@@ -84,6 +87,24 @@ public class MenuController {
                         "메뉴 조회에 성공했습니다.",
                         menuService.getMenu(
                                 menuId, principal.getId(), hasElevatedRole(principal))));
+    }
+
+    // 메뉴 횡단 검색 (플랫 - 특정 가게에 종속되지 않음)
+    // size는 10/30/50만 허용(그 외는 10으로 보정), 기본 정렬은 생성일 내림차순
+    @Operation(summary = "메뉴 검색", description = "가게 구분 없이 이름으로 메뉴를 검색합니다.")
+    @GetMapping("/api/v1/menus")
+    public ResponseEntity<RestApiResponse<Page<MenuSearchView>>> searchMenus(
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+        return ResponseEntity.ok(
+                RestApiResponse.success(
+                        HttpStatus.OK,
+                        "메뉴 검색에 성공했습니다.",
+                        menuService.searchMenus(
+                                name, page, size, sort, hasElevatedRole(principal))));
     }
 
     // 메뉴 수정
