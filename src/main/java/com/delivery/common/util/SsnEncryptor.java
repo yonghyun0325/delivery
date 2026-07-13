@@ -15,7 +15,7 @@ public class SsnEncryptor {
      * 암호화
      *
      * @param ssn
-     * @return new String(Base64.encode(encrypt));
+     * @return new String(Base64.encode(encrypt)); TODO : null 체크
      */
     public String encrypt(String ssn) {
         byte[] encrypt = aesBytesEncryptor.encrypt(ssn.getBytes());
@@ -26,7 +26,7 @@ public class SsnEncryptor {
      * 복호화
      *
      * @param ssn
-     * @return
+     * @return TODO : null 체크
      */
     public String decrypt(String ssn) {
         byte[] decode = Base64.decode(ssn.getBytes());

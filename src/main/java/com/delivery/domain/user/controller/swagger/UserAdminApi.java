@@ -2,6 +2,8 @@ package com.delivery.domain.user.controller.swagger;
 
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.dto.request.UpdateUserRoleRequest;
+import com.delivery.domain.user.dto.request.UserSearchRequest;
+import com.delivery.domain.user.dto.response.PageResponse;
 import com.delivery.domain.user.dto.response.UserAdminListResponse;
 import com.delivery.domain.user.dto.response.UserAdminResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,10 +11,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -38,8 +40,8 @@ public interface UserAdminApi {
         @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     @GetMapping("/{userId}") // TODO : 조건 좀 생각해볼 것, pageble 커스텀?
-    public ResponseEntity<RestApiResponse<List<UserAdminListResponse>>> getAllUserInfo(
-            Pageable pageable);
+    public ResponseEntity<RestApiResponse<PageResponse<UserAdminListResponse>>> getAllUserInfo(
+            @ModelAttribute UserSearchRequest request, @ModelAttribute Pageable pageable);
 
     @Operation(summary = "회원 권한 수정", description = "관리자가 회원의 권한을 수정합니다.")
     @ApiResponses({

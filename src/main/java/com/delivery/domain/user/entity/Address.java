@@ -29,8 +29,9 @@ public class Address extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String address;
 
+    // TODO : 255로 명세서랑 ERD 수정
     @Convert(converter = CryptoConverter.class)
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 255)
     private String addressDetail;
 
     @Column(nullable = false)

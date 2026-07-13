@@ -1,15 +1,18 @@
 package com.delivery.domain.user.controller;
 
 import com.delivery.common.RestApiResponse;
-import com.delivery.domain.user.controller.swagger.UserAdminApi;
 import com.delivery.domain.user.dto.request.UpdateUserRoleRequest;
+import com.delivery.domain.user.dto.request.UserSearchRequest;
+import com.delivery.domain.user.dto.response.PageResponse;
 import com.delivery.domain.user.dto.response.UserAdminListResponse;
 import com.delivery.domain.user.dto.response.UserAdminResponse;
 import com.delivery.domain.user.service.UserAdminService;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/users")
-public class UserAdminController implements UserAdminApi {
+public class UserAdminController {
     private final UserAdminService userAdminService;
 
     @GetMapping("/{userId}")
@@ -30,12 +33,19 @@ public class UserAdminController implements UserAdminApi {
                         HttpStatus.OK, "회원 정보 조회 성공", userAdminService.findUserInfo(userId)));
     }
 
-    @GetMapping // TODO : 조건 좀 생각해볼 것, pageble 커스텀?
-    public ResponseEntity<RestApiResponse<List<UserAdminListResponse>>> getAllUserInfo(
-            Pageable pageable) {
+    // TODO : API 명세서 수정 POST가 적합
+    @PostMapping
+    public ResponseEntity<RestApiResponse<PageResponse<UserAdminListResponse>>> getAllUserInfo(
+            @RequestBody UserSearchRequest request,
+            @ParameterObject
+                    @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
+                    Pageable pageable) {
+
         return ResponseEntity.ok(
                 RestApiResponse.success(
-                        HttpStatus.OK, "회원 목록 조회 성공", userAdminService.findAllUserInfo()));
+                        HttpStatus.OK,
+                        "회원 목록 조회 성공",
+                        userAdminService.findAllUserInfo(request, pageable)));
     }
 
     @PatchMapping("/{userId}/role")
