@@ -103,6 +103,22 @@ class CartControllerUnitTest {
     }
 
     @Test
+    @DisplayName("returns common fail wrapper when update quantity is invalid")
+    void updateCartItem_fail_when_quantity_is_invalid() throws Exception {
+        UUID cartItemId = UUID.randomUUID();
+
+        mockMvc.perform(
+                        patch("/api/v1/carts/items/{cartItemId}", cartItemId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"quantity\":0}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.data").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"));
+    }
+
+    @Test
     @DisplayName("returns common fail wrapper for forbidden delete")
     void deleteCartItem_fail_when_forbidden() throws Exception {
         UUID cartItemId = UUID.randomUUID();

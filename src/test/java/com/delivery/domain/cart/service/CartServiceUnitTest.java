@@ -229,6 +229,23 @@ class CartServiceUnitTest {
     class DeleteCartItem {
 
         @Test
+        @DisplayName("rejects delete for another user's cart item")
+        void deleteCartItem_fails_when_cart_item_owned_by_another_user() {
+            CustomUserDetails userDetails = createUserDetails(1L);
+            Cart cart = createCart(2L, UUID.randomUUID());
+            CartItem cartItem = CartItem.create(cart, UUID.randomUUID(), "Menu", 1, 5000L);
+
+            when(cartItemRepository.findByCartItemIdAndDeletedAtIsNull(cartItem.getCartItemId()))
+                    .thenReturn(Optional.of(cartItem));
+
+            assertThatThrownBy(
+                            () ->
+                                    cartService.deleteCartItem(
+                                            userDetails, cartItem.getCartItemId()))
+                    .isInstanceOf(BusinessException.class);
+        }
+
+        @Test
         @DisplayName("soft deletes only the item when more items remain")
         void deleteCartItem_deletes_only_item_when_cart_still_has_items() {
             CustomUserDetails userDetails = createUserDetails(1L);
