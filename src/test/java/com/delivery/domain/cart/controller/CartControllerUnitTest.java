@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.delivery.domain.cart.dto.response.CartItemResponse;
 import com.delivery.domain.cart.dto.response.CartResponse;
 import com.delivery.domain.cart.service.CartService;
 import com.delivery.global.exception.BusinessException;
@@ -48,9 +49,12 @@ class CartControllerUnitTest {
     }
 
     @Test
-    @DisplayName("내 장바구니 조회 성공 시 공통 wrapper를 반환한다")
+    @DisplayName("returns common wrapper for my cart response")
     void getMyCart_success_returns_wrapper() throws Exception {
-        CartResponse response = new CartResponse(null, 1L, null, null, List.of(), 0, 0L);
+        CartItemResponse item =
+                new CartItemResponse(UUID.randomUUID(), UUID.randomUUID(), "Kimchi", 2, 12000L, 24000L);
+        CartResponse response =
+                new CartResponse(UUID.randomUUID(), 1L, UUID.randomUUID(), null, List.of(item), 2, 24000L);
 
         when(cartService.getMyCart(any(CustomUserDetails.class))).thenReturn(response);
 
@@ -59,11 +63,13 @@ class CartControllerUnitTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.totalPrice").value(24000))
+                .andExpect(jsonPath("$.data.items[0].menuName").value("Kimchi"))
                 .andExpect(jsonPath("$.error").value(Matchers.nullValue()));
     }
 
     @Test
-    @DisplayName("장바구니 항목 추가 요청 본문이 잘못되면 공통 실패 wrapper를 반환한다")
+    @DisplayName("returns common fail wrapper when add quantity is invalid")
     void addCartItem_fail_when_quantity_is_invalid() throws Exception {
         mockMvc.perform(
                         post("/api/v1/carts/items")
@@ -77,7 +83,7 @@ class CartControllerUnitTest {
     }
 
     @Test
-    @DisplayName("장바구니 항목 수정 성공 시 공통 wrapper를 반환한다")
+    @DisplayName("returns common wrapper for cart item update")
     void updateCartItem_success_returns_wrapper() throws Exception {
         UUID cartItemId = UUID.randomUUID();
         CartResponse response = new CartResponse(null, 1L, null, null, List.of(), 3, 21000L);
@@ -92,11 +98,12 @@ class CartControllerUnitTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.totalQuantity").value(3))
+                .andExpect(jsonPath("$.data.totalPrice").value(21000))
                 .andExpect(jsonPath("$.error").value(Matchers.nullValue()));
     }
 
     @Test
-    @DisplayName("다른 고객 장바구니 항목 삭제는 공통 실패 wrapper를 반환한다")
+    @DisplayName("returns common fail wrapper for forbidden delete")
     void deleteCartItem_fail_when_forbidden() throws Exception {
         UUID cartItemId = UUID.randomUUID();
 
@@ -110,5 +117,16 @@ class CartControllerUnitTest {
                 .andExpect(jsonPath("$.code").value(403))
                 .andExpect(jsonPath("$.data").value(Matchers.nullValue()))
                 .andExpect(jsonPath("$.error").value("FORBIDDEN"));
+    }
+
+    @Test
+    @DisplayName("returns common wrapper for clear cart")
+    void clearMyCart_success_returns_wrapper() throws Exception {
+        mockMvc.perform(delete("/api/v1/carts/me/items"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.error").value(Matchers.nullValue()));
     }
 }

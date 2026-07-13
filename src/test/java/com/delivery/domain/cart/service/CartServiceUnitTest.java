@@ -41,11 +41,11 @@ class CartServiceUnitTest {
     @InjectMocks private CartService cartService;
 
     @Nested
-    @DisplayName("내 장바구니 조회")
+    @DisplayName("Get My Cart")
     class GetMyCart {
 
         @Test
-        @DisplayName("장바구니가 없으면 빈 장바구니를 반환한다")
+        @DisplayName("returns empty cart when no active cart exists")
         void getMyCart_returns_empty_when_cart_does_not_exist() {
             CustomUserDetails userDetails = createUserDetails(1L);
 
@@ -55,23 +55,23 @@ class CartServiceUnitTest {
 
             assertThat(response.userId()).isEqualTo(1L);
             assertThat(response.items()).isEmpty();
-            assertThat(response.totalAmount()).isZero();
+            assertThat(response.totalPrice()).isZero();
         }
     }
 
     @Nested
-    @DisplayName("장바구니 항목 추가")
+    @DisplayName("Add Cart Item")
     class AddCartItem {
 
         @Test
-        @DisplayName("장바구니가 없으면 새 장바구니를 만들고 항목을 추가한다")
+        @DisplayName("creates a new cart and first item")
         void addCartItem_creates_cart_when_cart_does_not_exist() {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
             UUID storeId = UUID.randomUUID();
-            MenuEntity menu = new MenuEntity(storeId, "짜장면", "기본", 7000);
+            MenuEntity menu = new MenuEntity(storeId, "Jjajangmyeon", "basic", 7000);
             Cart cart = createCart(1L, storeId);
-            CartItem cartItem = CartItem.create(cart, menuId, 2, 7000L);
+            CartItem cartItem = CartItem.create(cart, menuId, "Jjajangmyeon", 2, 7000L);
 
             when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
@@ -86,18 +86,20 @@ class CartServiceUnitTest {
 
             assertThat(response.storeId()).isEqualTo(storeId);
             assertThat(response.totalQuantity()).isEqualTo(2);
-            assertThat(response.totalAmount()).isEqualTo(14000L);
+            assertThat(response.totalPrice()).isEqualTo(14000L);
+            assertThat(response.items().get(0).menuName()).isEqualTo("Jjajangmyeon");
+            assertThat(response.items().get(0).subtotalPrice()).isEqualTo(14000L);
         }
 
         @Test
-        @DisplayName("같은 메뉴를 다시 담으면 수량을 합산한다")
+        @DisplayName("adds quantity when the same menu already exists")
         void addCartItem_increases_quantity_when_same_menu_exists() {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
             UUID storeId = UUID.randomUUID();
-            MenuEntity menu = new MenuEntity(storeId, "짬뽕", "매운맛", 9000);
+            MenuEntity menu = new MenuEntity(storeId, "Jjamppong", "spicy", 9000);
             Cart cart = createCart(1L, storeId);
-            CartItem cartItem = CartItem.create(cart, menuId, 1, 9000L);
+            CartItem cartItem = CartItem.create(cart, menuId, "Jjamppong", 1, 9000L);
 
             when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
@@ -110,15 +112,41 @@ class CartServiceUnitTest {
 
             assertThat(cartItem.getQuantity()).isEqualTo(3);
             assertThat(response.totalQuantity()).isEqualTo(3);
+            assertThat(response.totalPrice()).isEqualTo(27000L);
             verify(cartItemRepository, never()).save(any(CartItem.class));
         }
 
         @Test
-        @DisplayName("다른 가게 메뉴는 같은 장바구니에 담을 수 없다")
+        @DisplayName("creates a new active row when only a soft-deleted item exists")
+        void addCartItem_creates_new_item_when_previous_item_is_soft_deleted() {
+            CustomUserDetails userDetails = createUserDetails(1L);
+            UUID menuId = UUID.randomUUID();
+            UUID storeId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(storeId, "Bibimbap", "basic", 10000);
+            Cart cart = createCart(1L, storeId);
+            CartItem newItem = CartItem.create(cart, menuId, "Bibimbap", 1, 10000L);
+
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
+            when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
+                    .thenReturn(Optional.empty());
+            when(cartItemRepository.save(any(CartItem.class))).thenReturn(newItem);
+            when(cartItemRepository.findAllByCartAndDeletedAtIsNullOrderByCreatedAtAsc(cart))
+                    .thenReturn(List.of(newItem));
+
+            CartResponse response = cartService.addCartItem(userDetails, menuId, 1);
+
+            assertThat(response.items()).hasSize(1);
+            assertThat(response.items().get(0).menuName()).isEqualTo("Bibimbap");
+            verify(cartItemRepository).save(any(CartItem.class));
+        }
+
+        @Test
+        @DisplayName("rejects a menu from another store")
         void addCartItem_fails_when_store_is_different() {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
-            MenuEntity menu = new MenuEntity(UUID.randomUUID(), "볶음밥", "기본", 8000);
+            MenuEntity menu = new MenuEntity(UUID.randomUUID(), "Fried Rice", "basic", 8000);
             Cart cart = createCart(1L, UUID.randomUUID());
 
             when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
@@ -129,11 +157,11 @@ class CartServiceUnitTest {
         }
 
         @Test
-        @DisplayName("숨김 메뉴는 장바구니에 추가할 수 없다")
+        @DisplayName("rejects a hidden menu")
         void addCartItem_fails_when_menu_is_hidden() {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
-            MenuEntity menu = new MenuEntity(UUID.randomUUID(), "숨김메뉴", "비공개", 5000);
+            MenuEntity menu = new MenuEntity(UUID.randomUUID(), "Hidden Menu", "private", 5000);
             menu.updateHidden(true);
 
             when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
@@ -141,18 +169,49 @@ class CartServiceUnitTest {
             assertThatThrownBy(() -> cartService.addCartItem(userDetails, menuId, 1))
                     .isInstanceOf(MenuException.class);
         }
+
+        @Test
+        @DisplayName("rejects a deleted menu")
+        void addCartItem_fails_when_menu_is_deleted() {
+            CustomUserDetails userDetails = createUserDetails(1L);
+            UUID menuId = UUID.randomUUID();
+
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> cartService.addCartItem(userDetails, menuId, 1))
+                    .isInstanceOf(MenuException.class);
+        }
     }
 
     @Nested
-    @DisplayName("장바구니 항목 수정")
+    @DisplayName("Update Cart Item")
     class UpdateCartItem {
 
         @Test
-        @DisplayName("다른 고객의 장바구니 항목은 수정할 수 없다")
+        @DisplayName("updates quantity for owned cart item")
+        void updateCartItem_success_when_owned_by_user() {
+            CustomUserDetails userDetails = createUserDetails(1L);
+            Cart cart = createCart(1L, UUID.randomUUID());
+            CartItem cartItem = CartItem.create(cart, UUID.randomUUID(), "Menu", 1, 5000L);
+
+            when(cartItemRepository.findByCartItemIdAndDeletedAtIsNull(cartItem.getCartItemId()))
+                    .thenReturn(Optional.of(cartItem));
+            when(cartItemRepository.findAllByCartAndDeletedAtIsNullOrderByCreatedAtAsc(cart))
+                    .thenReturn(List.of(cartItem));
+
+            CartResponse response =
+                    cartService.updateCartItem(userDetails, cartItem.getCartItemId(), 3);
+
+            assertThat(cartItem.getQuantity()).isEqualTo(3);
+            assertThat(response.totalPrice()).isEqualTo(15000L);
+        }
+
+        @Test
+        @DisplayName("rejects update for another user's cart item")
         void updateCartItem_fails_when_cart_item_owned_by_another_user() {
             CustomUserDetails userDetails = createUserDetails(1L);
             Cart cart = createCart(2L, UUID.randomUUID());
-            CartItem cartItem = CartItem.create(cart, UUID.randomUUID(), 1, 5000L);
+            CartItem cartItem = CartItem.create(cart, UUID.randomUUID(), "Menu", 1, 5000L);
 
             when(cartItemRepository.findByCartItemIdAndDeletedAtIsNull(cartItem.getCartItemId()))
                     .thenReturn(Optional.of(cartItem));
@@ -166,15 +225,32 @@ class CartServiceUnitTest {
     }
 
     @Nested
-    @DisplayName("장바구니 항목 삭제")
+    @DisplayName("Delete Cart Item")
     class DeleteCartItem {
 
         @Test
-        @DisplayName("마지막 항목을 삭제하면 장바구니도 소프트 삭제한다")
+        @DisplayName("soft deletes only the item when more items remain")
+        void deleteCartItem_deletes_only_item_when_cart_still_has_items() {
+            CustomUserDetails userDetails = createUserDetails(1L);
+            Cart cart = createCart(1L, UUID.randomUUID());
+            CartItem cartItem = CartItem.create(cart, UUID.randomUUID(), "Menu", 1, 5000L);
+
+            when(cartItemRepository.findByCartItemIdAndDeletedAtIsNull(cartItem.getCartItemId()))
+                    .thenReturn(Optional.of(cartItem));
+            when(cartItemRepository.countByCartAndDeletedAtIsNull(cart)).thenReturn(1L);
+
+            cartService.deleteCartItem(userDetails, cartItem.getCartItemId());
+
+            assertThat(cartItem.isDeleted()).isTrue();
+            assertThat(cart.isDeleted()).isFalse();
+        }
+
+        @Test
+        @DisplayName("soft deletes the cart when the last item is removed")
         void deleteCartItem_deletes_cart_when_last_item_removed() {
             CustomUserDetails userDetails = createUserDetails(1L);
             Cart cart = createCart(1L, UUID.randomUUID());
-            CartItem cartItem = CartItem.create(cart, UUID.randomUUID(), 1, 5000L);
+            CartItem cartItem = CartItem.create(cart, UUID.randomUUID(), "Menu", 1, 5000L);
 
             when(cartItemRepository.findByCartItemIdAndDeletedAtIsNull(cartItem.getCartItemId()))
                     .thenReturn(Optional.of(cartItem));
@@ -187,12 +263,35 @@ class CartServiceUnitTest {
         }
     }
 
+    @Nested
+    @DisplayName("Clear Cart")
+    class ClearCart {
+
+        @Test
+        @DisplayName("soft deletes all items and the cart")
+        void clearMyCart_success() {
+            CustomUserDetails userDetails = createUserDetails(1L);
+            Cart cart = createCart(1L, UUID.randomUUID());
+            CartItem first = CartItem.create(cart, UUID.randomUUID(), "A", 1, 5000L);
+            CartItem second = CartItem.create(cart, UUID.randomUUID(), "B", 2, 6000L);
+
+            when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
+            when(cartItemRepository.findAllByCartAndDeletedAtIsNull(cart))
+                    .thenReturn(List.of(first, second));
+
+            cartService.clearMyCart(userDetails);
+
+            assertThat(first.isDeleted()).isTrue();
+            assertThat(second.isDeleted()).isTrue();
+            assertThat(cart.isDeleted()).isTrue();
+        }
+    }
+
     private CustomUserDetails createUserDetails(Long userId) {
         return CustomUserDetails.builder()
                 .id(userId)
                 .username("customer")
-                .authorities(
-                        Set.of(new SimpleGrantedAuthority(Role.CUSTOMER.getAuthority())))
+                .authorities(Set.of(new SimpleGrantedAuthority(Role.CUSTOMER.getAuthority())))
                 .build();
     }
 
