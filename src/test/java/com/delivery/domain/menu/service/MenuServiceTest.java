@@ -447,6 +447,40 @@ class MenuServiceTest {
     }
 
     @Nested
+    @DisplayName("가게별 메뉴 일괄 삭제")
+    class DeleteMenusByStoreId {
+
+        @Test
+        @DisplayName("가게에 속한 삭제되지 않은 메뉴를 전부 soft delete 처리한다")
+        void deleteMenusByStoreId_marksAllAsDeleted() {
+
+            MenuEntity menu1 = new MenuEntity(STORE_ID, "메뉴1", null, 1000);
+            MenuEntity menu2 = new MenuEntity(STORE_ID, "메뉴2", null, 2000);
+
+            given(menuRepository.findAllByStoreIdAndDeletedAtIsNull(STORE_ID))
+                    .willReturn(List.of(menu1, menu2));
+
+            menuService.deleteMenusByStoreId(STORE_ID, "SYSTEM");
+
+            assertThat(menu1.isDeleted()).isTrue();
+            assertThat(menu1.getDeletedBy()).isEqualTo("SYSTEM");
+            assertThat(menu2.isDeleted()).isTrue();
+            assertThat(menu2.getDeletedBy()).isEqualTo("SYSTEM");
+        }
+
+        @Test
+        @DisplayName("삭제할 메뉴가 없으면 아무 일도 일어나지 않는다")
+        void deleteMenusByStoreId_doesNothing_whenNoMenus() {
+
+            given(menuRepository.findAllByStoreIdAndDeletedAtIsNull(STORE_ID))
+                    .willReturn(List.of());
+
+            menuService.deleteMenusByStoreId(STORE_ID, "SYSTEM");
+            // 예외 없이 끝나면 성공 - 별도 assert 불필요
+        }
+    }
+
+    @Nested
     @DisplayName("주문 가능 메뉴 조회")
     class GetOrderableMenu {
 

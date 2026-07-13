@@ -157,6 +157,17 @@ public class MenuService {
         menu.delete(deletedBy);
     }
 
+    // 가게 삭제 시 그 가게에 속한 메뉴를 일괄 소프트 삭제 - 실제 삭제(DELETE)가 아니라
+    // deleted_at/deleted_by만 채움. 소유권 검증은 이미 가게를 삭제한 호출자(Store 도메인)
+    // 책임이라 여기서 다시 하지 않음 - 조회한 엔티티는 영속 상태라 JPA 더티체킹으로
+    // 트랜잭션 커밋 시 자동 반영되므로 save() 호출 불필요.
+    @Transactional
+    public void deleteMenusByStoreId(UUID storeId, String deletedBy) {
+        menuRepository
+                .findAllByStoreIdAndDeletedAtIsNull(storeId)
+                .forEach(menu -> menu.delete(deletedBy));
+    }
+
     // 주문/장바구니 도메인에 제공하는 계약 - 존재·미삭제·미숨김·가게 소속을 한 번에 검증 후 스냅샷 반환.
     // 실패 사유(없음/다른 가게 소속/숨김/삭제됨)를 구분하지 않고 전부 MENU_NOT_FOUND로 응답 -
     // 존재 여부 자체를 노출하지 않기 위함(다른 404 응답들과 동일 원칙).
