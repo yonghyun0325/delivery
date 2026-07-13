@@ -3,6 +3,7 @@ package com.delivery.domain.payment.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -13,6 +14,7 @@ import com.delivery.domain.payment.dto.response.PaymentResponse;
 import com.delivery.domain.payment.entity.Payment;
 import com.delivery.domain.payment.entity.PaymentMethod;
 import com.delivery.domain.payment.entity.PaymentStatus;
+import com.delivery.domain.payment.exception.PaymentException;
 import com.delivery.domain.payment.repository.PaymentRepository;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
@@ -42,6 +44,56 @@ class PaymentServiceUnitTest {
     @Mock private StoreRepository storeRepository;
 
     @InjectMocks private PaymentService paymentService;
+
+    @Nested
+    @DisplayName("결제 생성")
+    class CreatePayment {
+
+        @Test
+        @DisplayName("정상 결제를 생성한다")
+        void createPayment_success() {
+            UUID orderId = UUID.randomUUID();
+
+            when(paymentRepository.existsByOrderId(orderId)).thenReturn(false);
+            when(paymentRepository.save(any(Payment.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            PaymentResponse response =
+                    paymentService.createPayment(orderId, 1L, 15000, PaymentMethod.CARD);
+
+            assertThat(response.orderId()).isEqualTo(orderId);
+            assertThat(response.userId()).isEqualTo(1L);
+            assertThat(response.paymentAmount()).isEqualTo(15000);
+            assertThat(response.paymentStatus()).isEqualTo(PaymentStatus.PAID);
+        }
+
+        @Test
+        @DisplayName("동일 orderId 결제는 중복 생성할 수 없다")
+        void createPayment_fail_when_order_payment_already_exists() {
+            UUID orderId = UUID.randomUUID();
+            when(paymentRepository.existsByOrderId(orderId)).thenReturn(true);
+
+            assertThatThrownBy(
+                            () ->
+                                    paymentService.createPayment(
+                                            orderId, 1L, 15000, PaymentMethod.CARD))
+                    .isInstanceOf(PaymentException.class);
+
+            verify(paymentRepository, never()).save(any(Payment.class));
+        }
+
+        @Test
+        @DisplayName("결제 금액이 0 이하면 생성할 수 없다")
+        void createPayment_fail_when_payment_amount_is_invalid() {
+            assertThatThrownBy(
+                            () ->
+                                    paymentService.createPayment(
+                                            UUID.randomUUID(), 1L, 0, PaymentMethod.CARD))
+                    .isInstanceOf(PaymentException.class);
+
+            verify(paymentRepository, never()).save(any(Payment.class));
+        }
+    }
 
     @Nested
     @DisplayName("결제 단건 조회")
@@ -184,6 +236,29 @@ class PaymentServiceUnitTest {
 
             assertThat(response.content()).hasSize(1);
         }
+
+        @Test
+        @DisplayName("허용되지 않은 페이지 크기는 10으로 보정한다")
+        void getMyPayments_normalizes_page_size() {
+            CustomUserDetails userDetails = createUserDetails(1L, Set.of(Role.CUSTOMER));
+
+            when(paymentRepository.findByUserId(eq(1L), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
+
+            paymentService.getMyPayments(userDetails, 0, 7, null);
+
+            verify(paymentRepository)
+                    .findByUserId(
+                            eq(1L),
+                            argThat(
+                                    pageable ->
+                                            pageable.getPageSize() == 10
+                                                    && "paidAt: DESC"
+                                                            .equals(
+                                                                    pageable
+                                                                            .getSort()
+                                                                            .toString())));
+        }
     }
 
     @Nested
@@ -244,6 +319,30 @@ class PaymentServiceUnitTest {
                             storeId, userDetails, 0, 10, PaymentStatus.PAID);
 
             assertThat(response.content()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("가게 결제 목록도 허용되지 않은 페이지 크기를 10으로 보정한다")
+        void getStorePayments_normalizes_page_size() {
+            UUID storeId = UUID.randomUUID();
+            CustomUserDetails userDetails = createUserDetails(99L, Set.of(Role.MANAGER));
+
+            when(paymentRepository.findByStoreId(eq(storeId), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
+
+            paymentService.getStorePayments(storeId, userDetails, 0, 99, null);
+
+            verify(paymentRepository)
+                    .findByStoreId(
+                            eq(storeId),
+                            argThat(
+                                    pageable ->
+                                            pageable.getPageSize() == 10
+                                                    && "paidAt: DESC"
+                                                            .equals(
+                                                                    pageable
+                                                                            .getSort()
+                                                                            .toString())));
         }
     }
 

@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
+    boolean existsByOrderId(UUID orderId);
+
     Page<Payment> findByUserId(Long userId, Pageable pageable);
 
     Page<Payment> findByUserIdAndPaymentStatus(

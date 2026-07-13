@@ -3,6 +3,7 @@ package com.delivery.domain.cart.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,9 +13,12 @@ import com.delivery.domain.cart.entity.Cart;
 import com.delivery.domain.cart.entity.CartItem;
 import com.delivery.domain.cart.repository.CartItemRepository;
 import com.delivery.domain.cart.repository.CartRepository;
+import com.delivery.domain.menu.dto.response.MenuSnapshot;
 import com.delivery.domain.menu.entity.MenuEntity;
+import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
 import com.delivery.domain.menu.repository.MenuRepository;
+import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.global.exception.BusinessException;
 import com.delivery.global.security.config.CustomUserDetails;
@@ -37,6 +41,7 @@ class CartServiceUnitTest {
     @Mock private CartRepository cartRepository;
     @Mock private CartItemRepository cartItemRepository;
     @Mock private MenuRepository menuRepository;
+    @Mock private MenuService menuService;
 
     @InjectMocks private CartService cartService;
 
@@ -74,6 +79,8 @@ class CartServiceUnitTest {
             CartItem cartItem = CartItem.create(cart, menuId, "Jjajangmyeon", 2, 7000L);
 
             when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuService.getOrderableMenu(menuId, storeId))
+                    .thenReturn(new MenuSnapshot(menuId, "Jjajangmyeon", 7000));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
             when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
@@ -101,8 +108,9 @@ class CartServiceUnitTest {
             Cart cart = createCart(1L, storeId);
             CartItem cartItem = CartItem.create(cart, menuId, "Jjamppong", 1, 9000L);
 
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
+            when(menuService.getOrderableMenu(menuId, storeId))
+                    .thenReturn(new MenuSnapshot(menuId, "Jjamppong", 9000));
             when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
                     .thenReturn(Optional.of(cartItem));
             when(cartItemRepository.findAllByCartAndDeletedAtIsNullOrderByCreatedAtAsc(cart))
@@ -126,8 +134,9 @@ class CartServiceUnitTest {
             Cart cart = createCart(1L, storeId);
             CartItem newItem = CartItem.create(cart, menuId, "Bibimbap", 1, 10000L);
 
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
+            when(menuService.getOrderableMenu(menuId, storeId))
+                    .thenReturn(new MenuSnapshot(menuId, "Bibimbap", 10000));
             when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
                     .thenReturn(Optional.empty());
             when(cartItemRepository.save(any(CartItem.class))).thenReturn(newItem);
@@ -146,14 +155,14 @@ class CartServiceUnitTest {
         void addCartItem_fails_when_store_is_different() {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
-            MenuEntity menu = new MenuEntity(UUID.randomUUID(), "Fried Rice", "basic", 8000);
             Cart cart = createCart(1L, UUID.randomUUID());
 
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
+            when(menuService.getOrderableMenu(menuId, cart.getStoreId()))
+                    .thenThrow(new MenuException(MenuErrorCode.MENU_NOT_FOUND));
 
             assertThatThrownBy(() -> cartService.addCartItem(userDetails, menuId, 1))
-                    .isInstanceOf(BusinessException.class);
+                    .isInstanceOf(MenuException.class);
         }
 
         @Test
@@ -161,10 +170,12 @@ class CartServiceUnitTest {
         void addCartItem_fails_when_menu_is_hidden() {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
-            MenuEntity menu = new MenuEntity(UUID.randomUUID(), "Hidden Menu", "private", 5000);
-            menu.updateHidden(true);
+            UUID storeId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(storeId, "Hidden Menu", "private", 5000);
 
             when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuService.getOrderableMenu(menuId, storeId))
+                    .thenThrow(new MenuException(MenuErrorCode.MENU_NOT_FOUND));
 
             assertThatThrownBy(() -> cartService.addCartItem(userDetails, menuId, 1))
                     .isInstanceOf(MenuException.class);
@@ -180,6 +191,32 @@ class CartServiceUnitTest {
 
             assertThatThrownBy(() -> cartService.addCartItem(userDetails, menuId, 1))
                     .isInstanceOf(MenuException.class);
+        }
+
+        @Test
+        @DisplayName("uses menu service orderable contract")
+        void addCartItem_uses_menu_service_orderable_contract() {
+            CustomUserDetails userDetails = createUserDetails(1L);
+            UUID menuId = UUID.randomUUID();
+            UUID storeId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(storeId, "Tteokbokki", "spicy", 6000);
+            Cart cart = createCart(1L, storeId);
+            CartItem cartItem = CartItem.create(cart, menuId, "Tteokbokki", 1, 6000L);
+
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuService.getOrderableMenu(menuId, storeId))
+                    .thenReturn(new MenuSnapshot(menuId, "Tteokbokki", 6000));
+            when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
+            when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+            when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
+                    .thenReturn(Optional.empty());
+            when(cartItemRepository.save(any(CartItem.class))).thenReturn(cartItem);
+            when(cartItemRepository.findAllByCartAndDeletedAtIsNullOrderByCreatedAtAsc(cart))
+                    .thenReturn(List.of(cartItem));
+
+            cartService.addCartItem(userDetails, menuId, 1);
+
+            verify(menuService).getOrderableMenu(eq(menuId), eq(storeId));
         }
     }
 
