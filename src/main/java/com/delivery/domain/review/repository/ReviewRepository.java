@@ -20,14 +20,10 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     List<Review> findAllByStoreIdAndDeletedAtIsNull(UUID storeId);
 
     // 음식점의 삭제되지 않은 리뷰 페이징 및 정렬 조회
-    Page<Review> findAllByStoreIdAndDeletedAtIsNull(
-            UUID storeId,
-            Pageable pageable);
+    Page<Review> findAllByStoreIdAndDeletedAtIsNull(UUID storeId, Pageable pageable);
 
     // 로그인 사용자의 삭제되지 않은 리뷰 목록 정렬 조회
-    List<Review> findAllByUserIdAndDeletedAtIsNull(
-            Long userId,
-            Sort sort);
+    List<Review> findAllByUserIdAndDeletedAtIsNull(Long userId, Sort sort);
 
     // 주문당 리뷰 중복 등록 여부 확인
     boolean existsByOrderId(UUID orderId);

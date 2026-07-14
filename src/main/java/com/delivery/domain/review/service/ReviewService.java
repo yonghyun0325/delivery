@@ -36,10 +36,7 @@ public class ReviewService {
     @Transactional
     public ReviewResponse createReview(Long loginUserId, ReviewRequest request) {
 
-        log.info(
-                "리뷰 등록 요청 - userId={}, orderId={}",
-                loginUserId,
-                request.getOrderId());
+        log.info("리뷰 등록 요청 - userId={}, orderId={}", loginUserId, request.getOrderId());
 
         // 리뷰 평점과 내용 검증
         validateReviewRequest(request);
@@ -88,19 +85,14 @@ public class ReviewService {
 
     // 음식점 리뷰 목록 페이징 및 정렬 조회
     public Page<ReviewResponse> getReviewsByStore(
-            UUID storeId,
-            ReviewSortType sortType,
-            Pageable pageable) {
+            UUID storeId, ReviewSortType sortType, Pageable pageable) {
 
         // 리뷰 정렬 조건 생성
         Sort sort = createReviewSort(sortType);
 
         // 요청받은 페이지 번호와 크기는 유지하고 정렬 조건만 적용
         Pageable sortedPageable =
-                PageRequest.of(
-                        pageable.getPageNumber(),
-                        pageable.getPageSize(),
-                        sort);
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         return reviewRepository
                 .findAllByStoreIdAndDeletedAtIsNull(storeId, sortedPageable)
@@ -111,14 +103,9 @@ public class ReviewService {
     public List<ReviewResponse> getMyReviews(Long loginUserId) {
 
         // 작성일이 같은 경우에도 순서를 일정하게 유지하기 위해 ID를 추가 정렬 조건으로 사용
-        Sort latestSort =
-                Sort.by(
-                        Sort.Order.desc("createdAt"),
-                        Sort.Order.desc("id"));
+        Sort latestSort = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
 
-        return reviewRepository
-                .findAllByUserIdAndDeletedAtIsNull(loginUserId, latestSort)
-                .stream()
+        return reviewRepository.findAllByUserIdAndDeletedAtIsNull(loginUserId, latestSort).stream()
                 .map(ReviewResponse::toDto)
                 .toList();
     }
@@ -146,8 +133,7 @@ public class ReviewService {
     // 음식점 평균 평점 조회
     public Double getStoreRating(UUID storeId) {
 
-        Double averageRating =
-                reviewRepository.findAverageRatingByStoreId(storeId);
+        Double averageRating = reviewRepository.findAverageRatingByStoreId(storeId);
 
         // 등록된 리뷰가 없는 경우 AVG 결과가 null이므로 0.0 반환
         return averageRating == null ? 0.0 : averageRating;
@@ -155,15 +141,9 @@ public class ReviewService {
 
     // 리뷰 수정
     @Transactional
-    public ReviewResponse updateReview(
-            UUID reviewId,
-            Long loginUserId,
-            ReviewRequest request) {
+    public ReviewResponse updateReview(UUID reviewId, Long loginUserId, ReviewRequest request) {
 
-        log.info(
-                "리뷰 수정 요청 - reviewId={}, userId={}",
-                reviewId,
-                loginUserId);
+        log.info("리뷰 수정 요청 - reviewId={}, userId={}", reviewId, loginUserId);
 
         // 리뷰 평점과 내용 검증
         validateReviewRequest(request);
@@ -175,17 +155,12 @@ public class ReviewService {
         validateReviewOwner(review, loginUserId);
 
         // Dirty Checking을 통해 평점과 내용 수정
-        review.update(
-                request.getRating(),
-                request.getContent());
+        review.update(request.getRating(), request.getContent());
 
         // 수정된 리뷰를 기준으로 가게 평균 평점 갱신
         storeService.updateAverageRating(review.getStoreId());
 
-        log.info(
-                "리뷰 수정 완료 - reviewId={}, rating={}",
-                reviewId,
-                review.getRating());
+        log.info("리뷰 수정 완료 - reviewId={}, rating={}", reviewId, review.getRating());
 
         return ReviewResponse.toDto(review);
     }
@@ -194,10 +169,7 @@ public class ReviewService {
     @Transactional
     public void deleteReview(UUID reviewId, Long loginUserId) {
 
-        log.info(
-                "리뷰 삭제 요청 - reviewId={}, userId={}",
-                reviewId,
-                loginUserId);
+        log.info("리뷰 삭제 요청 - reviewId={}, userId={}", reviewId, loginUserId);
 
         // 삭제되지 않은 리뷰 조회
         Review review = findActiveReviewById(reviewId);
@@ -211,32 +183,22 @@ public class ReviewService {
         // 삭제된 리뷰를 제외하여 가게 평균 평점 갱신
         storeService.updateAverageRating(review.getStoreId());
 
-        log.info(
-                "리뷰 삭제 완료 - reviewId={}, storeId={}",
-                reviewId,
-                review.getStoreId());
+        log.info("리뷰 삭제 완료 - reviewId={}, storeId={}", reviewId, review.getStoreId());
     }
 
     // 가게 삭제 시 해당 가게의 리뷰 전체 소프트 삭제
     @Transactional
     public void deleteReviewsByStoreId(UUID storeId, String deletedBy) {
 
-        log.info(
-                "가게 리뷰 일괄 삭제 요청 - storeId={}, deletedBy={}",
-                storeId,
-                deletedBy);
+        log.info("가게 리뷰 일괄 삭제 요청 - storeId={}, deletedBy={}", storeId, deletedBy);
 
         // 해당 가게에 등록된 삭제되지 않은 리뷰 조회
-        List<Review> reviews =
-                reviewRepository.findAllByStoreIdAndDeletedAtIsNull(storeId);
+        List<Review> reviews = reviewRepository.findAllByStoreIdAndDeletedAtIsNull(storeId);
 
         // 조회한 모든 리뷰를 소프트 삭제
         reviews.forEach(review -> review.delete(deletedBy));
 
-        log.info(
-                "가게 리뷰 일괄 삭제 완료 - storeId={}, deletedCount={}",
-                storeId,
-                reviews.size());
+        log.info("가게 리뷰 일괄 삭제 완료 - storeId={}, deletedCount={}", storeId, reviews.size());
     }
 
     // 삭제되지 않은 리뷰 조회
@@ -246,9 +208,7 @@ public class ReviewService {
                 .findByIdAndDeletedAtIsNull(reviewId)
                 .orElseThrow(
                         () -> {
-                            log.warn(
-                                    "리뷰 조회 실패 - 존재하지 않거나 삭제된 리뷰, reviewId={}",
-                                    reviewId);
+                            log.warn("리뷰 조회 실패 - 존재하지 않거나 삭제된 리뷰, reviewId={}", reviewId);
 
                             return new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
                         });
@@ -261,9 +221,7 @@ public class ReviewService {
                 .findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(
                         () -> {
-                            log.warn(
-                                    "리뷰 등록 실패 - 존재하지 않거나 삭제된 주문, orderId={}",
-                                    orderId);
+                            log.warn("리뷰 등록 실패 - 존재하지 않거나 삭제된 주문, orderId={}", orderId);
 
                             return new ReviewException(ReviewErrorCode.ORDER_NOT_FOUND);
                         });
@@ -278,18 +236,14 @@ public class ReviewService {
          */
         if (reviewRepository.existsByOrderId(orderId)) {
 
-            log.warn(
-                    "중복 리뷰 등록 시도 - orderId={}",
-                    orderId);
+            log.warn("중복 리뷰 등록 시도 - orderId={}", orderId);
 
             throw new ReviewException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
         }
     }
 
     // 리뷰 작성자 본인인지 검증
-    private void validateReviewOwner(
-            Review review,
-            Long loginUserId) {
+    private void validateReviewOwner(Review review, Long loginUserId) {
 
         if (!review.getUserId().equals(loginUserId)) {
 
@@ -307,20 +261,15 @@ public class ReviewService {
     private void validateReviewRequest(ReviewRequest request) {
 
         // 평점은 1점 이상 5점 이하만 허용
-        if (request.getRating() == null
-                || request.getRating() < 1
-                || request.getRating() > 5) {
+        if (request.getRating() == null || request.getRating() < 1 || request.getRating() > 5) {
 
-            log.warn(
-                    "리뷰 요청 검증 실패 - 유효하지 않은 평점, rating={}",
-                    request.getRating());
+            log.warn("리뷰 요청 검증 실패 - 유효하지 않은 평점, rating={}", request.getRating());
 
             throw new ReviewException(ReviewErrorCode.INVALID_RATING);
         }
 
         // 리뷰 내용은 null, 빈 문자열, 공백만 있는 문자열을 허용하지 않음
-        if (request.getContent() == null
-                || request.getContent().isBlank()) {
+        if (request.getContent() == null || request.getContent().isBlank()) {
 
             log.warn("리뷰 요청 검증 실패 - 리뷰 내용이 비어 있음");
 
@@ -329,9 +278,7 @@ public class ReviewService {
     }
 
     // 리뷰 작성 가능한 주문인지 검증
-    private void validateReviewableOrder(
-            Order order,
-            Long loginUserId) {
+    private void validateReviewableOrder(Order order, Long loginUserId) {
 
         // 로그인 사용자가 실제 주문자인지 검증
         if (!order.getUserId().equals(loginUserId)) {
@@ -349,10 +296,7 @@ public class ReviewService {
         if (order.getStatus() != OrderStatus.DELIVERED
                 && order.getStatus() != OrderStatus.COMPLETED) {
 
-            log.warn(
-                    "리뷰 작성 불가능한 주문 상태 - orderId={}, status={}",
-                    order.getId(),
-                    order.getStatus());
+            log.warn("리뷰 작성 불가능한 주문 상태 - orderId={}, status={}", order.getId(), order.getStatus());
 
             throw new ReviewException(ReviewErrorCode.ORDER_NOT_COMPLETED);
         }
@@ -362,30 +306,23 @@ public class ReviewService {
     private Sort createReviewSort(ReviewSortType sortType) {
 
         // 정렬 조건이 전달되지 않은 경우 최신순을 기본값으로 사용
-        ReviewSortType resolvedSortType =
-                sortType == null ? ReviewSortType.LATEST : sortType;
+        ReviewSortType resolvedSortType = sortType == null ? ReviewSortType.LATEST : sortType;
 
         return switch (resolvedSortType) {
-            // 최신 작성 리뷰 우선
-            case LATEST ->
-                    Sort.by(
-                            Sort.Order.desc("createdAt"),
-                            Sort.Order.desc("id"));
+                // 최신 작성 리뷰 우선
+            case LATEST -> Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
 
-            // 오래된 작성 리뷰 우선
-            case OLDEST ->
-                    Sort.by(
-                            Sort.Order.asc("createdAt"),
-                            Sort.Order.asc("id"));
+                // 오래된 작성 리뷰 우선
+            case OLDEST -> Sort.by(Sort.Order.asc("createdAt"), Sort.Order.asc("id"));
 
-            // 평점이 높은 리뷰 우선, 평점이 같으면 최신순
+                // 평점이 높은 리뷰 우선, 평점이 같으면 최신순
             case RATING_HIGH ->
                     Sort.by(
                             Sort.Order.desc("rating"),
                             Sort.Order.desc("createdAt"),
                             Sort.Order.desc("id"));
 
-            // 평점이 낮은 리뷰 우선, 평점이 같으면 최신순
+                // 평점이 낮은 리뷰 우선, 평점이 같으면 최신순
             case RATING_LOW ->
                     Sort.by(
                             Sort.Order.asc("rating"),
