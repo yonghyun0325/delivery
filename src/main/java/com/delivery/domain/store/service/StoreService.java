@@ -6,6 +6,7 @@ import com.delivery.domain.review.service.ReviewService;
 import com.delivery.domain.store.dto.request.StoreRequest;
 import com.delivery.domain.store.dto.response.StoreResponse;
 import com.delivery.domain.store.entity.Store;
+import com.delivery.domain.review.entity.Review;
 import com.delivery.domain.store.repository.CategoryRepository;
 import com.delivery.domain.store.repository.RegionRepository;
 import com.delivery.domain.store.repository.StoreRepository;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,6 @@ public class StoreService {
     private final RegionRepository regionRepository;
     private final ReviewRepository reviewRepository;
     private final MenuService menuService;
-    private final ReviewService reviewService;
 
     @Transactional
     public StoreResponse createStore(Long userId, StoreRequest request) {
@@ -90,7 +91,8 @@ public class StoreService {
     public void deleteStore(UUID storeId, Long userId, boolean isElevated, String deletedBy) {
         Store store = getStoreWithOwnerCheck(storeId, userId, isElevated);
         menuService.deleteMenusByStoreId(storeId, deletedBy);
-        reviewService.deleteReviewsByStoreId(storeId, deletedBy);
+        List<Review> reviews = reviewRepository.findAllByStoreIdAndDeletedAtIsNull(storeId);
+        reviews.forEach(review -> review.delete(deletedBy));
         store.delete(deletedBy);
     }
 
