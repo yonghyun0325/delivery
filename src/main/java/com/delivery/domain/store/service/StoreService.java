@@ -14,6 +14,7 @@ import com.delivery.domain.store.exception.StoreErrorCode;
 import com.delivery.domain.store.exception.StoreException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +60,12 @@ public class StoreService {
     }
 
     public Page<StoreResponse> getStores(UUID categoryId, UUID regionId, String name, Pageable pageable) {
-        return storeRepository.searchStores(categoryId, name, pageable)
+        int size = pageable.getPageSize();
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Pageable validatedPageable = PageRequest.of(pageable.getPageNumber(), size);
+        return storeRepository.searchStores(categoryId, name, validatedPageable)
                 .map(StoreResponse::from);
     }
 
