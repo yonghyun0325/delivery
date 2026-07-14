@@ -11,6 +11,11 @@ import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.global.security.config.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -40,10 +45,33 @@ public class MenuController {
 
     // 메뉴 등록
     @Operation(summary = "메뉴 등록", description = "가게에 메뉴를 등록합니다. AI 설명 생성 옵션을 지원합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "메뉴 등록 성공"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "이름/가격이 유효하지 않거나 AI 생성 여부·프롬프트가 누락/초과됨",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "해당 가게의 소유자가 아님",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "가게를 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "502",
+                description = "AI 설명 생성 실패",
+                content = @Content(schema = @Schema(hidden = true)))
+    })
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PostMapping("/api/v1/stores/{storeId}/menus")
     public ResponseEntity<RestApiResponse<MenuResponse>> createMenu(
-            @PathVariable UUID storeId,
+            @Parameter(description = "가게 ID", required = true) @PathVariable UUID storeId,
             @Valid @RequestBody CreateMenuRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
         MenuResponse response =
@@ -64,9 +92,17 @@ public class MenuController {
     // 가게 소유자/MANAGER/MASTER에게는 숨김 메뉴 포함 전체 필드, 그 외(손님)에게는
     // 숨김 메뉴를 뺀 공개 필드만 반환한다(MenuView 참고).
     @Operation(summary = "가게별 메뉴 목록 조회", description = "가게에 등록된 삭제되지 않은 메뉴 목록을 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "메뉴 목록 조회 성공"),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true)))
+    })
     @GetMapping("/api/v1/stores/{storeId}/menus")
     public ResponseEntity<RestApiResponse<List<MenuView>>> getStoreMenus(
-            @PathVariable UUID storeId, @AuthenticationPrincipal CustomUserDetails principal) {
+            @Parameter(description = "가게 ID", required = true) @PathVariable UUID storeId,
+            @AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
                         HttpStatus.OK,
@@ -78,9 +114,21 @@ public class MenuController {
     // 메뉴 단건 조회
     // 숨김 메뉴를 볼 권한이 없으면 404로 응답한다(MenuService 참고 - 존재 여부 비노출).
     @Operation(summary = "메뉴 단건 조회", description = "메뉴 ID로 메뉴 한 건을 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "메뉴 조회 성공"),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "메뉴를 찾을 수 없음 (숨김 메뉴를 볼 권한이 없는 경우 포함)",
+                content = @Content(schema = @Schema(hidden = true)))
+    })
     @GetMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<MenuView>> getMenu(
-            @PathVariable UUID menuId, @AuthenticationPrincipal CustomUserDetails principal) {
+            @Parameter(description = "메뉴 ID", required = true) @PathVariable UUID menuId,
+            @AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
                         HttpStatus.OK,
@@ -92,12 +140,23 @@ public class MenuController {
     // 메뉴 횡단 검색 (플랫 - 특정 가게에 종속되지 않음)
     // size는 10/30/50만 허용(그 외는 10으로 보정), 기본 정렬은 생성일 내림차순
     @Operation(summary = "메뉴 검색", description = "가게 구분 없이 이름으로 메뉴를 검색합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "메뉴 검색 성공"),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true)))
+    })
     @GetMapping("/api/v1/menus")
     public ResponseEntity<RestApiResponse<Page<MenuSearchView>>> searchMenus(
-            @RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sort,
+            @Parameter(description = "메뉴 이름 검색어") @RequestParam(required = false) String name,
+            @Parameter(description = "페이지 번호(0부터 시작)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기 - 10/30/50만 허용, 그 외는 10으로 보정")
+                    @RequestParam(defaultValue = "10")
+                    int size,
+            @Parameter(description = "정렬 조건 - 기본 생성일 내림차순, createdAt,asc만 오름차순으로 반전")
+                    @RequestParam(required = false)
+                    String sort,
             @AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
@@ -109,10 +168,29 @@ public class MenuController {
 
     // 메뉴 수정
     @Operation(summary = "메뉴 수정", description = "메뉴의 이름/설명/가격을 수정합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "메뉴 수정 성공"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "이름 또는 가격이 유효하지 않음",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "해당 가게의 소유자가 아님",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "메뉴를 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true)))
+    })
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<MenuResponse>> updateMenu(
-            @PathVariable UUID menuId,
+            @Parameter(description = "메뉴 ID", required = true) @PathVariable UUID menuId,
             @Valid @RequestBody UpdateMenuRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
         MenuResponse response =
@@ -128,10 +206,29 @@ public class MenuController {
 
     // 숨김 상태 업데이트
     @Operation(summary = "메뉴 숨김 상태 변경", description = "메뉴를 숨김/노출 처리합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "메뉴 숨김 상태 변경 성공"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "숨김 여부 값이 누락됨",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "해당 가게의 소유자가 아님",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "메뉴를 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true)))
+    })
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/api/v1/menus/{menuId}/visibility")
     public ResponseEntity<RestApiResponse<MenuResponse>> updateMenuVisibility(
-            @PathVariable UUID menuId,
+            @Parameter(description = "메뉴 ID", required = true) @PathVariable UUID menuId,
             @Valid @RequestBody UpdateMenuVisibilityRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
         MenuResponse response =
@@ -143,10 +240,26 @@ public class MenuController {
 
     // 메뉴 삭제 (Soft Delete)
     @Operation(summary = "메뉴 삭제", description = "메뉴를 소프트 삭제 처리합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "메뉴 삭제 성공"),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "해당 가게의 소유자가 아님",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "메뉴를 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true)))
+    })
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @DeleteMapping("/api/v1/menus/{menuId}")
     public ResponseEntity<RestApiResponse<Void>> deleteMenu(
-            @PathVariable UUID menuId, @AuthenticationPrincipal CustomUserDetails principal) {
+            @Parameter(description = "메뉴 ID", required = true) @PathVariable UUID menuId,
+            @AuthenticationPrincipal CustomUserDetails principal) {
         // CustomAuditorAware/AddressService와 동일한 "{id}_{username}" 포맷으로 통일
         menuService.deleteMenu(
                 menuId,
