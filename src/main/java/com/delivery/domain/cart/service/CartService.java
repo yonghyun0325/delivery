@@ -6,10 +6,12 @@ import com.delivery.domain.cart.entity.Cart;
 import com.delivery.domain.cart.entity.CartItem;
 import com.delivery.domain.cart.repository.CartItemRepository;
 import com.delivery.domain.cart.repository.CartRepository;
-import com.delivery.domain.menu.entity.MenuEntity;
+import com.delivery.domain.menu.dto.response.MenuSnapshot;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.menu.exception.MenuException;
 import com.delivery.domain.menu.repository.MenuRepository;
+import com.delivery.domain.menu.service.MenuService;
+import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.GlobalErrorCode;
 import com.delivery.global.security.config.CustomUserDetails;
@@ -27,6 +29,8 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final MenuRepository menuRepository;
+    private final MenuService menuService;
+    private final UserRepository userRepository;
 
     public CartResponse getMyCart(CustomUserDetails userDetails) {
         return cartRepository
@@ -37,21 +41,20 @@ public class CartService {
 
     @Transactional
     public CartResponse addCartItem(CustomUserDetails userDetails, UUID menuId, int quantity) {
-        MenuEntity menu = getOrderableMenu(menuId);
-        Cart cart =
-                cartRepository
-                        .findByUserIdAndDeletedAtIsNull(userDetails.getId())
-                        .orElseGet(
-                                () ->
-                                        cartRepository.save(
-                                                Cart.create(
-                                                        userDetails.getId(), menu.getStoreId())));
+        lockUser(userDetails.getId());
+        Cart cart = cartRepository.findByUserIdAndDeletedAtIsNull(userDetails.getId()).orElse(null);
+        UUID storeId = cart != null ? cart.getStoreId() : getMenuStoreId(menuId);
+        MenuSnapshot menuSnapshot = menuService.getOrderableMenu(menuId, storeId);
 
-        validateStoreConsistency(cart, menu.getStoreId());
+        if (cart == null) {
+            cart = cartRepository.save(Cart.create(userDetails.getId(), storeId));
+        }
+
+        Cart activeCart = cart;
 
         CartItem cartItem =
                 cartItemRepository
-                        .findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId)
+                        .findByCartAndMenuIdAndDeletedAtIsNull(activeCart, menuId)
                         .map(
                                 existingItem -> {
                                     existingItem.addQuantity(quantity);
@@ -61,11 +64,11 @@ public class CartService {
                                 () ->
                                         cartItemRepository.save(
                                                 CartItem.create(
-                                                        cart,
+                                                        activeCart,
                                                         menuId,
-                                                        menu.getName(),
+                                                        menuSnapshot.name(),
                                                         quantity,
-                                                        menu.getPrice())));
+                                                        menuSnapshot.price())));
 
         return toCartResponse(cartItem.getCart());
     }
@@ -93,10 +96,15 @@ public class CartService {
 
     @Transactional
     public void clearMyCart(CustomUserDetails userDetails) {
+        lockUser(userDetails.getId());
         Cart cart =
                 cartRepository
                         .findByUserIdAndDeletedAtIsNull(userDetails.getId())
-                        .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
+                        .orElse(null);
+
+        if (cart == null) {
+            return;
+        }
 
         String deletedBy = userDetails.getId() + "_" + userDetails.getUsername();
 
@@ -132,22 +140,16 @@ public class CartService {
         return cartItem;
     }
 
-    private MenuEntity getOrderableMenu(UUID menuId) {
-        MenuEntity menu =
-                menuRepository
-                        .findByMenuIdAndDeletedAtIsNull(menuId)
-                        .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
-
-        if (menu.isHidden()) {
-            throw new MenuException(MenuErrorCode.MENU_NOT_FOUND);
-        }
-
-        return menu;
+    private UUID getMenuStoreId(UUID menuId) {
+        return menuRepository
+                .findByMenuIdAndDeletedAtIsNull(menuId)
+                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND))
+                .getStoreId();
     }
 
-    private void validateStoreConsistency(Cart cart, UUID storeId) {
-        if (!cart.getStoreId().equals(storeId)) {
-            throw new BusinessException(GlobalErrorCode.BAD_REQUEST);
-        }
+    private void lockUser(Long userId) {
+        userRepository
+                .findByIdForUpdate(userId)
+                .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
     }
 }

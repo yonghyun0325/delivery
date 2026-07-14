@@ -12,10 +12,10 @@ import com.delivery.domain.payment.dto.response.PaymentPageResponse;
 import com.delivery.domain.payment.dto.response.PaymentResponse;
 import com.delivery.domain.payment.entity.PaymentMethod;
 import com.delivery.domain.payment.entity.PaymentStatus;
+import com.delivery.domain.payment.exception.PaymentErrorCode;
+import com.delivery.domain.payment.exception.PaymentException;
 import com.delivery.domain.payment.service.PaymentService;
-import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.ErrorCodeRegistry;
-import com.delivery.global.exception.GlobalErrorCode;
 import com.delivery.global.exception.GlobalExceptionHandler;
 import com.delivery.global.security.config.CustomUserDetails;
 import java.time.LocalDateTime;
@@ -53,14 +53,14 @@ class PaymentControllerUnitTest {
         UUID paymentId = UUID.randomUUID();
 
         when(paymentService.getPayment(eq(paymentId), any(CustomUserDetails.class)))
-                .thenThrow(new BusinessException(GlobalErrorCode.NOT_FOUND));
+                .thenThrow(new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         mockMvc.perform(get("/api/v1/payments/{paymentId}", paymentId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value(404))
                 .andExpect(jsonPath("$.data").value(Matchers.nullValue()))
-                .andExpect(jsonPath("$.error").value("NOT_FOUND"));
+                .andExpect(jsonPath("$.error").value("PAYMENT_NOT_FOUND"));
     }
 
     @Test

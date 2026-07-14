@@ -30,7 +30,7 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_id", nullable = false, updatable = false)
     private UUID paymentId;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id", nullable = false, unique = true)
     private UUID orderId;
 
     @Column(name = "user_id", nullable = false)
@@ -55,6 +55,18 @@ public class Payment extends BaseEntity {
 
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
+
+    public static Payment create(
+            UUID orderId, Long userId, PaymentMethod paymentMethod, int paymentAmount) {
+        return Payment.builder()
+                .orderId(orderId)
+                .userId(userId)
+                .paymentMethod(paymentMethod)
+                .paidAt(LocalDateTime.now())
+                .paymentStatus(PaymentStatus.PAID)
+                .paymentAmount(paymentAmount)
+                .build();
+    }
 
     public boolean isOwnedBy(Long userId) {
         return this.userId.equals(userId);
