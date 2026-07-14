@@ -52,33 +52,18 @@ public interface OrderControllerDocs {
                     메뉴명과 가격은 주문 생성 당시 값으로 저장됩니다.
                     """)
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "주문 생성 성공"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = """
-                            잘못된 주문 수량,
-                            다른 가게 소속 메뉴,
-                            숨김 메뉴,
-                            유효하지 않은 메뉴 가격,
-                            최소 주문 금액 미충족,
-                            영업 중이 아닌 가게
-                            """
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "인증되지 않은 사용자"
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "CUSTOMER 권한 없음"
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "가게 또는 메뉴를 찾을 수 없음"
-            )
+        @ApiResponse(responseCode = "201", description = "주문 생성 성공"),
+        @ApiResponse(
+                responseCode = "400",
+                description =
+                        """
+                        잘못된 주문 수량,
+                        최소 주문 금액 미충족,
+                        영업 중이 아닌 가게
+                        """),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "CUSTOMER 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "가게 또는 메뉴를 찾을 수 없음")
     })
     ResponseEntity<RestApiResponse<OrderCreateResponse>> createOrder(
             @Parameter(description = "주문 생성 요청 정보", required = true) OrderCreateRequest request,

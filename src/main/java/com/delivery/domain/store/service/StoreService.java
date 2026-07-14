@@ -1,5 +1,6 @@
 package com.delivery.domain.store.service;
 
+import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.review.repository.ReviewRepository;
 import com.delivery.domain.store.dto.request.StoreRequest;
 import com.delivery.domain.store.dto.response.StoreResponse;
@@ -9,14 +10,12 @@ import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.CategoryRepository;
 import com.delivery.domain.store.repository.RegionRepository;
 import com.delivery.domain.store.repository.StoreRepository;
-
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +26,7 @@ public class StoreService {
     private final CategoryRepository categoryRepository;
     private final RegionRepository regionRepository;
     private final ReviewRepository reviewRepository;
+    private final MenuService menuService;
 
     // 가게 등록
     @Transactional
@@ -130,6 +130,7 @@ public class StoreService {
             throw new StoreException(StoreErrorCode.STORE_ACCESS_DENIED);
         }
 
+        menuService.deleteMenusByStoreId(storeId, userId.toString());
         store.delete(userId.toString());
     }
 
