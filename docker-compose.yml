@@ -6,8 +6,8 @@ services:
 
     environment:
       POSTGRES_DB: delivery
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres1234
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
 
     ports:
       - "5433:5432"     # 로컬 포트번호 5433으로 변경함

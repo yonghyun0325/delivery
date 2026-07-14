@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: delivery-postgres
+    restart: always
+
+    environment:
+      POSTGRES_DB: delivery
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    volumes:
+      - delivery-postgres-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d delivery"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: delivery-app
+    restart: always
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    environment:
+      # 컨테이너 네트워크 안에서는 postgres 서비스명으로 접속
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/delivery
+
+    ports:
+      - "8080:8080"
+
+volumes:
+  delivery-postgres-data:
