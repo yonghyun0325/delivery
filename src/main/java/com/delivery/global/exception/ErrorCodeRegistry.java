@@ -4,6 +4,7 @@ import com.delivery.domain.ai.exception.AiErrorCode;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.domain.user.exception.UserErrorCode;
+import com.delivery.domain.store.exception.StoreErrorCode;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ public class ErrorCodeRegistry {
         register(AuthErrorCode.values());
         register(MenuErrorCode.values());
         register(AiErrorCode.values());
+        register(StoreErrorCode.values());
     }
 
     private void register(ErrorCode[] codes) {
