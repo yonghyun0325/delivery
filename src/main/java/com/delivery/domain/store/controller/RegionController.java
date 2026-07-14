@@ -1,10 +1,13 @@
 package com.delivery.domain.store.controller;
 
 import com.delivery.common.RestApiResponse;
+import com.delivery.domain.store.controller.swagger.RegionControllerDocs;
 import com.delivery.domain.store.dto.request.RegionRequest;
 import com.delivery.domain.store.dto.response.RegionResponse;
 import com.delivery.domain.store.service.RegionService;
 import com.delivery.global.security.config.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +22,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/regions")
 @RequiredArgsConstructor
-public class RegionController {
+public class RegionController implements RegionControllerDocs {
 
     private final RegionService regionService;
 

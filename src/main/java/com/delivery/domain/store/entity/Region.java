@@ -28,9 +28,6 @@ public class Region extends BaseEntity {
     @Column(name = "longitude")
     private Double longitude;
 
-    @Builder.Default
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
 
     public void update(String name, Double latitude, Double longitude) {
         this.name = name;

@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -173,7 +174,7 @@ class StoreControllerUnitTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("가게 삭제 성공"));
 
-            verify(storeService).deleteStore(eq(storeId), any(), any(), any());
+            verify(storeService).deleteStore(eq(storeId), any(), anyBoolean(), any());
         }
     }
 }
