@@ -1,7 +1,6 @@
 package com.delivery.global.security.jwt;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.delivery.global.config.JwtProperties;
 import com.delivery.global.security.config.CustomUserDetails;
@@ -48,7 +47,8 @@ class JwtUtilTest {
     @DisplayName("액세스 토큰 생성")
     void createAccessToken() {
         String token =
-                jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid(), UUID.randomUUID());
+                jwtUtil.generateAccessToken(
+                        userDetails, userDetails.getUserUuid(), UUID.randomUUID());
 
         assertThat(token).isNotNull();
     }
@@ -57,7 +57,8 @@ class JwtUtilTest {
     @DisplayName("토큰 정보 확인")
     void getUserUsernameFromToken() {
         String token =
-                jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid(), UUID.randomUUID());
+                jwtUtil.generateAccessToken(
+                        userDetails, userDetails.getUserUuid(), UUID.randomUUID());
 
         assertThat(jwtUtil.getUserUsernameFromToken(token)).isEqualTo(userDetails.getUsername());
     }
@@ -66,7 +67,8 @@ class JwtUtilTest {
     @DisplayName("토큰 유효 체크")
     void validateToken() {
         String token =
-                jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid(), UUID.randomUUID());
+                jwtUtil.generateAccessToken(
+                        userDetails, userDetails.getUserUuid(), UUID.randomUUID());
 
         assertThat(jwtUtil.validateToken(token, userDetails)).isTrue();
         assertThat(jwtUtil.validateToken(token, userDetails2)).isFalse();
@@ -77,7 +79,8 @@ class JwtUtilTest {
     void resolveToken_success() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         String token =
-                jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid(), UUID.randomUUID());
+                jwtUtil.generateAccessToken(
+                        userDetails, userDetails.getUserUuid(), UUID.randomUUID());
 
         request.addHeader("Authorization", "Bearer " + token);
 
@@ -116,10 +119,7 @@ class JwtUtilTest {
     void getUserUuidFromRefreshToken_success() {
         String token =
                 jwtUtil.generateRefreshToken(
-                        userDetails,
-                        userDetails.getUserUuid(),
-                        UUID.randomUUID()
-                );
+                        userDetails, userDetails.getUserUuid(), UUID.randomUUID());
 
         UUID result = jwtUtil.getUserUuidFromRefreshToken(token);
 
