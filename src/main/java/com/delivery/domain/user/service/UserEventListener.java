@@ -2,6 +2,7 @@ package com.delivery.domain.user.service;
 
 import com.delivery.domain.user.UserDeletedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -15,9 +16,11 @@ public class UserEventListener {
      *
      * @param event
      */
+    @Async
     @TransactionalEventListener
     public void handleUserDeleteEvent(UserDeletedEvent event) {
-        // TODO : 로그아웃
+
+
         throw new UnsupportedOperationException("개발 중 입니다.");
     }
 }

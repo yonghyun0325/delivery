@@ -10,6 +10,7 @@ import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
+import com.delivery.global.cache.RefreshTokenRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
@@ -75,16 +77,14 @@ public class UserService {
     }
 
     /**
-     * 회원 삭제 삭제 후 이벤트 발생
-     *
+     * 회원 삭제 탈퇴 후 이벤트 발생
      * @param userId 탈퇴 회원 PK키
      */
     public void deleteUser(Long userId) {
         User deletedUser = findActiveUser(userId);
-        String username = deletedUser.getUsername();
+        refreshTokenRepository.delete(deletedUser.getUserUuid());
         deletedUser.delete(deletedUser.getUsername());
-        applicationEventPublisher.publishEvent(new UserDeletedEvent(deletedUser.getId(), username));
-        // TODO : 로그아웃도 해야함,
+        applicationEventPublisher.publishEvent(new UserDeletedEvent(deletedUser.getId(), deletedUser.getUsername()));
         // NOTE : 사용하는 쪽은 @EventListener
     }
 

@@ -1,5 +1,6 @@
 package com.delivery.global.security.config;
 
+import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
 import java.util.Collection;
 import java.util.List;
@@ -43,5 +44,11 @@ public class CustomUserDetails implements UserDetails {
      * 예:ROLE_CUSTOMER / ROLE_OWNER / ROLE_MANAGER / ROLE_MASTER */
     public Set<String> getRoleNames() {
         return authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+    }
+
+    public boolean hasRole(String role) {
+        return getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role::equals);
     }
 }

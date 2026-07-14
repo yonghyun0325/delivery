@@ -10,7 +10,7 @@ import com.delivery.domain.store.entity.Region;
 import com.delivery.domain.store.repository.CategoryRepository;
 import com.delivery.domain.store.repository.RegionRepository;
 import com.delivery.domain.store.exception.StoreException;
-import com.delivery.testconfig.AbstractIntegrationTest;
+import com.delivery.config.AbstractIntegrationTest;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

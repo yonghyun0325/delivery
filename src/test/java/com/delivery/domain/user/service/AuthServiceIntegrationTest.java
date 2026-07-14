@@ -53,6 +53,7 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(passwordEncoder.matches("testtest1234!", savedUser.getPassword())).isTrue();
         assertThat(savedUser.getNickName()).isEqualTo(response.nickName());
         assertThat(response.accessToken()).isNotBlank();
+        assertThat(response.refreshToken()).isNotBlank();
     }
 
     @Test
@@ -111,5 +112,6 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(loginResponse.username()).isEqualTo(savedUser.getUsername());
         assertThat(loginResponse.nickName()).isEqualTo(savedUser.getNickName());
         assertThat(loginResponse.accessToken()).isNotBlank();
+        assertThat(loginResponse.refreshToken()).isNotBlank();
     }
 }

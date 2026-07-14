@@ -1,5 +1,8 @@
 package com.delivery.common.util;
 
+import com.delivery.global.exception.BusinessException;
+import com.delivery.global.exception.GlobalErrorCode;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
@@ -15,21 +18,31 @@ public class SsnEncryptor {
      * 암호화
      *
      * @param ssn
-     * @return new String(Base64.encode(encrypt)); TODO : null 체크
+     * @return new String(Base64.encode(encrypt));
      */
     public String encrypt(String ssn) {
-        byte[] encrypt = aesBytesEncryptor.encrypt(ssn.getBytes());
-        return new String(Base64.encode(encrypt));
+        if (ssn == null || ssn.isBlank()) {
+            throw new BusinessException(GlobalErrorCode.BAD_REQUEST);
+        }
+        byte[] encrypt = aesBytesEncryptor.encrypt(ssn.getBytes(StandardCharsets.UTF_8));
+        return new String(Base64.encode(encrypt), StandardCharsets.UTF_8);
     }
 
     /**
      * 복호화
      *
      * @param ssn
-     * @return TODO : null 체크
+     * @return
      */
     public String decrypt(String ssn) {
-        byte[] decode = Base64.decode(ssn.getBytes());
-        return new String(aesBytesEncryptor.decrypt(decode));
+        if (ssn == null || ssn.isBlank()) {
+            throw new BusinessException(GlobalErrorCode.BAD_REQUEST);
+        }
+        try {
+            byte[] decode = Base64.decode(ssn.getBytes(StandardCharsets.UTF_8));
+            return new String(aesBytesEncryptor.decrypt(decode), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new BusinessException(GlobalErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
 }
