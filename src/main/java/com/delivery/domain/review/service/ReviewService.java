@@ -11,7 +11,10 @@ import com.delivery.domain.review.exception.ReviewErrorCode;
 import com.delivery.domain.review.exception.ReviewException;
 import com.delivery.domain.review.repository.ReviewRepository;
 import com.delivery.domain.store.service.StoreService;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,9 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -34,6 +35,11 @@ public class ReviewService {
     // 리뷰 등록
     @Transactional
     public ReviewResponse createReview(Long loginUserId, ReviewRequest request) {
+
+        log.info(
+                "리뷰 등록 요청 - userId={}, orderId={}",
+                loginUserId,
+                request.getOrderId());
 
         // 리뷰 평점과 내용 검증
         validateReviewRequest(request);
@@ -61,6 +67,12 @@ public class ReviewService {
 
         // 신규 리뷰가 반영된 가게 평균 평점 갱신
         storeService.updateAverageRating(savedReview.getStoreId());
+
+        log.info(
+                "리뷰 등록 완료 - reviewId={}, storeId={}, rating={}",
+                savedReview.getId(),
+                savedReview.getStoreId(),
+                savedReview.getRating());
 
         return ReviewResponse.toDto(savedReview);
     }
@@ -128,6 +140,11 @@ public class ReviewService {
             Long loginUserId,
             ReviewRequest request) {
 
+        log.info(
+                "리뷰 수정 요청 - reviewId={}, userId={}",
+                reviewId,
+                loginUserId);
+
         // 리뷰 평점과 내용 검증
         validateReviewRequest(request);
 
@@ -145,12 +162,22 @@ public class ReviewService {
         // 수정된 리뷰를 기준으로 가게 평균 평점 갱신
         storeService.updateAverageRating(review.getStoreId());
 
+        log.info(
+                "리뷰 수정 완료 - reviewId={}, rating={}",
+                reviewId,
+                review.getRating());
+
         return ReviewResponse.toDto(review);
     }
 
     // 리뷰 소프트 삭제
     @Transactional
     public void deleteReview(UUID reviewId, Long loginUserId) {
+
+        log.info(
+                "리뷰 삭제 요청 - reviewId={}, userId={}",
+                reviewId,
+                loginUserId);
 
         // 삭제되지 않은 리뷰 조회
         Review review = findActiveReviewById(reviewId);
@@ -163,11 +190,21 @@ public class ReviewService {
 
         // 삭제된 리뷰를 제외하여 가게 평균 평점 갱신
         storeService.updateAverageRating(review.getStoreId());
+
+        log.info(
+                "리뷰 삭제 완료 - reviewId={}, storeId={}",
+                reviewId,
+                review.getStoreId());
     }
 
     // 가게 삭제 시 해당 가게의 리뷰 전체 소프트 삭제
     @Transactional
     public void deleteReviewsByStoreId(UUID storeId, String deletedBy) {
+
+        log.info(
+                "가게 리뷰 일괄 삭제 요청 - storeId={}, deletedBy={}",
+                storeId,
+                deletedBy);
 
         // 해당 가게에 등록된 삭제되지 않은 리뷰 조회
         List<Review> reviews =
@@ -175,6 +212,11 @@ public class ReviewService {
 
         // 조회한 모든 리뷰를 소프트 삭제
         reviews.forEach(review -> review.delete(deletedBy));
+
+        log.info(
+                "가게 리뷰 일괄 삭제 완료 - storeId={}, deletedCount={}",
+                storeId,
+                reviews.size());
     }
 
     // 삭제되지 않은 리뷰 조회
@@ -183,7 +225,13 @@ public class ReviewService {
         return reviewRepository
                 .findByIdAndDeletedAtIsNull(reviewId)
                 .orElseThrow(
-                        () -> new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND));
+                        () -> {
+                            log.warn(
+                                    "리뷰 조회 실패 - 존재하지 않거나 삭제된 리뷰, reviewId={}",
+                                    reviewId);
+
+                            return new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
+                        });
     }
 
     // 삭제되지 않은 주문 조회
@@ -192,7 +240,13 @@ public class ReviewService {
         return orderRepository
                 .findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(
-                        () -> new ReviewException(ReviewErrorCode.ORDER_NOT_FOUND));
+                        () -> {
+                            log.warn(
+                                    "리뷰 등록 실패 - 존재하지 않거나 삭제된 주문, orderId={}",
+                                    orderId);
+
+                            return new ReviewException(ReviewErrorCode.ORDER_NOT_FOUND);
+                        });
     }
 
     // 주문당 리뷰 중복 등록 검증
@@ -203,6 +257,11 @@ public class ReviewService {
          * 따라서 한 번 리뷰를 작성한 주문은 리뷰 삭제 후에도 다시 작성할 수 없습니다.
          */
         if (reviewRepository.existsByOrderId(orderId)) {
+
+            log.warn(
+                    "중복 리뷰 등록 시도 - orderId={}",
+                    orderId);
+
             throw new ReviewException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
         }
     }
@@ -213,6 +272,13 @@ public class ReviewService {
             Long loginUserId) {
 
         if (!review.getUserId().equals(loginUserId)) {
+
+            log.warn(
+                    "리뷰 접근 권한 없음 - reviewId={}, loginUserId={}, reviewOwnerId={}",
+                    review.getId(),
+                    loginUserId,
+                    review.getUserId());
+
             throw new ReviewException(ReviewErrorCode.REVIEW_ACCESS_DENIED);
         }
     }
@@ -225,12 +291,18 @@ public class ReviewService {
                 || request.getRating() < 1
                 || request.getRating() > 5) {
 
+            log.warn(
+                    "리뷰 요청 검증 실패 - 유효하지 않은 평점, rating={}",
+                    request.getRating());
+
             throw new ReviewException(ReviewErrorCode.INVALID_RATING);
         }
 
         // 리뷰 내용은 null, 빈 문자열, 공백만 있는 문자열을 허용하지 않음
         if (request.getContent() == null
                 || request.getContent().isBlank()) {
+
+            log.warn("리뷰 요청 검증 실패 - 리뷰 내용이 비어 있음");
 
             throw new ReviewException(ReviewErrorCode.EMPTY_CONTENT);
         }
@@ -243,12 +315,24 @@ public class ReviewService {
 
         // 로그인 사용자가 실제 주문자인지 검증
         if (!order.getUserId().equals(loginUserId)) {
+
+            log.warn(
+                    "리뷰 등록 권한 없음 - orderId={}, loginUserId={}, orderUserId={}",
+                    order.getId(),
+                    loginUserId,
+                    order.getUserId());
+
             throw new ReviewException(ReviewErrorCode.ORDER_USER_MISMATCH);
         }
 
         // 배송 완료 또는 주문 최종 완료 상태에서만 리뷰 작성 가능
         if (order.getStatus() != OrderStatus.DELIVERED
                 && order.getStatus() != OrderStatus.COMPLETED) {
+
+            log.warn(
+                    "리뷰 작성 불가능한 주문 상태 - orderId={}, status={}",
+                    order.getId(),
+                    order.getStatus());
 
             throw new ReviewException(ReviewErrorCode.ORDER_NOT_COMPLETED);
         }
