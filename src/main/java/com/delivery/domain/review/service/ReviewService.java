@@ -12,6 +12,9 @@ import com.delivery.domain.review.exception.ReviewException;
 import com.delivery.domain.review.repository.ReviewRepository;
 import com.delivery.domain.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,19 +74,25 @@ public class ReviewService {
         return ReviewResponse.toDto(review);
     }
 
-    // 음식점 리뷰 목록 정렬 조회
-    public List<ReviewResponse> getReviewsByStore(
+    // 음식점 리뷰 목록 페이징 및 정렬 조회
+    public Page<ReviewResponse> getReviewsByStore(
             UUID storeId,
-            ReviewSortType sortType) {
+            ReviewSortType sortType,
+            Pageable pageable) {
 
-        // 전달받은 정렬 조건에 맞는 Sort 객체 생성
+        // 리뷰 정렬 조건 생성
         Sort sort = createReviewSort(sortType);
 
+        // 요청받은 페이지 번호와 크기는 유지하고 정렬 조건만 적용
+        Pageable sortedPageable =
+                PageRequest.of(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        sort);
+
         return reviewRepository
-                .findAllByStoreIdAndDeletedAtIsNull(storeId, sort)
-                .stream()
-                .map(ReviewResponse::toDto)
-                .toList();
+                .findAllByStoreIdAndDeletedAtIsNull(storeId, sortedPageable)
+                .map(ReviewResponse::toDto);
     }
 
     // 로그인한 사용자의 리뷰 목록 최신순 조회
