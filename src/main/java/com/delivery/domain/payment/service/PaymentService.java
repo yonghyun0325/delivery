@@ -1,9 +1,15 @@
 package com.delivery.domain.payment.service;
 
+import com.delivery.domain.order.entity.Order;
+import com.delivery.domain.order.enums.OrderStatus;
+import com.delivery.domain.order.repository.OrderRepository;
 import com.delivery.domain.payment.dto.response.PaymentPageResponse;
 import com.delivery.domain.payment.dto.response.PaymentResponse;
 import com.delivery.domain.payment.entity.Payment;
+import com.delivery.domain.payment.entity.PaymentMethod;
 import com.delivery.domain.payment.entity.PaymentStatus;
+import com.delivery.domain.payment.exception.PaymentErrorCode;
+import com.delivery.domain.payment.exception.PaymentException;
 import com.delivery.domain.payment.repository.PaymentRepository;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
@@ -26,7 +32,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
     private final StoreRepository storeRepository;
+
+    @Transactional
+    public PaymentResponse createPayment(
+            UUID orderId, Long userId, int paymentAmount, PaymentMethod paymentMethod) {
+        if (paymentAmount <= 0) {
+            throw new PaymentException(PaymentErrorCode.INVALID_PAYMENT_AMOUNT);
+        }
+
+        if (paymentRepository.existsByOrderId(orderId)) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ALREADY_EXISTS);
+        }
+
+        Payment payment =
+                paymentRepository.save(
+                        Payment.create(orderId, userId, paymentMethod, paymentAmount));
+        return PaymentResponse.from(payment);
+    }
 
     public PaymentResponse getPayment(UUID paymentId, CustomUserDetails userDetail) {
         Payment payment = getPaymentOrThrow(paymentId);
@@ -38,7 +62,7 @@ public class PaymentService {
             CustomUserDetails userDetail, int page, int size, PaymentStatus status) {
         validatePageRequest(page, size);
 
-        Pageable pageable = createPageable(page, size);
+        Pageable pageable = createPageable(page, normalizePageSize(size));
         Page<PaymentResponse> payments =
                 (status == null
                                 ? paymentRepository.findByUserId(userDetail.getId(), pageable)
@@ -54,7 +78,7 @@ public class PaymentService {
         validatePageRequest(page, size);
         validateStoreAccess(storeId, userDetail);
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = createPageable(page, normalizePageSize(size));
         Page<PaymentResponse> payments =
                 (status == null
                                 ? paymentRepository.findByStoreId(storeId, pageable)
@@ -70,23 +94,42 @@ public class PaymentService {
             UUID paymentId, String cancelReason, CustomUserDetails userDetail) {
         Payment payment = getPaymentOrThrow(paymentId);
         validateCancelAccess(payment, userDetail);
+        Order order = getOrderOrThrow(payment.getOrderId());
 
         if (payment.isCanceled()) {
-            throw new BusinessException(GlobalErrorCode.BAD_REQUEST);
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ALREADY_CANCELED);
         }
 
+        validateCancelableOrder(order);
         payment.cancel(cancelReason);
+        order.changeStatus(OrderStatus.CUSTOMER_CANCELLED);
         return PaymentResponse.from(payment);
     }
 
     private Payment getPaymentOrThrow(UUID paymentId) {
         return paymentRepository
                 .findById(paymentId)
-                .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
     }
 
     private Pageable createPageable(int page, int size) {
         return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "paidAt"));
+    }
+
+    private Order getOrderOrThrow(UUID orderId) {
+        return orderRepository
+                .findByIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+    }
+
+    private void validateCancelableOrder(Order order) {
+        if (!order.canTransitionTo(OrderStatus.CUSTOMER_CANCELLED)) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ORDER_STATE_INVALID);
+        }
+
+        if (!order.isCancelableByCustomerAtNow()) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_CANCEL_TIME_EXPIRED);
+        }
     }
 
     private void validatePaymentAccess(Payment payment, CustomUserDetails userDetail) {
@@ -104,7 +147,7 @@ public class PaymentService {
             return;
         }
 
-        throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+        throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
     }
 
     private void validateStoreAccess(UUID storeId, CustomUserDetails userDetail) {
@@ -117,7 +160,7 @@ public class PaymentService {
             return;
         }
 
-        throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+        throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
     }
 
     private void validateCancelAccess(Payment payment, CustomUserDetails userDetail) {
@@ -126,37 +169,45 @@ public class PaymentService {
         }
 
         if (hasRole(userDetail, Role.OWNER)) {
-            throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
         }
 
         if (hasRole(userDetail, Role.CUSTOMER) && payment.isOwnedBy(userDetail.getId())) {
             return;
         }
 
-        throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+        throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
     }
 
     private void validateStoreOwnership(UUID storeId, Long userId) {
         Store store =
                 storeRepository
                         .findByStoreIdAndDeletedAtIsNull(storeId)
-                        .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
+                        .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         if (!store.getUserId().equals(userId)) {
-            throw new BusinessException(GlobalErrorCode.FORBIDDEN);
+            throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);
         }
     }
 
     private UUID getStoreIdByPaymentId(UUID paymentId) {
         return paymentRepository
                 .findStoreIdByPaymentId(paymentId)
-                .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
     }
 
     private void validatePageRequest(int page, int size) {
-        if (page < 0 || size < 1) {
+        if (page < 0) {
             throw new BusinessException(GlobalErrorCode.INVALID_PAGE_REQUEST);
         }
+    }
+
+    private int normalizePageSize(int size) {
+        if (size == 10 || size == 30 || size == 50) {
+            return size;
+        }
+
+        return 10;
     }
 
     private boolean hasRole(CustomUserDetails userDetail, Role role) {
