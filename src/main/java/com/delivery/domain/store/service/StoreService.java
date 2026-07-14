@@ -29,7 +29,6 @@ public class StoreService {
     private final ReviewRepository reviewRepository;
     private final MenuService menuService;
 
-    // 가게 등록
     @Transactional
     public StoreResponse createStore(Long userId, StoreRequest request) {
         if (storeRepository.existsByUserIdAndNameAndRegionIdAndDeletedAtIsNull(userId, request.name(), request.regionId())) {
@@ -56,23 +55,20 @@ public class StoreService {
         return StoreResponse.from(storeRepository.save(store));
     }
 
-    // 가게 목록 조회
     public Page<StoreResponse> getStores(UUID categoryId, UUID regionId, String name, Pageable pageable) {
         return storeRepository.searchStores(categoryId, name, pageable)
                 .map(StoreResponse::from);
     }
 
-    // 가게 단건 조회
     public StoreResponse getStore(UUID storeId) {
         Store store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
         return StoreResponse.from(store);
     }
 
-    // 가게 수정
     @Transactional
-    public StoreResponse updateStore(UUID storeId, Long userId, String role, StoreRequest request) {
-        Store store = getStoreWithOwnerCheck(storeId, userId, role);
+    public StoreResponse updateStore(UUID storeId, Long userId, boolean isElevated, StoreRequest request) {
+        Store store = getStoreWithOwnerCheck(storeId, userId, isElevated);
         categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
         regionRepository.findById(request.regionId())
@@ -81,23 +77,20 @@ public class StoreService {
         return StoreResponse.from(store);
     }
 
-    // 영업상태 변경
     @Transactional
-    public StoreResponse updateStoreStatus(UUID storeId, Long userId, String role, Boolean isOpen) {
-        Store store = getStoreWithOwnerCheck(storeId, userId, role);
+    public StoreResponse updateStoreStatus(UUID storeId, Long userId, boolean isElevated, Boolean isOpen) {
+        Store store = getStoreWithOwnerCheck(storeId, userId, isElevated);
         store.updateStatus(isOpen);
         return StoreResponse.from(store);
     }
 
-    // 가게 삭제 (Soft Delete)
     @Transactional
-    public void deleteStore(UUID storeId, Long userId, String role, String deletedBy) {
-        Store store = getStoreWithOwnerCheck(storeId, userId, role);
+    public void deleteStore(UUID storeId, Long userId, boolean isElevated, String deletedBy) {
+        Store store = getStoreWithOwnerCheck(storeId, userId, isElevated);
         menuService.deleteMenusByStoreId(storeId, deletedBy);
         store.delete(deletedBy);
     }
 
-    // 가게 평점 평균
     @Transactional
     public void updateAverageRating(UUID storeId) {
         Store store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
@@ -106,10 +99,10 @@ public class StoreService {
         store.updateAverageRating(average);
     }
 
-    private Store getStoreWithOwnerCheck(UUID storeId, Long userId, String role) {
+    private Store getStoreWithOwnerCheck(UUID storeId, Long userId, boolean isElevated) {
         Store store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
-        if (role.equals("ROLE_OWNER") && !store.getUserId().equals(userId)) {
+        if (!isElevated && !store.getUserId().equals(userId)) {
             throw new StoreException(StoreErrorCode.STORE_ACCESS_DENIED);
         }
         return store;
