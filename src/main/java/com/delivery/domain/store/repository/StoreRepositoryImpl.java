@@ -30,6 +30,7 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
                         categoryIdEq(categoryId),
                         nameContains(name)
                 )
+                .orderBy(store.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
