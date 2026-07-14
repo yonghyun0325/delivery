@@ -6,7 +6,6 @@ import java.util.UUID;
 
 public record StoreResponse(
         UUID storeId,
-        Long userId,
         UUID categoryId,
         UUID regionId,
         String name,
@@ -21,7 +20,6 @@ public record StoreResponse(
     public static StoreResponse from(Store store) {
         return new StoreResponse(
                 store.getStoreId(),
-                store.getUserId(),
                 store.getCategoryId(),
                 store.getRegionId(),
                 store.getName(),

@@ -31,14 +31,14 @@ public class ReviewReply extends BaseEntity {
 
     // 답글 작성한 사장님 ID
     @Column(name = "owner_id", nullable = false)
-    private UUID ownerId;
+    private Long ownerId;
 
     // 답글 상태
     @Column(nullable = false, length = 20)
     private String status;
 
     // 답글 생성
-    public ReviewReply(Review review, String content, UUID ownerId) {
+    public ReviewReply(Review review, String content, Long ownerId) {
         this.review = review;
         this.content = content;
         this.ownerId = ownerId;

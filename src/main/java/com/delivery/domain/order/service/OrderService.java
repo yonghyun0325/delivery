@@ -1,8 +1,6 @@
 package com.delivery.domain.order.service;
 
 import com.delivery.domain.menu.dto.response.MenuSnapshot;
-import com.delivery.domain.menu.entity.MenuEntity;
-import com.delivery.domain.menu.repository.MenuRepository;
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.order.dto.request.OrderCreateRequest;
 import com.delivery.domain.order.dto.request.OrderItemCreateRequest;
@@ -15,6 +13,8 @@ import com.delivery.domain.order.entity.OrderItem;
 import com.delivery.domain.order.exception.OrderErrorCode;
 import com.delivery.domain.order.enums.OrderStatus;
 import com.delivery.domain.order.repository.OrderRepository;
+import com.delivery.domain.payment.entity.PaymentMethod;
+import com.delivery.domain.payment.service.PaymentService;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
 import com.delivery.domain.order.exception.OrderException;
@@ -44,6 +44,8 @@ public class OrderService {
     private final StoreRepository storeRepository;
 
     private final MenuService menuService;
+
+    private final PaymentService paymentService;
 
     // 고객 주문 생성
     @Transactional
@@ -102,6 +104,13 @@ public class OrderService {
         // 주문 저장
         // Order에 Cascade 설정이 있어 OrderItem도 함께 저장됨
         Order savedOrder = orderRepository.save(order);
+
+        paymentService.createPayment(
+                savedOrder.getId(),
+                currentUserId,
+                savedOrder.getTotalPrice(),
+                PaymentMethod.CARD
+        );
 
         // 저장된 주문 엔티티를 응답 DTO로 변환
         return OrderCreateResponse.from(savedOrder);

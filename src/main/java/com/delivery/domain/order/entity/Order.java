@@ -83,4 +83,28 @@ public class Order extends BaseEntity {
             this.cancelledAt = LocalDateTime.now();
         }
     }
+
+    public boolean canTransitionTo(OrderStatus nextStatus) {
+        if (this.status == OrderStatus.COMPLETED
+                || this.status == OrderStatus.REJECTED
+                || this.status == OrderStatus.CUSTOMER_CANCELLED) {
+            return false;
+        }
+
+        return switch (this.status) {
+            case REQUESTED ->
+                    nextStatus == OrderStatus.ACCEPTED
+                            || nextStatus == OrderStatus.REJECTED
+                            || nextStatus == OrderStatus.CUSTOMER_CANCELLED;
+            case ACCEPTED -> nextStatus == OrderStatus.COOKING;
+            case COOKING -> nextStatus == OrderStatus.DELIVERING;
+            case DELIVERING -> nextStatus == OrderStatus.DELIVERED;
+            case DELIVERED -> nextStatus == OrderStatus.COMPLETED;
+            default -> false;
+        };
+    }
+
+    public boolean isCancelableByCustomerAtNow() {
+        return !LocalDateTime.now().isAfter(this.getCreatedAt().plusMinutes(5));
+    }
 }

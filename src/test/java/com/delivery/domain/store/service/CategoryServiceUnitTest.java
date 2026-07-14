@@ -8,6 +8,7 @@ import com.delivery.domain.store.dto.request.CategoryRequest;
 import com.delivery.domain.store.entity.Category;
 import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.CategoryRepository;
+import com.delivery.domain.store.repository.StoreRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CategoryServiceUnitTest {
 
     @Mock private CategoryRepository categoryRepository;
+    @Mock private StoreRepository storeRepository;
     @InjectMocks private CategoryService categoryService;
 
     @Nested
@@ -68,7 +70,8 @@ class CategoryServiceUnitTest {
 
             when(categoryRepository.findByCategoryIdAndDeletedAtIsNull(categoryId))
                     .thenReturn(Optional.of(category));
-            when(categoryRepository.existsByNameAndDeletedAtIsNull("중식")).thenReturn(true);
+            when(categoryRepository.existsByNameAndDeletedAtIsNullAndCategoryIdNot("중식", categoryId))
+                    .thenReturn(true);
 
             assertThatThrownBy(() -> categoryService.updateCategory(categoryId, request))
                     .isInstanceOf(StoreException.class)

@@ -1,5 +1,19 @@
 package com.delivery.domain.order.service;
 
+import com.delivery.domain.menu.service.MenuService;
+import com.delivery.domain.order.dto.response.OrderDetailResponse;
+import com.delivery.domain.order.dto.response.OrderListResponse;
+import com.delivery.domain.order.dto.response.OrderStatusResponse;
+import com.delivery.domain.order.entity.Order;
+import com.delivery.domain.order.enums.OrderStatus;
+import com.delivery.domain.order.repository.OrderRepository;
+import com.delivery.domain.payment.service.PaymentService;
+import com.delivery.domain.store.entity.Store;
+import com.delivery.domain.store.repository.StoreRepository;
+import com.delivery.global.exception.BusinessException;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -8,20 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-
-import com.delivery.domain.menu.repository.MenuRepository;
-import com.delivery.domain.order.dto.response.OrderDetailResponse;
-import com.delivery.domain.order.dto.response.OrderListResponse;
-import com.delivery.domain.order.dto.response.OrderStatusResponse;
-import com.delivery.domain.order.entity.Order;
-import com.delivery.domain.order.enums.OrderStatus;
-import com.delivery.domain.order.repository.OrderRepository;
-import com.delivery.domain.store.entity.Store;
-import com.delivery.domain.store.repository.StoreRepository;
-import com.delivery.global.exception.BusinessException;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,7 +41,9 @@ class OrderServiceTest {
 
     @Mock private StoreRepository storeRepository;
 
-    @Mock private MenuRepository menuRepository;
+    @Mock private MenuService menuService;
+
+    @Mock private PaymentService paymentService;
 
     @InjectMocks private OrderService orderService;
 

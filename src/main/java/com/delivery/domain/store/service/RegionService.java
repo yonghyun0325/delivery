@@ -3,9 +3,10 @@ package com.delivery.domain.store.service;
 import com.delivery.domain.store.dto.request.RegionRequest;
 import com.delivery.domain.store.dto.response.RegionResponse;
 import com.delivery.domain.store.entity.Region;
+import com.delivery.domain.store.repository.RegionRepository;
 import com.delivery.domain.store.exception.StoreErrorCode;
 import com.delivery.domain.store.exception.StoreException;
-import com.delivery.domain.store.repository.RegionRepository;
+import com.delivery.domain.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class RegionService {
 
     private final RegionRepository regionRepository;
+    private final StoreRepository storeRepository;
 
     @Transactional
     public RegionResponse createRegion(RegionRequest request) {
@@ -27,28 +29,30 @@ public class RegionService {
             throw new StoreException(StoreErrorCode.DUPLICATE_REGION);
         }
 
-        Region region =
-                Region.builder()
-                        .name(request.name())
-                        .latitude(request.latitude())
-                        .longitude(request.longitude())
-                        .build();
+        Region region = Region.builder()
+                .name(request.name())
+                .latitude(request.latitude())
+                .longitude(request.longitude())
+                .build();
 
         return RegionResponse.from(regionRepository.save(region));
     }
 
     public List<RegionResponse> getRegions() {
-        return regionRepository.findAllByDeletedAtIsNull().stream()
+        return regionRepository.findAllByDeletedAtIsNull()
+                .stream()
                 .map(RegionResponse::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public RegionResponse updateRegion(UUID regionId, RegionRequest request) {
-        Region region =
-                regionRepository
-                        .findByRegionIdAndDeletedAtIsNull(regionId)
-                        .orElseThrow(() -> new StoreException(StoreErrorCode.REGION_NOT_FOUND));
+        Region region = regionRepository.findByRegionIdAndDeletedAtIsNull(regionId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.REGION_NOT_FOUND));
+
+        if (regionRepository.existsByNameAndDeletedAtIsNullAndRegionIdNot(request.name(), regionId)) {
+            throw new StoreException(StoreErrorCode.DUPLICATE_REGION);
+        }
 
         region.update(request.name(), request.latitude(), request.longitude());
         return RegionResponse.from(region);
@@ -56,11 +60,12 @@ public class RegionService {
 
     @Transactional
     public void deleteRegion(UUID regionId, String deletedBy) {
-        Region region =
-                regionRepository
-                        .findByRegionIdAndDeletedAtIsNull(regionId)
-                        .orElseThrow(() -> new StoreException(StoreErrorCode.REGION_NOT_FOUND));
+        Region region = regionRepository.findByRegionIdAndDeletedAtIsNull(regionId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.REGION_NOT_FOUND));
 
+        if (storeRepository.existsByRegionIdAndDeletedAtIsNull(regionId)) {
+            throw new StoreException(StoreErrorCode.REGION_IN_USE);
+        }
         region.delete(deletedBy);
     }
 }
