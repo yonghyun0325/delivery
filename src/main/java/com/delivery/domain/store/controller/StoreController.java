@@ -7,6 +7,8 @@ import com.delivery.domain.store.dto.response.StoreResponse;
 import com.delivery.domain.store.service.StoreService;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.global.security.config.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "가게", description = "가게 CRUD API")
 @RestController
 @RequestMapping("/api/v1/stores")
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class StoreController {
 
     private final StoreService storeService;
 
+    @Operation(summary = "가게 등록", description = "가게를 등록합니다.")
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping
     public ResponseEntity<RestApiResponse<StoreResponse>> createStore(
@@ -37,6 +41,7 @@ public class StoreController {
                 .body(RestApiResponse.success(HttpStatus.CREATED, "가게 등록 성공", response));
     }
 
+    @Operation(summary = "가게 목록 조회", description = "가게 목록을 검색 조건으로 조회합니다.")
     @GetMapping
     public ResponseEntity<RestApiResponse<Page<StoreResponse>>> getStores(
             @RequestParam(required = false) UUID categoryId,
@@ -47,12 +52,14 @@ public class StoreController {
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "조회 성공", response));
     }
 
+    @Operation(summary = "가게 단건 조회", description = "가게 상세 정보를 조회합니다.")
     @GetMapping("/{storeId}")
     public ResponseEntity<RestApiResponse<StoreResponse>> getStore(@PathVariable UUID storeId) {
         StoreResponse response = storeService.getStore(storeId);
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "조회 성공", response));
     }
 
+    @Operation(summary = "가게 수정", description = "가게 정보를 수정합니다.")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PutMapping("/{storeId}")
     public ResponseEntity<RestApiResponse<StoreResponse>> updateStore(
@@ -63,6 +70,7 @@ public class StoreController {
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "가게 수정 성공", response));
     }
 
+    @Operation(summary = "영업 상태 변경", description = "가게의 영업 상태를 변경합니다.")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @PatchMapping("/{storeId}/status")
     public ResponseEntity<RestApiResponse<StoreResponse>> updateStoreStatus(
@@ -73,6 +81,7 @@ public class StoreController {
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "영업상태 변경 성공", response));
     }
 
+    @Operation(summary = "가게 삭제", description = "가게를 소프트 삭제 처리합니다.")
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @DeleteMapping("/{storeId}")
     public ResponseEntity<RestApiResponse<Void>> deleteStore(

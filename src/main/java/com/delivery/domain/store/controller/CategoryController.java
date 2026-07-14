@@ -5,18 +5,20 @@ import com.delivery.domain.store.dto.request.CategoryRequest;
 import com.delivery.domain.store.dto.response.CategoryResponse;
 import com.delivery.domain.store.service.CategoryService;
 import com.delivery.global.security.config.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "카테고리", description = "카테고리 CRUD API")
 @RestController
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @Operation(summary = "카테고리 등록", description = "카테고리를 등록합니다.")
     @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
     @PostMapping
     public ResponseEntity<RestApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CategoryRequest request) {
@@ -32,12 +35,14 @@ public class CategoryController {
                 .body(RestApiResponse.success(HttpStatus.CREATED, "카테고리 등록 성공", response));
     }
 
+    @Operation(summary = "카테고리 목록 조회", description = "전체 카테고리 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<RestApiResponse<List<CategoryResponse>>> getCategories() {
         List<CategoryResponse> response = categoryService.getCategories();
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "조회 성공", response));
     }
 
+    @Operation(summary = "카테고리 수정", description = "카테고리 정보를 수정합니다.")
     @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
     @PutMapping("/{categoryId}")
     public ResponseEntity<RestApiResponse<CategoryResponse>> updateCategory(
@@ -47,6 +52,7 @@ public class CategoryController {
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "카테고리 수정 성공", response));
     }
 
+    @Operation(summary = "카테고리 삭제", description = "카테고리를 소프트 삭제 처리합니다.")
     @PreAuthorize("hasAnyRole('MANAGER', 'MASTER')")
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<RestApiResponse<Void>> deleteCategory(
