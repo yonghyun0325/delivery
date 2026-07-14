@@ -11,21 +11,21 @@ public record StoreRequest(
         UUID regionId,
 
         @NotBlank(message = "REQUIRED_VALUE")
-        @Size(min = 1, max = 50, message = "가게 이름은 1~50자 이내여야 합니다.")
+        @Size(min = 1, max = 50, message = "INVALID_STORE_NAME")
         String name,
 
         @NotBlank(message = "REQUIRED_VALUE")
-        @Size(max = 255, message = "주소는 255자 이내여야 합니다.")
+        @Size(max = 255, message = "INVALID_ADDRESS")
         String address,
 
         @NotBlank(message = "REQUIRED_VALUE")
-        @Size(max = 20, message = "전화번호는 20자 이내여야 합니다.")
+        @Size(max = 20, message = "INVALID_PHONE")
         String phone,
 
-        @Size(max = 500, message = "설명은 500자 이내여야 합니다.")
+        @Size(max = 500, message = "INVALID_DESCRIPTION")
         String description,
 
         @NotNull(message = "REQUIRED_VALUE")
-        @Min(value = 0, message = "최소 주문 금액은 0 이상이어야 합니다.")
+        @Min(value = 0, message = "INVALID_MIN_ORDER_AMOUNT")
         Integer minOrderAmount
 ) {}
