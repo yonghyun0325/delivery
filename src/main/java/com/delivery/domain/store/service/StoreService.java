@@ -2,6 +2,7 @@ package com.delivery.domain.store.service;
 
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.review.repository.ReviewRepository;
+import com.delivery.domain.review.service.ReviewService;
 import com.delivery.domain.store.dto.request.StoreRequest;
 import com.delivery.domain.store.dto.response.StoreResponse;
 import com.delivery.domain.store.entity.Store;
@@ -28,6 +29,7 @@ public class StoreService {
     private final RegionRepository regionRepository;
     private final ReviewRepository reviewRepository;
     private final MenuService menuService;
+    private final ReviewService reviewService;
 
     @Transactional
     public StoreResponse createStore(Long userId, StoreRequest request) {
@@ -88,6 +90,7 @@ public class StoreService {
     public void deleteStore(UUID storeId, Long userId, boolean isElevated, String deletedBy) {
         Store store = getStoreWithOwnerCheck(storeId, userId, isElevated);
         menuService.deleteMenusByStoreId(storeId, deletedBy);
+        reviewService.deleteReviewsByStoreId(storeId, deletedBy);
         store.delete(deletedBy);
     }
 
