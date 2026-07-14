@@ -10,12 +10,16 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "p_review")
+@Table(
+        name = "p_review",
+        uniqueConstraints = {
+            @UniqueConstraint(name = "uk_review_order_id", columnNames = "order_id")
+        })
 public class Review extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "review_id")
+    @Column(name = "review_id", nullable = false)
     private UUID id;
 
     @Column(name = "order_id", nullable = false)
