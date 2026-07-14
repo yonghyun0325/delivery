@@ -21,8 +21,7 @@ public class AiService {
     private static final int PROMPT_MAX_LENGTH = 200;
     private static final String CONCISE_SUFFIX = " 답변을 최대한 간결하게 50자 이하로 메뉴 설명을 작성해줘.";
     private static final String REVIEW_SUMMARY_PREFIX =
-            "다음은 한 가게에 대한 고객 리뷰 목록이다. 공통적으로 언급되는 맛, 서비스, 특징을 중심으로"
-                    + " 3문장 이내로 요약해줘.\n\n";
+            "다음은 한 가게에 대한 고객 리뷰 목록이다. 공통적으로 언급되는 맛, 서비스, 특징을 중심으로" + " 3문장 이내로 요약해줘.\n\n";
 
     private final GeminiClient geminiClient;
     private final AiLogService aiLogService;
@@ -63,7 +62,8 @@ public class AiService {
 
         try {
             String response = geminiClient.generateContentForBatch(prompt);
-            aiLogService.saveLog(AiRequestType.REVIEW_SUMMARY, storeId, prompt, response, true, null);
+            aiLogService.saveLog(
+                    AiRequestType.REVIEW_SUMMARY, storeId, prompt, response, true, null);
             return response;
         } catch (RestClientException | GeminiResponseException e) {
             log.error("Gemini 호출 실패: {}", e.getMessage(), e);

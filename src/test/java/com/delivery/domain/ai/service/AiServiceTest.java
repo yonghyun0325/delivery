@@ -121,8 +121,7 @@ class AiServiceTest {
         @DisplayName("성공하면 응답을 반환하고 REVIEW_SUMMARY 성공 로그를 storeId와 함께 저장한다")
         void summarizeStoreReviews_returnsResponse_andLogsSuccess() {
             UUID storeId = UUID.randomUUID();
-            given(geminiClient.generateContentForBatch(any()))
-                    .willReturn("전반적으로 맛있다는 평가가 많습니다.");
+            given(geminiClient.generateContentForBatch(any())).willReturn("전반적으로 맛있다는 평가가 많습니다.");
 
             String result =
                     aiService.summarizeStoreReviews(storeId, List.of("맛있어요", "재주문 의사 있습니다"));

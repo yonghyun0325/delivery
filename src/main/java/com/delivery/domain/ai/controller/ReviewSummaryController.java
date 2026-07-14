@@ -28,6 +28,8 @@ public class ReviewSummaryController {
             @PathVariable UUID storeId) {
         return ResponseEntity.ok(
                 RestApiResponse.success(
-                        HttpStatus.OK, "리뷰 요약 조회에 성공했습니다.", reviewSummaryService.getSummary(storeId)));
+                        HttpStatus.OK,
+                        "리뷰 요약 조회에 성공했습니다.",
+                        reviewSummaryService.getSummary(storeId)));
     }
 }

@@ -7,11 +7,13 @@ public record ReviewSummaryResponse(
         ReviewSummaryStatus status, String summary, LocalDateTime generatedAt, long reviewCount) {
 
     public static ReviewSummaryResponse notEnoughReviews(long reviewCount) {
-        return new ReviewSummaryResponse(ReviewSummaryStatus.NOT_ENOUGH_REVIEWS, null, null, reviewCount);
+        return new ReviewSummaryResponse(
+                ReviewSummaryStatus.NOT_ENOUGH_REVIEWS, null, null, reviewCount);
     }
 
     public static ReviewSummaryResponse pendingGeneration(long reviewCount) {
-        return new ReviewSummaryResponse(ReviewSummaryStatus.PENDING_GENERATION, null, null, reviewCount);
+        return new ReviewSummaryResponse(
+                ReviewSummaryStatus.PENDING_GENERATION, null, null, reviewCount);
     }
 
     // reviewCount는 현재 라이브 리뷰 개수가 아니라 이 요약이 실제로 반영한(생성 시점) 개수 -

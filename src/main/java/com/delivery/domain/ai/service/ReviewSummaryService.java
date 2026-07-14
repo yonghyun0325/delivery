@@ -58,7 +58,8 @@ public class ReviewSummaryService {
 
         long currentCount = reviewService.countReviewsByStore(storeId);
 
-        StoreReviewSummaryEntity existing = storeReviewSummaryRepository.findById(storeId).orElse(null);
+        StoreReviewSummaryEntity existing =
+                storeReviewSummaryRepository.findById(storeId).orElse(null);
         if (existing != null && existing.getReviewCountAtGeneration() == currentCount) {
             return;
         }

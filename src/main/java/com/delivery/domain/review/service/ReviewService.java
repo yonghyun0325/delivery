@@ -82,7 +82,9 @@ public class ReviewService {
     // 가게 리뷰 내용 목록 - AI 요약 프롬프트 구성에 사용. 리뷰가 아무리 쌓여도 프롬프트 크기가
     // 고정되도록 최신순 상위 N개만 반환(비용/응답속도/요약 품질 목적 - Gemini 토큰 한도 때문은 아님)
     public List<String> getReviewContentsByStore(UUID storeId) {
-        return reviewRepository.findTop50ByStoreIdAndDeletedAtIsNullOrderByCreatedAtDesc(storeId).stream()
+        return reviewRepository
+                .findTop50ByStoreIdAndDeletedAtIsNullOrderByCreatedAtDesc(storeId)
+                .stream()
                 .map(Review::getContent)
                 .toList();
     }

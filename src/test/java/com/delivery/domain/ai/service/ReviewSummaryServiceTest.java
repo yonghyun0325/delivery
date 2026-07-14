@@ -131,7 +131,8 @@ class ReviewSummaryServiceTest {
         @DisplayName("마지막 생성 이후 새 리뷰가 없으면 Gemini를 호출하지 않고 스킵한다")
         void regenerateIfStale_skips_whenReviewCountUnchanged() {
             UUID storeId = UUID.randomUUID();
-            StoreReviewSummaryEntity existing = StoreReviewSummaryEntity.create(storeId, "기존 요약", 10L);
+            StoreReviewSummaryEntity existing =
+                    StoreReviewSummaryEntity.create(storeId, "기존 요약", 10L);
             given(storeService.existsActiveStore(storeId)).willReturn(true);
             given(reviewService.countReviewsByStore(storeId)).willReturn(10L);
             given(storeReviewSummaryRepository.findById(storeId)).willReturn(Optional.of(existing));
@@ -146,7 +147,8 @@ class ReviewSummaryServiceTest {
         @DisplayName("새 리뷰가 늘었으면 기존 캐시를 갱신한다")
         void regenerateIfStale_updatesExisting_whenReviewCountIncreased() {
             UUID storeId = UUID.randomUUID();
-            StoreReviewSummaryEntity existing = StoreReviewSummaryEntity.create(storeId, "기존 요약", 10L);
+            StoreReviewSummaryEntity existing =
+                    StoreReviewSummaryEntity.create(storeId, "기존 요약", 10L);
             given(storeService.existsActiveStore(storeId)).willReturn(true);
             given(reviewService.countReviewsByStore(storeId)).willReturn(11L);
             given(storeReviewSummaryRepository.findById(storeId)).willReturn(Optional.of(existing));
