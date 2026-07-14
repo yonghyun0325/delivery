@@ -39,7 +39,7 @@ public interface UserAdminApi {
         @ApiResponse(responseCode = "404", description = "존재하지 않는 회원입니다."),
         @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    @GetMapping("/{userId}") // TODO : 조건 좀 생각해볼 것, pageble 커스텀?
+    @GetMapping("/{userId}")
     public ResponseEntity<RestApiResponse<PageResponse<UserAdminListResponse>>> getAllUserInfo(
             @ModelAttribute UserSearchRequest request, @ModelAttribute Pageable pageable);
 

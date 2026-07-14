@@ -14,7 +14,10 @@ public class UserSpecification {
      * @return
      */
     public static Specification<User> equalRole(Role role) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("role"), role);
+        return (root, query, criteriaBuilder) -> {
+            if (role == null) return null;
+            return criteriaBuilder.isMember(role, root.get("roles"));
+        };
     }
 
     /**

@@ -3,15 +3,16 @@ package com.delivery.domain.store.service;
 import com.delivery.domain.store.dto.request.CategoryRequest;
 import com.delivery.domain.store.dto.response.CategoryResponse;
 import com.delivery.domain.store.entity.Category;
+import com.delivery.domain.store.exception.StoreErrorCode;
+import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.CategoryRepository;
-import com.delivery.global.exception.StoreErrorCode;
-import com.delivery.global.exception.StoreException;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

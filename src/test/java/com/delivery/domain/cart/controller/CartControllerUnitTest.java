@@ -1,7 +1,6 @@
 package com.delivery.domain.cart.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -129,7 +128,7 @@ class CartControllerUnitTest {
 
         doThrow(new BusinessException(GlobalErrorCode.FORBIDDEN))
                 .when(cartService)
-                .deleteCartItem(isNull(), eq(cartItemId));
+                .deleteCartItem(any(), eq(cartItemId));
 
         mockMvc.perform(delete("/api/v1/carts/items/{cartItemId}", cartItemId))
                 .andExpect(status().isForbidden())
