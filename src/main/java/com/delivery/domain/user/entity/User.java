@@ -25,7 +25,7 @@ public class User extends BaseEntity {
     // TODO : 추후 User 테이블 명세서 Erd 수정해야함
     @Id
     @Column(name = "user_id")
-    @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq", allocationSize = 50)
+    @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq_gen")
     private Long id;
 

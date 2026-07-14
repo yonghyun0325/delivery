@@ -21,8 +21,7 @@ public class ReviewReplyController {
     // 사장님 리뷰 답글 등록
     @PostMapping
     public ResponseEntity<RestApiResponse<ReviewReplyResponse>> createReply(
-            @PathVariable UUID reviewId,
-            @Valid @RequestBody ReviewReplyRequest request) {
+            @PathVariable UUID reviewId, @Valid @RequestBody ReviewReplyRequest request) {
 
         // TODO: Security 적용 후 로그인 사용자 ID로 교체 예정
         UUID ownerId = UUID.randomUUID();
@@ -60,8 +59,7 @@ public class ReviewReplyController {
     // 사장님 리뷰 답글 삭제
     @DeleteMapping("/{replyId}")
     public ResponseEntity<RestApiResponse<Void>> deleteReply(
-            @PathVariable UUID reviewId,
-            @PathVariable UUID replyId) {
+            @PathVariable UUID reviewId, @PathVariable UUID replyId) {
 
         // TODO: Security 적용 후 로그인 사용자 username으로 교체 예정
         String deletedBy = "owner";

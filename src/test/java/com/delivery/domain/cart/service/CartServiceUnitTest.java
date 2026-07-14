@@ -284,9 +284,7 @@ class CartServiceUnitTest {
                     .thenReturn(Optional.of(cartItem));
 
             assertThatThrownBy(
-                            () ->
-                                    cartService.deleteCartItem(
-                                            userDetails, cartItem.getCartItemId()))
+                            () -> cartService.deleteCartItem(userDetails, cartItem.getCartItemId()))
                     .isInstanceOf(BusinessException.class);
         }
 

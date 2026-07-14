@@ -2,6 +2,7 @@ package com.delivery.domain.user.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.delivery.config.AbstractIntegrationTest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.request.UpdateNickNameRequest;
 import com.delivery.domain.user.dto.request.UpdatePhoneNumberRequest;
@@ -12,7 +13,6 @@ import com.delivery.domain.user.entity.UserStatus;
 import com.delivery.domain.user.fixture.UserFixture;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.config.JwtProperties;
-import com.delivery.testconfig.AbstractIntegrationTest;
 import jakarta.persistence.EntityManager;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;

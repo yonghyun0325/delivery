@@ -1,9 +1,10 @@
-package com.delivery.testconfig;
+package com.delivery.config;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+// @Testcontainers
 public abstract class AbstractIntegrationTest {
 
     static PostgreSQLContainer<?> postgres =

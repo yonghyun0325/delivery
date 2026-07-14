@@ -1,11 +1,10 @@
 package com.delivery.domain.reviewreply.dto.response;
 
 import com.delivery.domain.reviewreply.entity.ReviewReply;
-import lombok.Builder;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder

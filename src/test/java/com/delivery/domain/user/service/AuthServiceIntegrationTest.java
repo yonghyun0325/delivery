@@ -2,6 +2,7 @@ package com.delivery.domain.user.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.delivery.config.AbstractIntegrationTest;
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.response.AuthResponse;
@@ -9,7 +10,6 @@ import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.entity.UserStatus;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.testconfig.AbstractIntegrationTest;
 import com.delivery.testutil.ConcurrencyTestingUtil;
 import java.util.HashSet;
 import java.util.Set;
@@ -53,6 +53,7 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(passwordEncoder.matches("testtest1234!", savedUser.getPassword())).isTrue();
         assertThat(savedUser.getNickName()).isEqualTo(response.nickName());
         assertThat(response.accessToken()).isNotBlank();
+        assertThat(response.refreshToken()).isNotBlank();
     }
 
     @Test
@@ -111,5 +112,6 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(loginResponse.username()).isEqualTo(savedUser.getUsername());
         assertThat(loginResponse.nickName()).isEqualTo(savedUser.getNickName());
         assertThat(loginResponse.accessToken()).isNotBlank();
+        assertThat(loginResponse.refreshToken()).isNotBlank();
     }
 }

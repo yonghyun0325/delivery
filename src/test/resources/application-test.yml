@@ -1,6 +1,6 @@
 jwt:
   access-secret: dGVzdHRlc3R0ZXN0dGVzdHRlc3R0ZXN0dGVzdHRlc3Q
-  refresh-secret: dGVzdHRlc3R0ZXN0dGVzdHRlc3R0ZXN0dGVzdHRlc3Q
+  refresh-secret: rEvezUuhxfKbs6PZzg13mv9ooenenx8ComFf99A69tw=
 
 encrypt:
   key: testtest

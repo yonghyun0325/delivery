@@ -9,15 +9,17 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.delivery.config.WithMockCustomUser;
 import com.delivery.domain.user.dto.request.CreateAddressRequest;
 import com.delivery.domain.user.dto.request.UpdateAddressRequest;
 import com.delivery.domain.user.dto.response.AddressResponse;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.service.AddressService;
+import com.delivery.global.cache.BlackListRepository;
+import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.jwt.JwtUtil;
-import com.delivery.testconfig.WithMockCustomUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -37,6 +39,7 @@ class AddressControllerUnitTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
 
+    @MockitoBean private RefreshTokenRepository refreshTokenRepository;
     @MockitoBean private AddressService addressService;
     @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean ErrorCodeRegistry errorCodeRegistry;

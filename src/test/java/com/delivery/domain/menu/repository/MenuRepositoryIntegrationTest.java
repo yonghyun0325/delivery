@@ -5,11 +5,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.delivery.common.util.CryptoConverter;
 import com.delivery.common.util.SsnEncryptor;
+import com.delivery.config.AbstractIntegrationTest;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.global.config.CustomAuditorAware;
 import com.delivery.global.config.EncryptConfig;
 import com.delivery.global.config.JpaAuditingConfig;
-import com.delivery.testconfig.AbstractIntegrationTest;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

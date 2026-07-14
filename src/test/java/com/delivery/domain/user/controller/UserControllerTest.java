@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.delivery.config.WithMockCustomUser;
 import com.delivery.domain.user.dto.request.UpdateNickNameRequest;
 import com.delivery.domain.user.dto.request.UpdatePhoneNumberRequest;
 import com.delivery.domain.user.dto.response.UserResponse;
@@ -18,7 +19,6 @@ import com.delivery.domain.user.service.UserService;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.jwt.JwtRequestFilter;
 import com.delivery.global.security.jwt.JwtUtil;
-import com.delivery.testconfig.WithMockCustomUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
 import java.util.stream.Stream;

@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import java.time.LocalDateTime;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,11 +37,11 @@ public abstract class BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @CreatedBy                      // AuditorAware 필요
+    @CreatedBy // AuditorAware 필요
     @Column(name = "created_by", nullable = false, length = 100)
     private String createdBy;
 
-    @LastModifiedBy                 // AuditorAware 필요
+    @LastModifiedBy // AuditorAware 필요
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 

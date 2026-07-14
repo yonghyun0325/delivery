@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.delivery.domain.store.dto.request.CategoryRequest;
 import com.delivery.domain.store.dto.response.CategoryResponse;
 import com.delivery.domain.store.service.CategoryService;
+import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
@@ -42,6 +43,7 @@ class CategoryControllerUnitTest {
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
 
+    @MockitoBean private RefreshTokenRepository refreshTokenRepository;
     @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private CategoryService categoryService;
     @MockitoBean private ErrorCodeRegistry errorCodeRegistry;

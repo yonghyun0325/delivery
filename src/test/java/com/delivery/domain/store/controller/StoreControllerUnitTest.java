@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.delivery.domain.store.dto.request.StoreRequest;
 import com.delivery.domain.store.dto.response.StoreResponse;
 import com.delivery.domain.store.service.StoreService;
+import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
@@ -41,6 +42,7 @@ class StoreControllerUnitTest {
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
 
+    @MockitoBean private RefreshTokenRepository refreshTokenRepository;
     @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private StoreService storeService;
     @MockitoBean private ErrorCodeRegistry errorCodeRegistry;

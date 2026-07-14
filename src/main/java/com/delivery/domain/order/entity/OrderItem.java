@@ -2,22 +2,19 @@ package com.delivery.domain.order.entity;
 
 import com.delivery.common.base.BaseEntity;
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Getter
 @Entity
 @Table(
         name = "p_order_item",
         indexes = {
-                // 주문 상세 조회용
-                @Index(name = "idx_order_item_order_id", columnList = "order_id")
-        }
-)
+            // 주문 상세 조회용
+            @Index(name = "idx_order_item_order_id", columnList = "order_id")
+        })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItem extends BaseEntity {
 
@@ -44,7 +41,6 @@ public class OrderItem extends BaseEntity {
 
     @Column(name = "subtotal_price", nullable = false)
     private Integer subtotalPrice;
-
 
     public OrderItem(UUID menuId, String menuName, Integer menuPrice, Integer quantity) {
         this.menuId = menuId;

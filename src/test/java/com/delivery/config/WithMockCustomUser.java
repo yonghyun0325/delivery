@@ -1,4 +1,4 @@
-package com.delivery.testconfig;
+package com.delivery.config;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

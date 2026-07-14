@@ -44,22 +44,16 @@ public class ReviewController {
             @PathVariable UUID reviewId,
             @Valid @RequestBody ReviewRequest request) {
 
-        return reviewService.updateReview(
-                reviewId,
-                userDetails.getId(),
-                request);
+        return reviewService.updateReview(reviewId, userDetails.getId(), request);
     }
 
     // 작성자 본인만 삭제
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/reviews/{reviewId}")
     public void deleteReview(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable UUID reviewId) {
+            @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable UUID reviewId) {
 
-        reviewService.deleteReview(
-                reviewId,
-                userDetails.getId());
+        reviewService.deleteReview(reviewId, userDetails.getId());
     }
 
     // 음식점 리뷰 목록 조회

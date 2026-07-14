@@ -21,9 +21,7 @@ class ReviewRepositoryTest {
     @DisplayName("리뷰 저장")
     void saveReview() {
         // given
-        Review review =
-                Review.create(
-                        UUID.randomUUID(), 1L, UUID.randomUUID(), 5, "정말 맛있었습니다!");
+        Review review = Review.create(UUID.randomUUID(), 1L, UUID.randomUUID(), 5, "정말 맛있었습니다!");
 
         // when
         Review savedReview = reviewRepository.save(review);
@@ -39,12 +37,7 @@ class ReviewRepositoryTest {
     void findReview() {
         // given
         Review review =
-                Review.create(
-                        UUID.randomUUID(),
-                        1L,
-                        UUID.randomUUID(),
-                        4,
-                        "배송도 빠르고 맛있었습니다.");
+                Review.create(UUID.randomUUID(), 1L, UUID.randomUUID(), 4, "배송도 빠르고 맛있었습니다.");
 
         Review savedReview = reviewRepository.save(review);
 

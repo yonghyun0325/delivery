@@ -83,10 +83,7 @@ public class ReviewService {
 
     // 리뷰 수정
     @Transactional
-    public ReviewResponse updateReview(
-            UUID reviewId,
-            Long loginUserId,
-            ReviewRequest request) {
+    public ReviewResponse updateReview(UUID reviewId, Long loginUserId, ReviewRequest request) {
 
         validateReviewRequest(request);
 
@@ -116,8 +113,7 @@ public class ReviewService {
     // 가게 삭제 시 해당 가게의 리뷰 전체 삭제
     @Transactional
     public void deleteReviewsByStoreId(UUID storeId, String deletedBy) {
-        List<Review> reviews =
-                reviewRepository.findAllByStoreIdAndDeletedAtIsNull(storeId);
+        List<Review> reviews = reviewRepository.findAllByStoreIdAndDeletedAtIsNull(storeId);
 
         reviews.forEach(review -> review.delete(deletedBy));
     }
@@ -138,9 +134,7 @@ public class ReviewService {
 
     // 리뷰 요청 데이터 검증
     private void validateReviewRequest(ReviewRequest request) {
-        if (request.getRating() == null
-                || request.getRating() < 1
-                || request.getRating() > 5) {
+        if (request.getRating() == null || request.getRating() < 1 || request.getRating() > 5) {
             throw new ReviewException(ReviewErrorCode.INVALID_RATING);
         }
 

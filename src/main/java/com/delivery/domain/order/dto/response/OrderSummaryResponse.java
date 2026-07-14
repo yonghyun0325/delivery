@@ -2,7 +2,6 @@ package com.delivery.domain.order.dto.response;
 
 import com.delivery.domain.order.entity.Order;
 import com.delivery.domain.order.enums.OrderStatus;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -14,8 +13,7 @@ public record OrderSummaryResponse(
         UUID storeId,
         OrderStatus status,
         Integer totalPrice,
-        LocalDateTime createdAt
-) {
+        LocalDateTime createdAt) {
 
     public static OrderSummaryResponse from(Order order) {
         return new OrderSummaryResponse(
@@ -24,7 +22,6 @@ public record OrderSummaryResponse(
                 order.getStoreId(),
                 order.getStatus(),
                 order.getTotalPrice(),
-                order.getCreatedAt()
-        );
+                order.getCreatedAt());
     }
 }

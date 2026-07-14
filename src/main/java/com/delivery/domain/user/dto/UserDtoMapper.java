@@ -9,8 +9,8 @@ import lombok.experimental.UtilityClass;
 /** DTO MAPPING 유틸리티 클래스 */
 @UtilityClass
 public class UserDtoMapper {
-    public AuthResponse toAuthResponse(CustomUserDetails user, String accessToken) {
-        return new AuthResponse(user.getUsername(), user.getNickName(), accessToken);
+    public AuthResponse toAuthResponse(CustomUserDetails user, String accessToken, String refreshToken) {
+        return new AuthResponse(user.getUsername(), user.getNickName(), accessToken, refreshToken);
     }
 
     public AddressResponse toAddressResponse(Address address) {

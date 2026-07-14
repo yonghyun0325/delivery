@@ -25,7 +25,8 @@ public class ReviewReplyService {
 
     // 사장님 리뷰 답글 등록
     @Transactional
-    public ReviewReplyResponse createReply(UUID reviewId, ReviewReplyRequest request, UUID ownerId) {
+    public ReviewReplyResponse createReply(
+            UUID reviewId, ReviewReplyRequest request, UUID ownerId) {
         validateReplyRequest(request);
 
         Review review = findReviewById(reviewId);
@@ -47,7 +48,8 @@ public class ReviewReplyService {
 
     // 사장님 리뷰 답글 수정
     @Transactional
-    public ReviewReplyResponse updateReply(UUID reviewId, UUID replyId, ReviewReplyRequest request) {
+    public ReviewReplyResponse updateReply(
+            UUID reviewId, UUID replyId, ReviewReplyRequest request) {
         validateReplyRequest(request);
 
         ReviewReply reply = findReplyById(replyId);
@@ -81,7 +83,9 @@ public class ReviewReplyService {
         return reviewReplyRepository
                 .findByReviewIdAndDeletedAtIsNull(reviewId)
                 .orElseThrow(
-                        () -> new ReviewReplyException(ReviewReplyErrorCode.REVIEW_REPLY_NOT_FOUND));
+                        () ->
+                                new ReviewReplyException(
+                                        ReviewReplyErrorCode.REVIEW_REPLY_NOT_FOUND));
     }
 
     // 답글 ID 기준 답글 조회 공통 메서드
@@ -89,7 +93,9 @@ public class ReviewReplyService {
         return reviewReplyRepository
                 .findByIdAndDeletedAtIsNull(replyId)
                 .orElseThrow(
-                        () -> new ReviewReplyException(ReviewReplyErrorCode.REVIEW_REPLY_NOT_FOUND));
+                        () ->
+                                new ReviewReplyException(
+                                        ReviewReplyErrorCode.REVIEW_REPLY_NOT_FOUND));
     }
 
     // 리뷰에 이미 답글이 있는지 검증

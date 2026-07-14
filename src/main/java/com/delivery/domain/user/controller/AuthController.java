@@ -6,6 +6,7 @@ import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.response.AuthResponse;
 import com.delivery.domain.user.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,5 +37,12 @@ public class AuthController implements AuthApi {
             @Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(
                 RestApiResponse.success(HttpStatus.OK, "로그인 성공", authService.login(request)));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<RestApiResponse<Valid>> logout(HttpServletRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok(
+                RestApiResponse.success(HttpStatus.OK, "로그아웃 성공", null));
     }
 }

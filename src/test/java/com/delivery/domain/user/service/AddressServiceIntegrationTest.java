@@ -3,6 +3,7 @@ package com.delivery.domain.user.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import com.delivery.config.AbstractIntegrationTest;
 import com.delivery.domain.user.dto.request.CreateAddressRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.request.UpdateAddressRequest;
@@ -15,7 +16,6 @@ import com.delivery.domain.user.fixture.AddressFixture;
 import com.delivery.domain.user.fixture.UserFixture;
 import com.delivery.domain.user.repository.AddressRepository;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.testconfig.AbstractIntegrationTest;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

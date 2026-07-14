@@ -1,4 +1,4 @@
-package com.delivery.testconfig;
+package com.delivery.config;
 
 import com.delivery.global.security.config.CustomUserDetails;
 import java.util.List;

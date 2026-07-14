@@ -1,20 +1,20 @@
-//package com.delivery.domain.review.service;
+// package com.delivery.domain.review.service;
 //
-//import static org.assertj.core.api.Assertions.assertThat;
+// import static org.assertj.core.api.Assertions.assertThat;
 //
-//import com.delivery.domain.review.dto.request.ReviewRequest;
-//import com.delivery.domain.review.dto.response.ReviewResponse;
-//import com.delivery.domain.review.repository.ReviewRepository;
-//import java.util.UUID;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.transaction.annotation.Transactional;
+// import com.delivery.domain.review.dto.request.ReviewRequest;
+// import com.delivery.domain.review.dto.response.ReviewResponse;
+// import com.delivery.domain.review.repository.ReviewRepository;
+// import java.util.UUID;
+// import org.junit.jupiter.api.DisplayName;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.boot.test.context.SpringBootTest;
+// import org.springframework.transaction.annotation.Transactional;
 //
-//@Transactional
-//@SpringBootTest
-//class ReviewServiceTest {
+// @Transactional
+// @SpringBootTest
+// class ReviewServiceTest {
 //
 //    @Autowired private ReviewService reviewService;
 //
@@ -37,4 +37,4 @@
 //        assertThat(response.getContent()).isEqualTo("정말 맛있었습니다!");
 //        assertThat(reviewRepository.count()).isEqualTo(1);
 //    }
-//}
+// }

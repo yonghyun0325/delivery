@@ -1,9 +1,11 @@
 package com.delivery.global.exception;
 
 import com.delivery.common.RestApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,17 +63,19 @@ public class GlobalExceptionHandler {
         return buildResponseEntity(errorCode);
     }
 
-    private ResponseEntity<RestApiResponse<?>> buildResponseEntity(ErrorCode errorCode) {
-        return ResponseEntity.status(errorCode.getHttpStatus())
-                .body(
-                        RestApiResponse.fail(
-                                errorCode.getHttpStatus(),
-                                errorCode.getMessage(),
-                                errorCode.getName()));
-    }
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<RestApiResponse<?>> handleAuthorizationDeniedException(
+            AuthorizationDeniedException e, HttpServletRequest request) {
+        ErrorCode errorCode = GlobalErrorCode.FORBIDDEN;
 
-    // TODO : HttpMessageNotReadableException 에러 처리
-    // TODO : InsufficientAuthenticationException 에러 처리
+        log.warn(
+                "ErrorCode : {}, ErrorMessage : {}",
+                errorCode.getName(),
+                errorCode.getMessage(),
+                e);
+
+        return buildResponseEntity(errorCode);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestApiResponse<?>> handleException(Exception e) {
@@ -83,5 +87,17 @@ public class GlobalExceptionHandler {
                 e);
 
         return buildResponseEntity(errorCode);
+    }
+
+    // TODO : HttpMessageNotReadableException 에러 처리
+    // TODO : InsufficientAuthenticationException 에러 처리
+
+    private ResponseEntity<RestApiResponse<?>> buildResponseEntity(ErrorCode errorCode) {
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(
+                        RestApiResponse.fail(
+                                errorCode.getHttpStatus(),
+                                errorCode.getMessage(),
+                                errorCode.getName()));
     }
 }

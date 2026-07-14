@@ -2,7 +2,6 @@ package com.delivery.domain.order.dto.response;
 
 import com.delivery.domain.order.entity.Order;
 import com.delivery.domain.order.enums.OrderStatus;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -18,8 +17,7 @@ public record OrderDetailResponse(
         LocalDateTime cancelledAt,
         LocalDateTime completedAt,
         List<OrderItemResponse> items,
-        LocalDateTime createdAt
-) {
+        LocalDateTime createdAt) {
     public static OrderDetailResponse from(Order order) {
         return new OrderDetailResponse(
                 order.getId(),
@@ -30,10 +28,7 @@ public record OrderDetailResponse(
                 order.getTotalPrice(),
                 order.getCancelledAt(),
                 order.getCompletedAt(),
-                order.getOrderItems().stream()
-                        .map(OrderItemResponse::from)
-                        .toList(),
-                order.getCreatedAt()
-        );
+                order.getOrderItems().stream().map(OrderItemResponse::from).toList(),
+                order.getCreatedAt());
     }
 }

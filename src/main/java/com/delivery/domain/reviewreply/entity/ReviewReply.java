@@ -29,7 +29,7 @@ public class ReviewReply extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    //답글 작성한 사장님 ID
+    // 답글 작성한 사장님 ID
     @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
 

@@ -42,7 +42,10 @@ public class CartController {
     @Operation(summary = "내 장바구니 조회", description = "CUSTOMER가 자신의 현재 장바구니를 조회합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "장바구니 조회 성공"),
-        @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<RestApiResponse<CartResponse>> getMyCart(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -56,9 +59,18 @@ public class CartController {
     @Operation(summary = "장바구니 항목 추가", description = "CUSTOMER가 메뉴를 장바구니에 추가합니다. 같은 메뉴는 수량이 합산됩니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "장바구니 항목 추가 성공"),
-        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 다른 가게 메뉴 추가", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "404", description = "메뉴를 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 또는 다른 가게 메뉴 추가",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "메뉴를 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<RestApiResponse<CartResponse>> addCartItem(
             @Valid @RequestBody CartItemCreateRequest request,
@@ -74,10 +86,22 @@ public class CartController {
     @Operation(summary = "장바구니 항목 수량 수정", description = "CUSTOMER가 자신의 장바구니 항목 수량을 수정합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "장바구니 항목 수정 성공"),
-        @ApiResponse(responseCode = "400", description = "잘못된 수량 요청", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "403", description = "다른 사용자의 장바구니 항목 수정 불가", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "404", description = "장바구니 항목을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(
+                responseCode = "400",
+                description = "잘못된 수량 요청",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "다른 사용자의 장바구니 항목 수정 불가",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "장바구니 항목을 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<RestApiResponse<CartResponse>> updateCartItem(
             @Parameter(description = "장바구니 항목 ID", required = true) @PathVariable UUID cartItemId,
@@ -94,9 +118,18 @@ public class CartController {
     @Operation(summary = "장바구니 항목 삭제", description = "CUSTOMER가 자신의 장바구니 항목을 삭제합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "장바구니 항목 삭제 성공"),
-        @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "403", description = "다른 사용자의 장바구니 항목 삭제 불가", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "404", description = "장바구니 항목을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "다른 사용자의 장바구니 항목 삭제 불가",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "장바구니 항목을 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<RestApiResponse<Void>> deleteCartItem(
             @Parameter(description = "장바구니 항목 ID", required = true) @PathVariable UUID cartItemId,
@@ -110,8 +143,14 @@ public class CartController {
     @Operation(summary = "장바구니 비우기", description = "CUSTOMER가 자신의 장바구니 항목 전체를 비웁니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "장바구니 비우기 성공"),
-        @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "404", description = "장바구니를 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "장바구니를 찾을 수 없음",
+                content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<RestApiResponse<Void>> clearMyCart(
             @AuthenticationPrincipal CustomUserDetails userDetails) {

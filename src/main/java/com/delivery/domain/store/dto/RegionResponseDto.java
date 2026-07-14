@@ -1,10 +1,9 @@
 package com.delivery.domain.store.dto;
 
 import com.delivery.domain.store.entity.Region;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.UUID;
 
 @Getter
 @Builder

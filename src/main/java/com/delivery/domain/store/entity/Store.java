@@ -3,9 +3,9 @@ package com.delivery.domain.store.entity;
 import com.delivery.common.base.BaseEntity;
 import com.delivery.domain.store.dto.request.StoreRequest;
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
-import java.util.UUID;
 
 @Entity
 @Table(name = "p_store")

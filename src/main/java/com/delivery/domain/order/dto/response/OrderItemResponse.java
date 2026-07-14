@@ -1,7 +1,6 @@
 package com.delivery.domain.order.dto.response;
 
 import com.delivery.domain.order.entity.OrderItem;
-
 import java.util.UUID;
 
 public record OrderItemResponse(
@@ -12,8 +11,7 @@ public record OrderItemResponse(
         String menuName,
         Integer menuPrice,
         Integer quantity,
-        Integer subtotalPrice
-) {
+        Integer subtotalPrice) {
     public static OrderItemResponse from(OrderItem orderItem) {
         return new OrderItemResponse(
                 orderItem.getId(),
@@ -21,7 +19,6 @@ public record OrderItemResponse(
                 orderItem.getMenuName(),
                 orderItem.getMenuPrice(),
                 orderItem.getQuantity(),
-                orderItem.getSubtotalPrice()
-        );
+                orderItem.getSubtotalPrice());
     }
 }

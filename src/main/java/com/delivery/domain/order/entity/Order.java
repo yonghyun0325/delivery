@@ -1,28 +1,29 @@
 package com.delivery.domain.order.entity;
 
 import com.delivery.common.base.BaseEntity;
+import com.delivery.common.util.CryptoConverter;
 import com.delivery.domain.order.enums.OrderStatus;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
 @Table(
         name = "p_order",
         indexes = {
-                // 고객 본인 주문 내역 확인용
-                @Index(name = "idx_order_user_created_at", columnList = "user_id, created_at"),
-                // 가게 주문 내역 조회(상태별)
-                @Index(name = "idx_order_store_status_created_at", columnList = "store_id, status, created_at")
-        }
-)
+            // 고객 본인 주문 내역 확인용
+            @Index(name = "idx_order_user_created_at", columnList = "user_id, created_at"),
+            // 가게 주문 내역 조회(상태별)
+            @Index(
+                    name = "idx_order_store_status_created_at",
+                    columnList = "store_id, status, created_at")
+        })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order extends BaseEntity {
 
@@ -41,6 +42,7 @@ public class Order extends BaseEntity {
     @Column(name = "status", nullable = false, length = 30)
     private OrderStatus status;
 
+    @Convert(converter = CryptoConverter.class)
     @Column(name = "delivery_address", nullable = false, length = 255)
     private String deliveryAddress;
 
@@ -52,7 +54,6 @@ public class Order extends BaseEntity {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
-
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
@@ -82,5 +83,4 @@ public class Order extends BaseEntity {
             this.cancelledAt = LocalDateTime.now();
         }
     }
-
 }
