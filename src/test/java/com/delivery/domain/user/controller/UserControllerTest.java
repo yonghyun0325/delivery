@@ -10,40 +10,30 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.delivery.config.AbstractControllerTest;
 import com.delivery.config.WithMockCustomUser;
 import com.delivery.domain.user.dto.request.UpdateNickNameRequest;
 import com.delivery.domain.user.dto.request.UpdatePhoneNumberRequest;
 import com.delivery.domain.user.dto.response.UserResponse;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.service.UserService;
-import com.delivery.global.exception.ErrorCodeRegistry;
-import com.delivery.global.security.jwt.JwtRequestFilter;
-import com.delivery.global.security.jwt.JwtUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class UserControllerTest {
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
-
+class UserControllerTest extends AbstractControllerTest {
     @MockitoBean private UserService userService;
-    @MockitoBean private JwtUtil jwtUtil;
-    @MockitoBean private JwtRequestFilter jwtRequestFilter;
-    @MockitoBean ErrorCodeRegistry errorCodeRegistry;
 
     @Test
     @WithMockCustomUser
@@ -154,20 +144,4 @@ class UserControllerTest {
 
         verifyNoInteractions(userService);
     }
-
-//    @Test
-//    @WithMockCustomUser
-//    @DisplayName("리프래시 토큰 발급에 성공한다.")
-//    void refresh_success() throws Exception {
-//        // given
-//
-//
-//        // when
-//
-//
-//        // then
-//
-//
-//    }
-
 }
