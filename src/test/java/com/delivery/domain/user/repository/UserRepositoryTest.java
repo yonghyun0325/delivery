@@ -1,189 +1,222 @@
-// package com.delivery.domain.user.repository;
-//
-// import com.delivery.common.util.CryptoConverter;
-// import com.delivery.common.util.SsnEncryptor;
-// import com.delivery.config.AbstractIntegrationTest;
-// import com.delivery.domain.user.fixture.UserFixture;
-// import com.delivery.global.config.CustomAuditorAware;
-// import com.delivery.global.config.EncryptConfig;
-// import com.delivery.global.config.JpaAuditingConfig;
-// import org.junit.jupiter.api.DisplayName;
-// import org.junit.jupiter.api.Nested;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-// import org.springframework.boot.test.context.TestConfiguration;
-// import org.springframework.context.annotation.Bean;
-// import org.springframework.context.annotation.Import;
-// import org.springframework.data.domain.AuditorAware;
-//
-// import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-//
-// @DataJpaTest
-// @Import({
-//        JpaAuditingConfig.class,
-//        UserRepositoryTest.TestAuditorConfig.class,
-//        EncryptConfig.class,
-//        SsnEncryptor.class,
-//        CryptoConverter.class
-// })
-// @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-// class UserRepositoryTest extends AbstractIntegrationTest {
-//    @TestConfiguration
-//    static class TestAuditorConfig {
-//        @Bean(name = "customAuditorAware")
-//        public AuditorAware<String> customAuditorAware() {
-//            return new CustomAuditorAware();
-//        }
-//    }
-//
-//    @Autowired
-//    private UserRepository userRepository;
-//
-//    @Nested
-//    @DisplayName("아이디 존재 여부 확인")
-//    class existsByUsername {
-//        @Test
-//        @DisplayName("해당 아이디가 존재하면 true를 반환한다..")
-//        void existsByUsername_exist() {
-//            // given
-//            userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
-//
-//            // when
-//            boolean result = userRepository.existsByUsername("test123");
-//
-//            // then
-//            assertThat(result).isTrue();
-//        }
-//
-//        @Test
-//        @DisplayName("해당 아이디가 없으면 false를 반환한다.")
-//        void existsByUsername_not_found() {
-//            // given
-//            userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
-//
-//            // when
-//            boolean result = userRepository.existsByUsername("123");
-//
-//            // then
-//            assertThat(result).isFalse();
-//        }
-//    }
-//
-//    @Nested
-//    @DisplayName("닉네임 존재 여부 확인")
-//    class existsByNickName {
-//        @Test
-//        @DisplayName("해당 닉네임이 존재하면 true를 반환한다.")
-//        void existsByNickName_exist() {
-//            // given
-//            userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
-//
-//            // when
-//            boolean result = userRepository.existsByNickName("test123");
-//
-//            // then
-//            assertThat(result).isTrue();
-//        }
-//
-//        @Test
-//        @DisplayName("해당 닉네임이 없으면 false를 반환한다.")
-//        void existsByNickName_not_found() {
-//            // given
-//            userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
-//
-//            // when
-//            boolean result = userRepository.existsByNickName("123");
-//
-//            // then
-//            assertThat(result).isFalse();
-//        }
-//    }
-//
-//    @Nested
-//    @DisplayName("특정 아이디를 가진 사용자를 찾는다.")
-//    class findByUsername {
-//        @Test
-//        @DisplayName("특정 아이디를 가진 사용자를 조회한다.")
-//        void findByUsername_success() {
-//            // given
-//            userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
-//
-//            // when
-//            var result = userRepository.findByUsername("test123");
-//
-//            // then
-//            assertThat(result).isNotEmpty();
-//        }
-//
-//        @Test
-//        @DisplayName("특정 아이디를 가진 사용자를 찾을 수 없는 경우 조회되지 않는다..")
-//        void findByUsername_fail() {
-//            // given
-//            userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
-//
-//            // when
-//            var result = userRepository.findByUsername("213124");
-//
-//            // then
-//            assertThat(result).isEmpty();
-//        }
-//    }
-//
-//    @Nested
-//    @DisplayName("특정 아이디를 가진 삭제되지 않은 사용자를 찾는다.")
-//    class findByIdAndDeletedAtIsNull {
-//        @Test
-//        @DisplayName("삭제되지 않은 특정 아이디를 가진 사용자를 조회한다.")
-//        void findByIdAndDeletedAtIsNull_find() {
-//            // given
-//            userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
-//
-//            // when
-//            var result = userRepository.findByUsername("test123");
-//
-//            // then
-//            assertThat(result).isNotEmpty();
-//        }
-//
-//        @Test
-//        @DisplayName("삭제되지 않은 특정 아이디를 가진 사용자가 없으면 조회되지 않는다..")
-//        void findByIdAndDeletedAtIsNull_not_found() {
-//            // given
-//            userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
-//
-//            // when
-//            var result = userRepository.findByUsername("1232142144");
-//
-//            // then
-//            assertThat(result).isNotEmpty();
-//        }
-//    }
-//
-//
-//
-////    @Test
-////    void findWithRolesByUsernameAndDeletedAtIsNull() {
-////    }
-////
-////    @Test
-////    void findWithRolesByUserUuidAndDeletedAtIsNull() {
-////    }
-////
-////    @Test
-////    void findWithRolesByIdAndDeletedAtIsNull() {
-////    }
-////
-////    @Test
-////    void findWithRolesById() {
-////    }
-////
-////    @Test
-////    void findAllBy() {
-////    }
-////
-////    @Test
-////    void findByUsernameAndDeletedAtIsNull() {
-////    }
-// }
+ package com.delivery.domain.user.repository;
+
+ import com.delivery.config.AbstractIntegrationTest;
+ import com.delivery.config.CustomDataJpaTest;
+ import com.delivery.domain.user.entity.Role;
+ import com.delivery.domain.user.entity.User;
+ import com.delivery.domain.user.fixture.UserFixture;
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.DisplayName;
+ import org.junit.jupiter.api.Nested;
+ import org.junit.jupiter.api.Test;
+ import org.springframework.beans.factory.annotation.Autowired;
+
+ import java.util.UUID;
+
+ import static org.assertj.core.api.Assertions.assertThat;
+
+ @CustomDataJpaTest
+ class UserRepositoryTest extends AbstractIntegrationTest {
+     @Autowired private UserRepository userRepository;
+     private User savedUser;
+
+    @BeforeEach
+     void setUp() {
+        savedUser = userRepository.save(UserFixture.ROLE_CUSTOMER.createUserNoId());
+     }
+
+    @Nested
+    @DisplayName("아이디 존재 여부 확인")
+    class existsByUsername {
+        @Test
+        @DisplayName("해당 아이디가 존재하면 true를 반환한다..")
+        void existsByUsername_exist() {
+            // when
+            boolean result = userRepository.existsByUsername(savedUser.getUsername());
+
+            // then
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        @DisplayName("해당 아이디가 없으면 false를 반환한다.")
+        void existsByUsername_not_found() {
+            // when
+            boolean result = userRepository.existsByUsername(savedUser.getUsername() + "fail");
+
+            // then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("닉네임 존재 여부 확인")
+    class existsByNickName {
+        @Test
+        @DisplayName("해당 닉네임이 존재하면 true를 반환한다.")
+        void existsByNickName_exist() {
+            // when
+            boolean result = userRepository.existsByNickName(savedUser.getNickName());
+
+            // then
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        @DisplayName("해당 닉네임이 없으면 false를 반환한다.")
+        void existsByNickName_not_found() {
+            // when
+            boolean result = userRepository.existsByNickName(savedUser.getNickName() + "fail");
+
+            // then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 아이디를 가진 사용자를 찾는다.")
+    class findByUsername {
+        @Test
+        @DisplayName("특정 아이디를 가진 사용자를 조회한다.")
+        void findByUsername_success() {
+            // when
+            var result = userRepository.findByUsername(savedUser.getUsername());
+
+            // then
+            assertThat(result).isNotEmpty();
+        }
+
+        @Test
+        @DisplayName("특정 아이디를 가진 사용자를 찾을 수 없는 경우 조회되지 않는다..")
+        void findByUsername_fail() {
+            // when
+            var result = userRepository.findByUsername(savedUser.getUsername() + "fail");
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("삭제되지 않은 userId(PK) 단건 조회.")
+    class findByIdAndDeletedAtIsNull {
+        @Test
+        @DisplayName("삭제되지 않은 특정 사용자를 조회한다.")
+        void findByIdAndDeletedAtIsNull_find() {
+            // when
+            var result = userRepository.findByIdAndDeletedAtIsNull(savedUser.getId());
+
+            // then
+            assertThat(result).isNotEmpty();
+        }
+
+        @Test
+        @DisplayName("삭제된 특정 사용자는 조회되지 않는다..")
+        void findByIdAndDeletedAtIsNull_not_found() {
+            // when
+            savedUser.delete(savedUser.getUsername());
+            var result = userRepository.findByIdAndDeletedAtIsNull(savedUser.getId());
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+     @Nested
+     @DisplayName("삭제되지 않은 사용자를 username를 사용해 권한과 함께 조회한다.")
+     class findWithRolesByUsernameAndDeletedAtIsNull {
+         @Test
+         @DisplayName("특정 사용자를 조회한다.")
+         void findWithRolesByUsernameAndDeletedAtIsNull_find() {
+             // when
+             var result = userRepository.findWithRolesByUsernameAndDeletedAtIsNull(savedUser.getUsername()).orElseThrow();
+
+             // then
+             assertThat(result).isNotNull();
+             assertThat(result.getRoles())
+                     .contains(Role.CUSTOMER);
+         }
+
+         @Test
+         @DisplayName("삭제된 특정 사용자는 조회되지 않는다..")
+         void findWithRolesByUsernameAndDeletedAtIsNull_not_found() {
+             // when
+             savedUser.delete(savedUser.getUsername());
+             var result = userRepository.findWithRolesByUsernameAndDeletedAtIsNull(savedUser.getUsername());
+
+             // then
+             assertThat(result).isEmpty();
+         }
+     }
+
+     @Nested
+     @DisplayName("삭제되지 않은 사용자를 userUuid를 사용해 권한과 함께 조회한다.")
+     class findWithRolesByUserUuidAndDeletedAtIsNull {
+         @Test
+         @DisplayName("특정 사용자를 조회한다.")
+         void findWithRolesByUserUuidAndDeletedAtIsNull_find() {
+             // when
+             var result = userRepository.findWithRolesByUserUuidAndDeletedAtIsNull(savedUser.getUserUuid()).orElseThrow();
+
+             // then
+             assertThat(result).isNotNull();
+             assertThat(result.getRoles())
+                     .contains(Role.CUSTOMER);
+         }
+
+         @Test
+         @DisplayName("삭제된 특정 사용자는 조회되지 않는다..")
+         void findWithRolesByUserUuidAndDeletedAtIsNull_not_found() {
+             // when
+             savedUser.delete(savedUser.getUsername());
+             var result = userRepository.findWithRolesByUserUuidAndDeletedAtIsNull(savedUser.getUserUuid());
+
+             // then
+             assertThat(result).isEmpty();
+         }
+     }
+
+     @Nested
+     @DisplayName("삭제되지 않은 사용자를 userId를 사용해 권한과 함께 조회한다.")
+     class findWithRolesByIdAndDeletedAtIsNull {
+         @Test
+         @DisplayName("특정 사용자를 조회한다.")
+         void findWithRolesByIdAndDeletedAtIsNull_find() {
+             // when
+             var result = userRepository.findWithRolesByIdAndDeletedAtIsNull(savedUser.getId()).orElseThrow();
+
+             // then
+             assertThat(result).isNotNull();
+             assertThat(result.getRoles())
+                     .contains(Role.CUSTOMER);
+         }
+
+         @Test
+         @DisplayName("삭제된 특정 사용자는 조회되지 않는다..")
+         void findWithRolesByIdAndDeletedAtIsNull_not_found() {
+             // when
+             savedUser.delete(savedUser.getUsername());
+             var result = userRepository.findWithRolesByIdAndDeletedAtIsNull(savedUser.getId());
+
+             // then
+             assertThat(result).isEmpty();
+         }
+     }
+
+     @Nested
+     @DisplayName("사용자를 userId를 사용해 권한과 함께 조회한다.")
+     class findWithRolesById {
+         @Test
+         @DisplayName("특정 사용자를 조회한다.")
+         void findWithRolesById_find() {
+             // when
+             var result = userRepository.findWithRolesById(savedUser.getId()).orElseThrow();
+
+             // then
+             assertThat(result).isNotNull();
+             assertThat(result.getRoles())
+                     .contains(Role.CUSTOMER);
+         }
+     }
+
+ }
