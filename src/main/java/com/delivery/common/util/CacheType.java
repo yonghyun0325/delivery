@@ -4,7 +4,7 @@ import java.time.Duration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/** 카페인 캐시 타입 */
+/** 캐시 타입 */
 @Getter
 @RequiredArgsConstructor
 public enum CacheType {
