@@ -33,7 +33,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         String error = errorCode.getName();
 
         log.warn(
-                "ErrorCode : {}, ErrorMessage : {}",
+                "사용자 인증 실패 - ErrorCode : {}, ErrorMessage : {}",
                 errorCode.getName(),
                 errorCode.getMessage(),
                 authException);

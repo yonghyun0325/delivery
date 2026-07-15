@@ -1,24 +1,16 @@
 package com.delivery.domain.user.entity;
 
-import com.delivery.domain.user.exception.AuthErrorCode;
-import com.delivery.domain.user.exception.AuthException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static javax.management.Query.eq;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.awaitility.Awaitility.given;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+
+import com.delivery.domain.user.exception.AuthException;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class RoleTest {
     private Role role;
-
 
     @Test
     @DisplayName("MANAGER나 권한이면 INVALID_ROLE 예외를 발생시킨다.")
@@ -27,8 +19,7 @@ class RoleTest {
         Role role = Role.MANAGER;
 
         // when & then
-        assertThatThrownBy(() -> Role.validateSignupRole(role))
-                .isInstanceOf(AuthException.class);
+        assertThatThrownBy(() -> Role.validateSignupRole(role)).isInstanceOf(AuthException.class);
     }
 
     @Test

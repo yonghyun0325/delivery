@@ -5,14 +5,18 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 import com.delivery.domain.user.dto.request.UpdateUserRoleRequest;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
+import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.fixture.UserFixture;
 import com.delivery.domain.user.repository.UserRepository;
 import java.util.Optional;
+
+import com.delivery.global.cache.UserCacheRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,6 +33,7 @@ class UserAdminServiceUnitTest {
     @Mock private UserRepository userRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private AuthenticationManager authenticationManager;
+    @Mock private UserCacheRepository userCacheRepository;
     @InjectMocks private UserAdminService userAdminService;
 
     private User user;
@@ -67,7 +72,7 @@ class UserAdminServiceUnitTest {
             UpdateUserRoleRequest request = new UpdateUserRoleRequest(Role.OWNER); // 테스트용 객체 생성
             assertThatThrownBy(() -> userAdminService.updateUserRole(userId, request))
                     .isInstanceOf(UserException.class)
-                    .hasMessage("존재하지 않는 회원입니다.");
+                    .hasMessage(UserErrorCode.NOT_EXIST_USER.getMessage());
 
             verify(userRepository, never()).save(any());
         }
@@ -82,12 +87,28 @@ class UserAdminServiceUnitTest {
             // given
             long userId = 1L;
             UpdateUserRoleRequest request = new UpdateUserRoleRequest(Role.OWNER);
+
+            when(userRepository.findWithRolesById(userId)).thenReturn(Optional.of(user));
+
+            // when
+            userAdminService.updateUserRole(userId, request);
+
+            // then
+            assertThat(user.getRoles().contains(Role.OWNER)).isTrue();
+        }
+
+        @Test
+        @DisplayName("권한 변경 실패 - 존재하지 않는 회원")
+        void updateUserRole_fail_when() {
+            // given
+            long userId = 1L;
+            UpdateUserRoleRequest request = new UpdateUserRoleRequest(Role.OWNER);
             when(userRepository.findWithRolesById(eq(userId))).thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> userAdminService.findUserInfo(userId))
                     .isInstanceOf(UserException.class)
-                    .hasMessage("존재하지 않는 회원입니다.");
+                    .hasMessage(UserErrorCode.NOT_EXIST_USER.getMessage());
         }
     }
 }

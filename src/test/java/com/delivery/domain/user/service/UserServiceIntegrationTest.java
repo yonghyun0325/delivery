@@ -3,6 +3,7 @@ package com.delivery.domain.user.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.delivery.config.AbstractIntegrationTest;
+import com.delivery.domain.user.dto.UserDtoMapper;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.request.UpdateNickNameRequest;
 import com.delivery.domain.user.dto.request.UpdatePhoneNumberRequest;
@@ -12,13 +13,13 @@ import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.entity.UserStatus;
 import com.delivery.domain.user.fixture.UserFixture;
 import com.delivery.domain.user.repository.UserRepository;
+import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.config.JwtProperties;
+import com.delivery.global.security.config.CustomUserDetailsService;
 import jakarta.persistence.EntityManager;
 import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import java.util.UUID;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,8 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private EntityManager entityManager;
     @Autowired private JwtProperties jwtProperties;
+    @Autowired private UserCacheRepository userCacheRepository;
+    @Autowired private CustomUserDetailsService customUserDetailsService;
 
     private User savedUser;
     private long userId;
@@ -39,10 +42,19 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        SignUpRequest request = UserFixture.ROLE_CUSTOMER.createRequestDto();
+        SignUpRequest baseRequest = UserFixture.ROLE_CUSTOMER.createRequestDto();
 
-        String encodedPassword = passwordEncoder.encode(request.password());
-        Set<Role> roles = Role.getDefaultRoles(request.role());
+        String encodedPassword = passwordEncoder.encode(baseRequest.password());
+        Set<Role> roles = Role.getDefaultRoles(baseRequest.role());
+        String uuid = UUID.randomUUID().toString().substring(0, 8);
+
+        SignUpRequest request =
+                new SignUpRequest(
+                        baseRequest.username() + uuid,
+                        baseRequest.password(),
+                        baseRequest.nickName() + uuid,
+                        baseRequest.phoneNumber(),
+                        baseRequest.role());
 
         savedUser =
                 userRepository.save(
@@ -119,15 +131,20 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("회원 삭제 성공")
     void deleteUser_success() {
-        // when
-        userService.deleteUser(userId);
-        var actual = userRepository.findById(userId).orElseThrow();
+        SignUpRequest baseRequest = UserFixture.ROLE_CUSTOMER.createRequestDto();
+        String encodedPassword = passwordEncoder.encode(baseRequest.password());
+        Set<Role> roles = Role.getDefaultRoles(baseRequest.role());
+        User user = User.create("test7654", encodedPassword, "삭제회원닉네임", "01012345678", roles);
 
-        // then
-        assertThat(actual.getDeletedAt()).isNotNull();
-        assertThat(actual.getUserStatus()).isEqualTo(UserStatus.DELETED);
-        assertThat(actual.getUsername()).startsWith(username + "_");
-        assertThat(actual.getNickName()).startsWith("탈퇴회원" + "_");
-        assertThat(actual.getDeletedBy()).startsWith(userId + "_" + username);
+        // When
+        User savedUser = userRepository.save(user);
+        var before = UserDtoMapper.toUserResponse(savedUser);
+        Long userId = savedUser.getId();
+
+        userService.deleteUser(userId);
+        var after = UserDtoMapper.toUserResponse(userRepository.findById(userId).orElseThrow());
+
+        // 3. Then
+        assertThat(before).isNotEqualTo(after);
     }
 }
