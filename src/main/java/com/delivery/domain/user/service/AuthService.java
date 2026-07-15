@@ -1,5 +1,6 @@
 package com.delivery.domain.user.service;
 
+import com.delivery.common.base.BaseCacheRepository;
 import com.delivery.domain.user.dto.UserDtoMapper;
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
