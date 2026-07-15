@@ -13,14 +13,20 @@ import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.BlackListRepository;
+import com.delivery.global.cache.RefreshTokenRepository;
+import com.delivery.global.cache.UserCacheRepository;
+import com.delivery.global.exception.BusinessException;
+import com.delivery.global.exception.GlobalErrorCode;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
-
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Set;
 import java.util.UUID;
-
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -33,17 +39,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class AuthService {
-    private final BaseCacheRepository<UUID, String> refreshTokenRepository;
     private final AuthenticationManager authenticationManager;
-    private final BlackListRepository  blackListRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserCacheRepository userCacheRepository;
+    private final BlackListRepository blackListRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
     /**
-     * 회원가입
-     * 가입 성공 시 액세스 토큰과 리프래시 토큰 발급
+     * 회원가입 가입 성공 시 액세스 토큰과 리프래시 토큰 발급
+     *
      * @param request 회원 가입 요청 객체
      * @return 로그인 정보 객체
      */
@@ -55,22 +63,27 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(request.password());
         Set<Role> roles = Role.getDefaultRoles(request.role());
 
-        User savedUser =
-                userRepository.save(
-                        User.create(
-                                request.username(),
-                                encodedPassword,
-                                request.nickName(),
-                                request.phoneNumber(),
-                                roles));
-        CustomUserDetails userDetails = CustomUserDetails.from(savedUser);
+        try {
+            User savedUser =
+                    userRepository.saveAndFlush(
+                            User.create(
+                                    request.username(),
+                                    encodedPassword,
+                                    request.nickName(),
+                                    request.phoneNumber(),
+                                    roles));
+            CustomUserDetails userDetails = CustomUserDetails.from(savedUser);
 
-        return createAuthResponse(userDetails);
+            return createAuthResponse(userDetails);
+        } catch (DataIntegrityViolationException e) {
+            log.warn("AuthService Database Error : {}", e.getMessage());
+            throw new UserException(UserErrorCode.DUPLICATE_USERNAME);
+        }
     }
 
     /**
-     * 로그인
-     * 사용자 인증 후 액세스 토큰과 리프래시 토큰을 발급
+     * 로그인 사용자 인증 후 액세스 토큰과 리프래시 토큰을 발급
+     *
      * @param request
      * @return
      */
@@ -85,15 +98,14 @@ public class AuthService {
         } catch (InternalAuthenticationServiceException | BadCredentialsException e) {
             throw new AuthException(AuthErrorCode.INVALID_LOGIN);
         }
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-            return createAuthResponse(userDetails);
+        return createAuthResponse(userDetails);
     }
 
     /**
-     * 로그아웃
-     * 리프래시 토큰을 삭제하고
-     * 액세스 토큰 블랙리스트에 저장
+     * 로그아웃 : 리프래시 토큰 삭제
+     *
      * @param request
      */
     public void logout(HttpServletRequest request) {
@@ -103,36 +115,61 @@ public class AuthService {
             throw new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN);
         }
 
-        UUID userUuid = jwtUtil.getUserUuidFromAccessToken(accessToken);
-        refreshTokenRepository.delete(userUuid);
-        // 다중 로그인은 필요 없다고 판단
-//        blackListRepository.save(accessToken, Boolean.TRUE);
+        try {
+            UUID sessionId = jwtUtil.getSessionIdFromAccessToken(accessToken);
+            UUID userUuid = jwtUtil.getUserUuidFromAccessToken(accessToken);
+
+            refreshTokenRepository.delete(sessionId);
+            userCacheRepository.delete(userUuid);
+
+            blackListRepository.save(accessToken, "logout");
+        } catch (ExpiredJwtException e) {
+            return;
+        } catch (JwtException e) {
+            throw new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN);
+        }
     }
 
     /**
      * 리프래시 토큰 발급
+     *
      * @param request
      * @return
      */
     public AuthResponse refresh(HttpServletRequest request) {
         String refreshToken = jwtUtil.resolveRefreshToken(request);
 
-        if (refreshToken == null) {
+        // 리프래시 토큰 유무 체크
+        if (refreshToken == null || refreshToken.isBlank()) {
             throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        UUID userUuid = jwtUtil.getUserUuidFromRefreshToken(refreshToken);
-        String savedRefreshToken = refreshTokenRepository.findByKey(userUuid)
-                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+        try {
+            UUID userUuid = jwtUtil.getUserUuidFromRefreshToken(refreshToken);
+            UUID sessionId = jwtUtil.getSessionIdFromRefreshToken(refreshToken);
 
-        validateRefreshToken(refreshToken, savedRefreshToken);
+            String savedRefreshToken =
+                    refreshTokenRepository.findByKey(sessionId);
 
-        User user = userRepository.findWithRolesByUserUuidAndDeletedAtIsNull(userUuid)
-                .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_USER));
+            if (savedRefreshToken == null) {
+                throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+            }
 
-        CustomUserDetails userDetails = CustomUserDetails.from(user);
+            validateRefreshToken(refreshToken, savedRefreshToken);
 
-        return createAuthResponse(userDetails);
+            User user =
+                    userRepository
+                            .findWithRolesByUserUuidAndDeletedAtIsNull(userUuid)
+                            .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_USER));
+
+            CustomUserDetails userDetails = CustomUserDetails.from(user);
+
+            return createAuthResponse(userDetails);
+        } catch (ExpiredJwtException e) {
+            throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
     }
 
     /**
@@ -158,20 +195,28 @@ public class AuthService {
     }
 
     /**
-     * 액세스 토큰, 리프래시 토큰 성생 후 DTO 반환
+     * Auth 공통 Response 액세스 토큰, 리프래시 토큰 성생 후 DTO 반환
+     *
      * @param userDetails
      * @return
      */
     private AuthResponse createAuthResponse(CustomUserDetails userDetails) {
-        UUID sessionId = UUID.randomUUID();
+        try {
+            UUID sessionId = UUID.randomUUID();
 
-        String accessToken =
-                jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid(), sessionId);
+            String accessToken =
+                    jwtUtil.generateAccessToken(userDetails, userDetails.getUserUuid(), sessionId);
 
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails, userDetails.getUserUuid(), sessionId);
-        refreshTokenRepository.save(userDetails.getUserUuid(), refreshToken);
+            String refreshToken =
+                    jwtUtil.generateRefreshToken(
+                            userDetails, userDetails.getUserUuid(), sessionId);
+            refreshTokenRepository.save(sessionId, refreshToken);
 
-        return UserDtoMapper.toAuthResponse(userDetails, accessToken, refreshToken);
+            return UserDtoMapper.toAuthResponse(userDetails, accessToken, refreshToken);
+        } catch (Exception e) {
+            log.error("토큰 생성 중 오류 발생 {}", e.getMessage());
+            throw new AuthException(GlobalErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private void validateRefreshToken(String refreshToken, String savedToken) {

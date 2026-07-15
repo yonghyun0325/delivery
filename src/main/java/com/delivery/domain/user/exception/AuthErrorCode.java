@@ -18,13 +18,18 @@ public enum AuthErrorCode implements ErrorCode {
     INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "Access Token이 유효하지 않습니다."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "Refresh Token이 유효하지 않습니다."),
 
+
     INVALID_LOGIN(HttpStatus.UNAUTHORIZED, "아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다."),
-    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 JWT 토큰입니다."),
+    EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 Access Token입니다."),
+    EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 Refresh Token입니다."),
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
 
     // 403 Forbidden
     NOT_OWNER(HttpStatus.FORBIDDEN, "사장 권한이 없습니다."),
-    NOT_MASTER(HttpStatus.FORBIDDEN, "마스터 권한이 없습니다."),;
+    NOT_MASTER(HttpStatus.FORBIDDEN, "마스터 권한이 없습니다."),
+
+    // 409 Conflict
+    DUPLICATE_USER(HttpStatus.CONFLICT, "이미 등록된 회원입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

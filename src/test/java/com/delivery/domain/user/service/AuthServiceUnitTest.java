@@ -110,5 +110,16 @@ class AuthServiceUnitTest {
             verify(authenticationManager)
                     .authenticate(any(UsernamePasswordAuthenticationToken.class));
         }
+
+        @Test
+        @DisplayName("리프래시 토큰 재발급 시 리프래시 토큰이 null일 경우 예외가 발생해야 한다.")
+        void logout_fail_when_refresh_token_is_null() {
+            // given
+
+            // when
+
+            // then
+
+        }
     }
 }

@@ -25,7 +25,7 @@ public class User extends BaseEntity {
     // TODO : 추후 User 테이블 명세서 Erd 수정해야함
     @Id
     @Column(name = "user_id")
-    @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq")
+    @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq_gen")
     private Long id;
 
@@ -95,8 +95,8 @@ public class User extends BaseEntity {
 
     public void delete(String deletedBy) {
         this.userStatus = UserStatus.DELETED;
-        this.username = username + "_" + UUID.randomUUID().toString();
-        this.nickName = "탈퇴회원" + "_" + UUID.randomUUID().toString();
+        this.username = this.username + "_" + UUID.randomUUID().toString().substring(0, 8);
+        this.nickName = "탈퇴회원" + "_" + UUID.randomUUID().toString().substring(0, 8);
         super.delete(this.getId() + "_" + deletedBy);
     }
 

@@ -9,6 +9,7 @@ import com.delivery.domain.store.service.StoreService;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.global.security.config.CustomUserDetails;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,8 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/stores")
@@ -60,7 +59,9 @@ public class StoreController implements StoreControllerDocs {
             @PathVariable UUID storeId,
             @Valid @RequestBody StoreRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        StoreResponse response = storeService.updateStore(storeId, userDetails.getId(), hasElevatedRole(userDetails), request);
+        StoreResponse response =
+                storeService.updateStore(
+                        storeId, userDetails.getId(), hasElevatedRole(userDetails), request);
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "가게 수정 성공", response));
     }
 
@@ -70,16 +71,24 @@ public class StoreController implements StoreControllerDocs {
             @PathVariable UUID storeId,
             @RequestBody StoreStatusRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        StoreResponse response = storeService.updateStoreStatus(storeId, userDetails.getId(), hasElevatedRole(userDetails), request.isOpen());
+        StoreResponse response =
+                storeService.updateStoreStatus(
+                        storeId,
+                        userDetails.getId(),
+                        hasElevatedRole(userDetails),
+                        request.isOpen());
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "영업상태 변경 성공", response));
     }
 
     @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     @DeleteMapping("/{storeId}")
     public ResponseEntity<RestApiResponse<Void>> deleteStore(
-            @PathVariable UUID storeId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        storeService.deleteStore(storeId, userDetails.getId(), hasElevatedRole(userDetails), userDetails.getId() + "_" + userDetails.getUsername());
+            @PathVariable UUID storeId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        storeService.deleteStore(
+                storeId,
+                userDetails.getId(),
+                hasElevatedRole(userDetails),
+                userDetails.getId() + "_" + userDetails.getUsername());
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "가게 삭제 성공", null));
     }
 

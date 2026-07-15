@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.delivery.domain.store.dto.request.RegionRequest;
-import com.delivery.domain.store.entity.Region;
 import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.RegionRepository;
 import java.util.Optional;

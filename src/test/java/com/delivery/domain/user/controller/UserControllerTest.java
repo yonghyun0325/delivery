@@ -37,7 +37,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
-    @Autowired private MockMvc mockMvc; // ◀ 필드 주입으로 변경
+    @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
 
     @MockitoBean private UserService userService;

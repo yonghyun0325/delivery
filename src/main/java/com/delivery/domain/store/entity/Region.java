@@ -28,7 +28,6 @@ public class Region extends BaseEntity {
     @Column(name = "longitude")
     private Double longitude;
 
-
     public void update(String name, Double latitude, Double longitude) {
         this.name = name;
         this.latitude = latitude;

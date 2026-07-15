@@ -213,7 +213,8 @@ public class PaymentService {
         Store store =
                 storeRepository
                         .findByStoreIdAndDeletedAtIsNull(storeId)
-                        .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+                        .orElseThrow(
+                                () -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         if (!store.getUserId().equals(userId)) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_ACCESS_DENIED);

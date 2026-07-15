@@ -32,31 +32,21 @@ public class ReviewController implements ReviewApi {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody ReviewRequest request) {
 
-        ReviewResponse response =
-                reviewService.createReview(userDetails.getId(), request);
+        ReviewResponse response = reviewService.createReview(userDetails.getId(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(
-                        RestApiResponse.success(
-                                HttpStatus.CREATED,
-                                "리뷰 등록에 성공했습니다.",
-                                response));
+                .body(RestApiResponse.success(HttpStatus.CREATED, "리뷰 등록에 성공했습니다.", response));
     }
 
     @Override
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/reviews/{reviewId}")
-    public ResponseEntity<RestApiResponse<ReviewResponse>> getReview(
-            @PathVariable UUID reviewId) {
+    public ResponseEntity<RestApiResponse<ReviewResponse>> getReview(@PathVariable UUID reviewId) {
 
-        ReviewResponse response =
-                reviewService.getReview(reviewId);
+        ReviewResponse response = reviewService.getReview(reviewId);
 
         return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "리뷰 상세 조회에 성공했습니다.",
-                        response));
+                RestApiResponse.success(HttpStatus.OK, "리뷰 상세 조회에 성공했습니다.", response));
     }
 
     @Override
@@ -68,34 +58,21 @@ public class ReviewController implements ReviewApi {
             @Valid @RequestBody ReviewRequest request) {
 
         ReviewResponse response =
-                reviewService.updateReview(
-                        reviewId,
-                        userDetails.getId(),
-                        request);
+                reviewService.updateReview(reviewId, userDetails.getId(), request);
 
         return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "리뷰 수정에 성공했습니다.",
-                        response));
+                RestApiResponse.success(HttpStatus.OK, "리뷰 수정에 성공했습니다.", response));
     }
 
     @Override
     @PreAuthorize("hasRole('CUSTOMER')")
     @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<RestApiResponse<Void>> deleteReview(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable UUID reviewId) {
+            @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable UUID reviewId) {
 
-        reviewService.deleteReview(
-                reviewId,
-                userDetails.getId());
+        reviewService.deleteReview(reviewId, userDetails.getId());
 
-        return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "리뷰 삭제에 성공했습니다.",
-                        null));
+        return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "리뷰 삭제에 성공했습니다.", null));
     }
 
     @Override
@@ -106,16 +83,10 @@ public class ReviewController implements ReviewApi {
             Pageable pageable) {
 
         Page<ReviewResponse> response =
-                reviewService.getReviewsByStore(
-                        storeId,
-                        sortType,
-                        pageable);
+                reviewService.getReviewsByStore(storeId, sortType, pageable);
 
         return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "음식점 리뷰 목록 조회에 성공했습니다.",
-                        response));
+                RestApiResponse.success(HttpStatus.OK, "음식점 리뷰 목록 조회에 성공했습니다.", response));
     }
 
     @Override
@@ -124,28 +95,19 @@ public class ReviewController implements ReviewApi {
     public ResponseEntity<RestApiResponse<List<ReviewResponse>>> getMyReviews(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        List<ReviewResponse> response =
-                reviewService.getMyReviews(userDetails.getId());
+        List<ReviewResponse> response = reviewService.getMyReviews(userDetails.getId());
 
         return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "내 리뷰 목록 조회에 성공했습니다.",
-                        response));
+                RestApiResponse.success(HttpStatus.OK, "내 리뷰 목록 조회에 성공했습니다.", response));
     }
 
     @Override
     @GetMapping("/stores/{storeId}/ratings")
-    public ResponseEntity<RestApiResponse<Double>> getStoreRating(
-            @PathVariable UUID storeId) {
+    public ResponseEntity<RestApiResponse<Double>> getStoreRating(@PathVariable UUID storeId) {
 
-        Double response =
-                reviewService.getStoreRating(storeId);
+        Double response = reviewService.getStoreRating(storeId);
 
         return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "음식점 평균 평점 조회에 성공했습니다.",
-                        response));
+                RestApiResponse.success(HttpStatus.OK, "음식점 평균 평점 조회에 성공했습니다.", response));
     }
 }

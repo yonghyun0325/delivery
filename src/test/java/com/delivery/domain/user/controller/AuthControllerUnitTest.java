@@ -14,8 +14,10 @@ import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.service.AuthService;
 import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
+import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.config.JwtProperties;
 import com.delivery.global.exception.ErrorCodeRegistry;
+import com.delivery.global.security.config.CustomUserDetailsService;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.stream.Stream;
@@ -38,11 +40,16 @@ import org.springframework.test.web.servlet.MockMvc;
 class AuthControllerUnitTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
-
+    @Autowired
+    private ErrorCodeRegistry errorCodeRegistry;
+    @MockitoBean private UserCacheRepository userCacheRepository;
     @MockitoBean private RefreshTokenRepository refreshTokenRepository;
+    @MockitoBean private CustomUserDetailsService customUserDetailsService;
     @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private JwtProperties jwtProperties;
     @MockitoBean private AuthService authService;
+
+    @MockitoBean private BlackListRepository blackListRepository;
 
     @Nested
     @DisplayName("회원가입 테스트")
@@ -55,7 +62,7 @@ class AuthControllerUnitTest {
                     new SignUpRequest(
                             "test1234", "Testtest123!", "test", "01012345678", Role.CUSTOMER);
 
-            AuthResponse response = new AuthResponse("test1234", "test", "accessToken", "refreshToken");
+            AuthResponse response = new AuthResponse("test1234", "accessToken", "refreshToken");
 
             given(authService.signUp((any(SignUpRequest.class)))).willReturn(response);
 
@@ -67,7 +74,6 @@ class AuthControllerUnitTest {
                     .andExpect(status().isCreated())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.data.username").value("test1234"))
-                    .andExpect(jsonPath("$.data.nickName").value("test"))
                     .andExpect(jsonPath("$.data.accessToken").value("accessToken"))
                     .andExpect(jsonPath("$.data.refreshToken").value("refreshToken"));
 
@@ -107,6 +113,7 @@ class AuthControllerUnitTest {
                     // 전화번호 유효성 검사 실패
                     new SignUpRequest("test1234", "Testtest123!", "test", "연락처", Role.CUSTOMER));
         }
+    }
 
         @Nested
         @DisplayName("로그인 테스트")
@@ -117,7 +124,7 @@ class AuthControllerUnitTest {
                 // given
                 LoginRequest request = new LoginRequest("test1234", "Testtest123!");
 
-                AuthResponse response = new AuthResponse("test1234", "test", "accessToken",  "refreshToken");
+                AuthResponse response = new AuthResponse("test1234", "accessToken", "refreshToken");
 
                 given(authService.login(any(LoginRequest.class))).willReturn(response);
 
@@ -129,7 +136,6 @@ class AuthControllerUnitTest {
                         .andExpect(status().isOk())
                         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                         .andExpect(jsonPath("$.data.username").value("test1234"))
-                        .andExpect(jsonPath("$.data.nickName").value("test"))
                         .andExpect(jsonPath("$.data.accessToken").value("accessToken"))
                         .andExpect(jsonPath("$.data.refreshToken").value("refreshToken"));
 
@@ -162,4 +168,3 @@ class AuthControllerUnitTest {
             }
         }
     }
-}

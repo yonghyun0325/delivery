@@ -1,5 +1,6 @@
 package com.delivery.common.base;
 
+import com.querydsl.core.annotations.QuerySupertype;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -21,6 +22,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @SuperBuilder
 @MappedSuperclass
+@QuerySupertype
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

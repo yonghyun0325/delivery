@@ -84,7 +84,8 @@ class CartServiceUnitTest {
             CartItem cartItem = CartItem.create(cart, menuId, "Jjajangmyeon", 2, 7000L);
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .thenReturn(Optional.of(menu));
             when(menuService.getOrderableMenu(menuId, storeId))
                     .thenReturn(new MenuSnapshot(menuId, "Jjajangmyeon", 7000));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
@@ -191,7 +192,8 @@ class CartServiceUnitTest {
             MenuEntity menu = new MenuEntity(storeId, "Hidden Menu", "private", 5000);
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .thenReturn(Optional.of(menu));
             when(menuService.getOrderableMenu(menuId, storeId))
                     .thenThrow(new MenuException(MenuErrorCode.MENU_NOT_FOUND));
 
@@ -206,7 +208,8 @@ class CartServiceUnitTest {
             UUID menuId = UUID.randomUUID();
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.empty());
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> cartService.addCartItem(userDetails, menuId, 1))
                     .isInstanceOf(MenuException.class);
@@ -223,7 +226,8 @@ class CartServiceUnitTest {
             CartItem cartItem = CartItem.create(cart, menuId, "Tteokbokki", 1, 6000L);
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .thenReturn(Optional.of(menu));
             when(menuService.getOrderableMenu(menuId, storeId))
                     .thenReturn(new MenuSnapshot(menuId, "Tteokbokki", 6000));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());

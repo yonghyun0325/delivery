@@ -12,6 +12,8 @@ import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.domain.user.repository.UserSpecification;
 import java.util.Set;
+
+import com.delivery.global.cache.UserCacheRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserAdminService {
     private final UserRepository userRepository;
+    private final UserCacheRepository userCacheRepository;
 
     /**
      * 회원 단건 조회
@@ -50,8 +53,6 @@ public class UserAdminService {
      */
     public PageResponse<UserAdminListResponse> findAllUserInfo(
             UserSearchRequest request, Pageable pageable) {
-        log.info(">>>> Controller received pageable: {}", pageable);
-        log.info(">>>> Controller received request: {}", request);
 
         Specification<User> spec = createUserSpecification(request);
         pageable = validatedPageable(pageable);
@@ -71,7 +72,9 @@ public class UserAdminService {
                 userRepository
                         .findWithRolesById(userId)
                         .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_USER));
+
         user.updateRoles(request.role());
+        userCacheRepository.delete(user.getUserUuid());
     }
 
     private Pageable validatedPageable(Pageable pageable) {
@@ -85,7 +88,7 @@ public class UserAdminService {
     }
 
     private Specification<User> createUserSpecification(UserSearchRequest request) {
-        Specification<User> spec = Specification.where(null);
+        Specification<User> spec = Specification.allOf();
 
         if (request.userStatus() != null) {
             spec = spec.and(UserSpecification.userStatus(request.userStatus()));

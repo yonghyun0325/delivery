@@ -18,7 +18,9 @@ import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.service.AddressService;
 import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
+import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
+import com.delivery.global.security.config.CustomUserDetailsService;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -38,11 +40,16 @@ import org.springframework.test.web.servlet.MockMvc;
 class AddressControllerUnitTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
-
-    @MockitoBean private RefreshTokenRepository refreshTokenRepository;
-    @MockitoBean private AddressService addressService;
-    @MockitoBean private JwtUtil jwtUtil;
+    @MockitoBean
+    UserCacheRepository userCacheRepository;
+    @MockitoBean
+    RefreshTokenRepository refreshTokenRepository;
+    @MockitoBean AddressService addressService;
+    @MockitoBean JwtUtil jwtUtil;
     @MockitoBean ErrorCodeRegistry errorCodeRegistry;
+    @MockitoBean CustomUserDetailsService customUserDetailsService;
+    @MockitoBean
+    private BlackListRepository blackListRepository;
 
     private final UUID addressId = UUID.randomUUID();
     private final CreateAddressRequest request = new CreateAddressRequest("주소1", "상세주소1", true);

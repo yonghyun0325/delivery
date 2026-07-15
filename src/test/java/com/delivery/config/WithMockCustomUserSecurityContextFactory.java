@@ -14,12 +14,13 @@ public class WithMockCustomUserSecurityContextFactory
     public SecurityContext createSecurityContext(WithMockCustomUser mockCustomUser) {
         final SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
+        java.util.UUID uuid = java.util.UUID.fromString(mockCustomUser.userUuid());
+
         CustomUserDetails customUserDetails =
                 CustomUserDetails.builder()
                         .id(mockCustomUser.id())
                         .username(mockCustomUser.userName())
-                        .nickName(mockCustomUser.nickName())
-                        .phoneNumber(mockCustomUser.phoneNumber())
+                        .userUuid(uuid)
                         .authorities(
                                 List.of(
                                         new SimpleGrantedAuthority(

@@ -1,6 +1,5 @@
 package com.delivery.global.security.config;
 
-import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
 import java.util.Collection;
 import java.util.List;
@@ -18,8 +17,6 @@ public class CustomUserDetails implements UserDetails {
     private Long id;
     private String username;
     private String password;
-    private String nickName;
-    private String phoneNumber;
     private UUID userUuid;
     private Collection<? extends GrantedAuthority> authorities;
 
@@ -30,13 +27,7 @@ public class CustomUserDetails implements UserDetails {
                         .collect(Collectors.toList());
 
         return new CustomUserDetails(
-                user.getId(),
-                user.getUsername(),
-                user.getPassword(),
-                user.getNickName(),
-                user.getPhoneNumber(),
-                user.getUserUuid(),
-                authorities);
+                user.getId(), user.getUsername(), null, user.getUserUuid(), authorities);
     }
 
     // 주문 도메인에서 권한 검증할  때 사용하려고 추가했습니다
@@ -47,8 +38,6 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public boolean hasRole(String role) {
-        return getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(role::equals);
+        return getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(role::equals);
     }
 }

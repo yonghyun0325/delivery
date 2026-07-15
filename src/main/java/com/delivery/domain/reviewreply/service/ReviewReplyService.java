@@ -33,14 +33,9 @@ public class ReviewReplyService {
     // 사장님 리뷰 답글 등록
     @Transactional
     public ReviewReplyResponse createReply(
-            UUID reviewId,
-            ReviewReplyRequest request,
-            Long ownerId) {
+            UUID reviewId, ReviewReplyRequest request, Long ownerId) {
 
-        log.info(
-                "리뷰 답글 등록 요청 - reviewId={}, ownerId={}",
-                reviewId,
-                ownerId);
+        log.info("리뷰 답글 등록 요청 - reviewId={}, ownerId={}", reviewId, ownerId);
 
         // 답글 내용 검증
         validateReplyRequest(request);
@@ -55,14 +50,9 @@ public class ReviewReplyService {
         validateDuplicateReply(reviewId);
 
         // 답글 엔티티 생성 및 저장
-        ReviewReply reply =
-                new ReviewReply(
-                        review,
-                        request.getContent(),
-                        ownerId);
+        ReviewReply reply = new ReviewReply(review, request.getContent(), ownerId);
 
-        ReviewReply savedReply =
-                reviewReplyRepository.save(reply);
+        ReviewReply savedReply = reviewReplyRepository.save(reply);
 
         log.info(
                 "리뷰 답글 등록 완료 - replyId={}, reviewId={}, ownerId={}",
@@ -85,16 +75,9 @@ public class ReviewReplyService {
     // 사장님 리뷰 답글 수정
     @Transactional
     public ReviewReplyResponse updateReply(
-            UUID reviewId,
-            UUID replyId,
-            ReviewReplyRequest request,
-            Long ownerId) {
+            UUID reviewId, UUID replyId, ReviewReplyRequest request, Long ownerId) {
 
-        log.info(
-                "리뷰 답글 수정 요청 - reviewId={}, replyId={}, ownerId={}",
-                reviewId,
-                replyId,
-                ownerId);
+        log.info("리뷰 답글 수정 요청 - reviewId={}, replyId={}, ownerId={}", reviewId, replyId, ownerId);
 
         // 답글 내용 검증
         validateReplyRequest(request);
@@ -111,27 +94,16 @@ public class ReviewReplyService {
         // Dirty Checking을 통해 답글 내용 수정
         reply.update(request.getContent());
 
-        log.info(
-                "리뷰 답글 수정 완료 - reviewId={}, replyId={}",
-                reviewId,
-                replyId);
+        log.info("리뷰 답글 수정 완료 - reviewId={}, replyId={}", reviewId, replyId);
 
         return ReviewReplyResponse.toDto(reply);
     }
 
     // 사장님 리뷰 답글 삭제
     @Transactional
-    public void deleteReply(
-            UUID reviewId,
-            UUID replyId,
-            Long ownerId,
-            String deletedBy) {
+    public void deleteReply(UUID reviewId, UUID replyId, Long ownerId, String deletedBy) {
 
-        log.info(
-                "리뷰 답글 삭제 요청 - reviewId={}, replyId={}, ownerId={}",
-                reviewId,
-                replyId,
-                ownerId);
+        log.info("리뷰 답글 삭제 요청 - reviewId={}, replyId={}, ownerId={}", reviewId, replyId, ownerId);
 
         // 삭제되지 않은 답글 조회
         ReviewReply reply = findReplyById(replyId);
@@ -145,10 +117,7 @@ public class ReviewReplyService {
         // 답글 소프트 삭제
         reply.delete(deletedBy);
 
-        log.info(
-                "리뷰 답글 삭제 완료 - reviewId={}, replyId={}",
-                reviewId,
-                replyId);
+        log.info("리뷰 답글 삭제 완료 - reviewId={}, replyId={}", reviewId, replyId);
     }
 
     // 리뷰 조회 공통 메서드
@@ -158,12 +127,9 @@ public class ReviewReplyService {
                 .findByIdAndDeletedAtIsNull(reviewId)
                 .orElseThrow(
                         () -> {
-                            log.warn(
-                                    "리뷰 답글 처리 실패 - 존재하지 않거나 삭제된 리뷰, reviewId={}",
-                                    reviewId);
+                            log.warn("리뷰 답글 처리 실패 - 존재하지 않거나 삭제된 리뷰, reviewId={}", reviewId);
 
-                            return new ReviewException(
-                                    ReviewErrorCode.REVIEW_NOT_FOUND);
+                            return new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
                         });
     }
 
@@ -174,12 +140,9 @@ public class ReviewReplyService {
                 .findByStoreIdAndDeletedAtIsNull(storeId)
                 .orElseThrow(
                         () -> {
-                            log.warn(
-                                    "리뷰 답글 처리 실패 - 존재하지 않거나 삭제된 가게, storeId={}",
-                                    storeId);
+                            log.warn("리뷰 답글 처리 실패 - 존재하지 않거나 삭제된 가게, storeId={}", storeId);
 
-                            return new StoreException(
-                                    StoreErrorCode.STORE_NOT_FOUND);
+                            return new StoreException(StoreErrorCode.STORE_NOT_FOUND);
                         });
     }
 
@@ -190,9 +153,7 @@ public class ReviewReplyService {
                 .findByReviewIdAndDeletedAtIsNull(reviewId)
                 .orElseThrow(
                         () -> {
-                            log.warn(
-                                    "리뷰 답글 조회 실패 - 존재하지 않거나 삭제된 답글, reviewId={}",
-                                    reviewId);
+                            log.warn("리뷰 답글 조회 실패 - 존재하지 않거나 삭제된 답글, reviewId={}", reviewId);
 
                             return new ReviewReplyException(
                                     ReviewReplyErrorCode.REVIEW_REPLY_NOT_FOUND);
@@ -206,9 +167,7 @@ public class ReviewReplyService {
                 .findByIdAndDeletedAtIsNull(replyId)
                 .orElseThrow(
                         () -> {
-                            log.warn(
-                                    "리뷰 답글 조회 실패 - 존재하지 않거나 삭제된 답글, replyId={}",
-                                    replyId);
+                            log.warn("리뷰 답글 조회 실패 - 존재하지 않거나 삭제된 답글, replyId={}", replyId);
 
                             return new ReviewReplyException(
                                     ReviewReplyErrorCode.REVIEW_REPLY_NOT_FOUND);
@@ -220,19 +179,14 @@ public class ReviewReplyService {
 
         if (reviewReplyRepository.existsByReviewIdAndDeletedAtIsNull(reviewId)) {
 
-            log.warn(
-                    "중복 리뷰 답글 등록 시도 - reviewId={}",
-                    reviewId);
+            log.warn("중복 리뷰 답글 등록 시도 - reviewId={}", reviewId);
 
-            throw new ReviewReplyException(
-                    ReviewReplyErrorCode.REVIEW_REPLY_ALREADY_EXISTS);
+            throw new ReviewReplyException(ReviewReplyErrorCode.REVIEW_REPLY_ALREADY_EXISTS);
         }
     }
 
     // 요청한 리뷰 ID와 답글이 속한 실제 리뷰 ID가 일치하는지 검증
-    private void validateReplyBelongsToReview(
-            ReviewReply reply,
-            UUID reviewId) {
+    private void validateReplyBelongsToReview(ReviewReply reply, UUID reviewId) {
 
         UUID actualReviewId = reply.getReview().getId();
 
@@ -244,15 +198,12 @@ public class ReviewReplyService {
                     reviewId,
                     actualReviewId);
 
-            throw new ReviewReplyException(
-                    ReviewReplyErrorCode.REVIEW_REPLY_ACCESS_DENIED);
+            throw new ReviewReplyException(ReviewReplyErrorCode.REVIEW_REPLY_ACCESS_DENIED);
         }
     }
 
     // 현재 로그인한 사장님이 답글 작성자인지 검증
-    private void validateReplyOwner(
-            ReviewReply reply,
-            Long ownerId) {
+    private void validateReplyOwner(ReviewReply reply, Long ownerId) {
 
         if (!reply.getOwnerId().equals(ownerId)) {
 
@@ -262,15 +213,12 @@ public class ReviewReplyService {
                     ownerId,
                     reply.getOwnerId());
 
-            throw new ReviewReplyException(
-                    ReviewReplyErrorCode.REVIEW_REPLY_ACCESS_DENIED);
+            throw new ReviewReplyException(ReviewReplyErrorCode.REVIEW_REPLY_ACCESS_DENIED);
         }
     }
 
     // 현재 로그인한 사장님이 해당 가게의 실제 소유자인지 검증
-    private void validateStoreOwner(
-            UUID storeId,
-            Long ownerId) {
+    private void validateStoreOwner(UUID storeId, Long ownerId) {
 
         Store store = findStoreById(storeId);
 
@@ -282,21 +230,18 @@ public class ReviewReplyService {
                     ownerId,
                     store.getUserId());
 
-            throw new ReviewReplyException(
-                    ReviewReplyErrorCode.REVIEW_REPLY_ACCESS_DENIED);
+            throw new ReviewReplyException(ReviewReplyErrorCode.REVIEW_REPLY_ACCESS_DENIED);
         }
     }
 
     // 답글 내용이 비어 있는지 검증
     private void validateReplyRequest(ReviewReplyRequest request) {
 
-        if (request.getContent() == null
-                || request.getContent().isBlank()) {
+        if (request.getContent() == null || request.getContent().isBlank()) {
 
             log.warn("리뷰 답글 요청 검증 실패 - 답글 내용이 비어 있음");
 
-            throw new ReviewReplyException(
-                    ReviewReplyErrorCode.EMPTY_REPLY_CONTENT);
+            throw new ReviewReplyException(ReviewReplyErrorCode.EMPTY_REPLY_CONTENT);
         }
     }
 }

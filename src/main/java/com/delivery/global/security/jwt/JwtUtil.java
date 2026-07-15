@@ -48,8 +48,7 @@ public class JwtUtil implements Serializable {
     }
 
     public Claims getAllClaimsFromAccessToken(String token) {
-        Key signingKey =
-                createAccessSigningKey();
+        Key signingKey = createAccessSigningKey();
         return getAllClaimsFromToken(token, signingKey);
     }
 
@@ -76,28 +75,24 @@ public class JwtUtil implements Serializable {
     }
 
     public String generateAccessToken(UserDetails userDetails, UUID userUuid, UUID sessionId) {
-        Key signingKey =
-                createAccessSigningKey();
+        Key signingKey = createAccessSigningKey();
         return generateToken(userDetails, userUuid, sessionId, signingKey, ACCESS_TOKEN_VALIDITY);
     }
 
     // Refresh Token
     public Claims getAllClaimsFromRefreshToken(String token) {
-        Key signingKey =
-                createRefreshSigningKey();
+        Key signingKey = createRefreshSigningKey();
         return getAllClaimsFromToken(token, signingKey);
     }
 
-
     public String generateRefreshToken(UserDetails userDetails, UUID userUuid, UUID sessionId) {
-        Key signingKey =
-                createRefreshSigningKey();
+        Key signingKey = createRefreshSigningKey();
         return generateToken(userDetails, userUuid, sessionId, signingKey, REFRESH_TOKEN_VALIDITY);
     }
 
-
     /**
      * 토큰 검증
+     *
      * @param token
      * @param userDetails
      * @return
@@ -109,6 +104,7 @@ public class JwtUtil implements Serializable {
 
     /**
      * UUID 추출
+     *
      * @param accessToken
      * @return
      */
@@ -123,7 +119,24 @@ public class JwtUtil implements Serializable {
     }
 
     /**
+     * sessionId 추출
+     *
+     * @param token
+     * @return
+     */
+    public UUID getSessionIdFromAccessToken(String token) {
+        Claims claims = getAllClaimsFromAccessToken(token);
+        return UUID.fromString(claims.get("sessionId", String.class));
+    }
+
+    public UUID getSessionIdFromRefreshToken(String token) {
+        Claims claims = getAllClaimsFromRefreshToken(token);
+        return UUID.fromString(claims.get("sessionId", String.class));
+    }
+
+    /**
      * 토큰 파싱
+     *
      * @param request
      * @return
      */
@@ -139,7 +152,6 @@ public class JwtUtil implements Serializable {
         return resolveBearerToken(request, ACCESS_TOKEN.getHeader());
     }
 
-
     public String resolveRefreshToken(HttpServletRequest request) {
         return request.getHeader(REFRESH_TOKEN.getHeader());
     }
@@ -152,7 +164,11 @@ public class JwtUtil implements Serializable {
 
     private Key createRefreshSigningKey() {
         return new SecretKeySpec(
-                        Base64.getDecoder().decode(jwtProperties.getRefreshSecret()),
-                        SignatureAlgorithm.HS256.getJcaName());
+                Base64.getDecoder().decode(jwtProperties.getRefreshSecret()),
+                SignatureAlgorithm.HS256.getJcaName());
+    }
+
+    public long getTimeRemaining(String token) {
+        return Math.max(0, getExpirationDateFromToken(token).getTime() - System.currentTimeMillis());
     }
 }

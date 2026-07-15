@@ -12,14 +12,11 @@ import org.springframework.context.annotation.Configuration;
 public class CaffeineCacheConfig {
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager
-                 = new CaffeineCacheManager();
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
 
         for (CacheType cacheType : CacheType.values()) {
             cacheManager.registerCustomCache(
-                    cacheType.name(),
-                    caffeineCacheBuilder(cacheType).build()
-            );
+                    cacheType.name(), caffeineCacheBuilder(cacheType).build());
         }
 
         return cacheManager;
@@ -31,5 +28,4 @@ public class CaffeineCacheConfig {
                 .maximumSize(cacheType.getMaximumSize())
                 .recordStats();
     }
-
 }

@@ -33,17 +33,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
-    @Mock
-    private ReviewRepository reviewRepository;
+    @Mock private ReviewRepository reviewRepository;
 
-    @Mock
-    private OrderRepository orderRepository;
+    @Mock private OrderRepository orderRepository;
 
-    @Mock
-    private StoreService storeService;
+    @Mock private StoreService storeService;
 
-    @InjectMocks
-    private ReviewService reviewService;
+    @InjectMocks private ReviewService reviewService;
 
     private Long loginUserId;
     private UUID orderId;
@@ -58,17 +54,10 @@ class ReviewServiceTest {
         storeId = UUID.randomUUID();
 
         // 리뷰 작성 대상 주문 생성
-        completedOrder =
-                new Order(
-                        loginUserId,
-                        storeId,
-                        "서울특별시 강남구");
+        completedOrder = new Order(loginUserId, storeId, "서울특별시 강남구");
 
         // JPA가 생성하는 주문 ID를 단위 테스트에서 직접 설정
-        ReflectionTestUtils.setField(
-                completedOrder,
-                "id",
-                orderId);
+        ReflectionTestUtils.setField(completedOrder, "id", orderId);
 
         // 리뷰를 작성할 수 있는 최종 완료 상태로 변경
         completedOrder.changeStatus(OrderStatus.COMPLETED);
@@ -90,16 +79,14 @@ class ReviewServiceTest {
                 .thenReturn(Optional.of(completedOrder));
 
         // 해당 주문에 작성된 리뷰가 없음
-        when(reviewRepository.existsByOrderId(orderId))
-                .thenReturn(false);
+        when(reviewRepository.existsByOrderId(orderId)).thenReturn(false);
 
         // 전달받은 Review 엔티티를 그대로 반환
         when(reviewRepository.save(any(Review.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ReviewResponse response =
-                reviewService.createReview(loginUserId, request);
+        ReviewResponse response = reviewService.createReview(loginUserId, request);
 
         // then
         assertThat(response.getRating()).isEqualTo(5);
@@ -109,20 +96,16 @@ class ReviewServiceTest {
         assertThat(response.getStoreId()).isEqualTo(storeId);
 
         // 주문 조회 여부 검증
-        verify(orderRepository)
-                .findByIdAndDeletedAtIsNull(orderId);
+        verify(orderRepository).findByIdAndDeletedAtIsNull(orderId);
 
         // 주문당 리뷰 중복 검증 여부 확인
-        verify(reviewRepository)
-                .existsByOrderId(orderId);
+        verify(reviewRepository).existsByOrderId(orderId);
 
         // 리뷰 저장 여부 확인
-        verify(reviewRepository)
-                .save(any(Review.class));
+        verify(reviewRepository).save(any(Review.class));
 
         // 가게 평균 평점 갱신 여부 확인
-        verify(storeService)
-                .updateAverageRating(storeId);
+        verify(storeService).updateAverageRating(storeId);
     }
 
     @Test
@@ -137,23 +120,18 @@ class ReviewServiceTest {
         when(request.getContent()).thenReturn("정말 맛있었습니다!");
 
         // 삭제되지 않은 주문을 찾지 못한 상황
-        when(orderRepository.findByIdAndDeletedAtIsNull(orderId))
-                .thenReturn(Optional.empty());
+        when(orderRepository.findByIdAndDeletedAtIsNull(orderId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.createReview(loginUserId, request))
+        assertThatThrownBy(() -> reviewService.createReview(loginUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.ORDER_NOT_FOUND.getMessage());
 
         // 주문 조회는 수행되어야 함
-        verify(orderRepository)
-                .findByIdAndDeletedAtIsNull(orderId);
+        verify(orderRepository).findByIdAndDeletedAtIsNull(orderId);
 
         // 주문이 없으므로 리뷰 관련 로직과 평균 평점 갱신은 실행되지 않음
-        verifyNoInteractions(
-                reviewRepository,
-                storeService);
+        verifyNoInteractions(reviewRepository, storeService);
     }
 
     @Test
@@ -174,19 +152,15 @@ class ReviewServiceTest {
                 .thenReturn(Optional.of(completedOrder));
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.createReview(anotherUserId, request))
+        assertThatThrownBy(() -> reviewService.createReview(anotherUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.ORDER_USER_MISMATCH.getMessage());
 
         // 주문 조회까지만 실행
-        verify(orderRepository)
-                .findByIdAndDeletedAtIsNull(orderId);
+        verify(orderRepository).findByIdAndDeletedAtIsNull(orderId);
 
         // 주문자 검증에서 실패하므로 중복 확인과 저장은 실행되지 않음
-        verifyNoInteractions(
-                reviewRepository,
-                storeService);
+        verifyNoInteractions(reviewRepository, storeService);
     }
 
     @Test
@@ -194,17 +168,10 @@ class ReviewServiceTest {
     void createReview_orderNotCompleted() {
 
         // given
-        Order pendingOrder =
-                new Order(
-                        loginUserId,
-                        storeId,
-                        "서울특별시 강남구");
+        Order pendingOrder = new Order(loginUserId, storeId, "서울특별시 강남구");
 
         // 테스트에서 사용할 주문 ID 직접 설정
-        ReflectionTestUtils.setField(
-                pendingOrder,
-                "id",
-                orderId);
+        ReflectionTestUtils.setField(pendingOrder, "id", orderId);
 
         ReviewRequest request = mock(ReviewRequest.class);
 
@@ -217,19 +184,15 @@ class ReviewServiceTest {
                 .thenReturn(Optional.of(pendingOrder));
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.createReview(loginUserId, request))
+        assertThatThrownBy(() -> reviewService.createReview(loginUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.ORDER_NOT_COMPLETED.getMessage());
 
         // 주문 조회까지만 실행
-        verify(orderRepository)
-                .findByIdAndDeletedAtIsNull(orderId);
+        verify(orderRepository).findByIdAndDeletedAtIsNull(orderId);
 
         // 주문 상태 검증에서 실패하므로 이후 로직은 실행되지 않음
-        verifyNoInteractions(
-                reviewRepository,
-                storeService);
+        verifyNoInteractions(reviewRepository, storeService);
     }
 
     @Test
@@ -248,25 +211,20 @@ class ReviewServiceTest {
                 .thenReturn(Optional.of(completedOrder));
 
         // 해당 주문에 이미 리뷰가 존재함
-        when(reviewRepository.existsByOrderId(orderId))
-                .thenReturn(true);
+        when(reviewRepository.existsByOrderId(orderId)).thenReturn(true);
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.createReview(loginUserId, request))
+        assertThatThrownBy(() -> reviewService.createReview(loginUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.REVIEW_ALREADY_EXISTS.getMessage());
 
         // 주문 조회와 중복 리뷰 검증까지 수행
-        verify(orderRepository)
-                .findByIdAndDeletedAtIsNull(orderId);
+        verify(orderRepository).findByIdAndDeletedAtIsNull(orderId);
 
-        verify(reviewRepository)
-                .existsByOrderId(orderId);
+        verify(reviewRepository).existsByOrderId(orderId);
 
         // 중복 리뷰이므로 저장은 실행되지 않음
-        verify(reviewRepository, never())
-                .save(any(Review.class));
+        verify(reviewRepository, never()).save(any(Review.class));
 
         // 평균 평점 갱신도 실행되지 않음
         verifyNoInteractions(storeService);
@@ -282,16 +240,12 @@ class ReviewServiceTest {
         when(request.getRating()).thenReturn(0);
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.createReview(loginUserId, request))
+        assertThatThrownBy(() -> reviewService.createReview(loginUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.INVALID_RATING.getMessage());
 
         // 요청 데이터 검증에서 실패하므로 이후 로직은 실행되지 않음
-        verifyNoInteractions(
-                orderRepository,
-                reviewRepository,
-                storeService);
+        verifyNoInteractions(orderRepository, reviewRepository, storeService);
     }
 
     @Test
@@ -304,16 +258,12 @@ class ReviewServiceTest {
         when(request.getRating()).thenReturn(6);
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.createReview(loginUserId, request))
+        assertThatThrownBy(() -> reviewService.createReview(loginUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.INVALID_RATING.getMessage());
 
         // 요청 데이터 검증에서 실패하므로 이후 로직은 실행되지 않음
-        verifyNoInteractions(
-                orderRepository,
-                reviewRepository,
-                storeService);
+        verifyNoInteractions(orderRepository, reviewRepository, storeService);
     }
 
     @Test
@@ -326,16 +276,12 @@ class ReviewServiceTest {
         when(request.getRating()).thenReturn(null);
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.createReview(loginUserId, request))
+        assertThatThrownBy(() -> reviewService.createReview(loginUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.INVALID_RATING.getMessage());
 
         // 평점 검증에서 바로 실패하므로 이후 로직은 실행되지 않음
-        verifyNoInteractions(
-                orderRepository,
-                reviewRepository,
-                storeService);
+        verifyNoInteractions(orderRepository, reviewRepository, storeService);
     }
 
     @Test
@@ -345,19 +291,10 @@ class ReviewServiceTest {
         // given
         UUID reviewId = UUID.randomUUID();
 
-        Review review =
-                Review.create(
-                        orderId,
-                        loginUserId,
-                        storeId,
-                        3,
-                        "기존 리뷰 내용");
+        Review review = Review.create(orderId, loginUserId, storeId, 3, "기존 리뷰 내용");
 
         // JPA가 생성하는 리뷰 ID를 단위 테스트에서 직접 설정
-        ReflectionTestUtils.setField(
-                review,
-                "id",
-                reviewId);
+        ReflectionTestUtils.setField(review, "id", reviewId);
 
         ReviewRequest request = mock(ReviewRequest.class);
 
@@ -365,15 +302,10 @@ class ReviewServiceTest {
         when(request.getContent()).thenReturn("수정된 리뷰 내용");
 
         // 삭제되지 않은 리뷰 조회 성공
-        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId))
-                .thenReturn(Optional.of(review));
+        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).thenReturn(Optional.of(review));
 
         // when
-        ReviewResponse response =
-                reviewService.updateReview(
-                        reviewId,
-                        loginUserId,
-                        request);
+        ReviewResponse response = reviewService.updateReview(reviewId, loginUserId, request);
 
         // then
         assertThat(response.getReviewId()).isEqualTo(reviewId);
@@ -383,12 +315,10 @@ class ReviewServiceTest {
         assertThat(response.getStoreId()).isEqualTo(storeId);
 
         // 삭제되지 않은 리뷰 조회 여부 확인
-        verify(reviewRepository)
-                .findByIdAndDeletedAtIsNull(reviewId);
+        verify(reviewRepository).findByIdAndDeletedAtIsNull(reviewId);
 
         // 수정 후 가게 평균 평점 갱신 여부 확인
-        verify(storeService)
-                .updateAverageRating(storeId);
+        verify(storeService).updateAverageRating(storeId);
     }
 
     @Test
@@ -404,22 +334,18 @@ class ReviewServiceTest {
         when(request.getContent()).thenReturn("수정된 리뷰 내용");
 
         // 삭제되지 않은 리뷰를 찾지 못한 상황
-        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId))
-                .thenReturn(Optional.empty());
+        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.updateReview(reviewId, loginUserId, request))
+        assertThatThrownBy(() -> reviewService.updateReview(reviewId, loginUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.REVIEW_NOT_FOUND.getMessage());
 
         // 리뷰 조회는 수행되어야 함
-        verify(reviewRepository)
-                .findByIdAndDeletedAtIsNull(reviewId);
+        verify(reviewRepository).findByIdAndDeletedAtIsNull(reviewId);
 
         // 리뷰를 찾지 못했으므로 저장 및 평균 평점 갱신은 실행되지 않음
-        verify(reviewRepository, never())
-                .save(any(Review.class));
+        verify(reviewRepository, never()).save(any(Review.class));
 
         verifyNoInteractions(storeService);
     }
@@ -432,18 +358,9 @@ class ReviewServiceTest {
         UUID reviewId = UUID.randomUUID();
         Long anotherUserId = 2L;
 
-        Review review =
-                Review.create(
-                        orderId,
-                        loginUserId,
-                        storeId,
-                        3,
-                        "기존 리뷰 내용");
+        Review review = Review.create(orderId, loginUserId, storeId, 3, "기존 리뷰 내용");
 
-        ReflectionTestUtils.setField(
-                review,
-                "id",
-                reviewId);
+        ReflectionTestUtils.setField(review, "id", reviewId);
 
         ReviewRequest request = mock(ReviewRequest.class);
 
@@ -451,22 +368,18 @@ class ReviewServiceTest {
         when(request.getContent()).thenReturn("수정된 리뷰 내용");
 
         // 리뷰는 존재하지만 로그인 사용자가 작성자가 아님
-        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId))
-                .thenReturn(Optional.of(review));
+        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).thenReturn(Optional.of(review));
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.updateReview(reviewId, anotherUserId, request))
+        assertThatThrownBy(() -> reviewService.updateReview(reviewId, anotherUserId, request))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.REVIEW_ACCESS_DENIED.getMessage());
 
         // 리뷰 조회까지만 수행
-        verify(reviewRepository)
-                .findByIdAndDeletedAtIsNull(reviewId);
+        verify(reviewRepository).findByIdAndDeletedAtIsNull(reviewId);
 
         // 권한 검증에서 실패하므로 저장과 평균 평점 갱신은 실행되지 않음
-        verify(reviewRepository, never())
-                .save(any(Review.class));
+        verify(reviewRepository, never()).save(any(Review.class));
 
         verifyNoInteractions(storeService);
     }
@@ -478,21 +391,11 @@ class ReviewServiceTest {
         // given
         UUID reviewId = UUID.randomUUID();
 
-        Review review =
-                Review.create(
-                        orderId,
-                        loginUserId,
-                        storeId,
-                        5,
-                        "삭제할 리뷰 내용");
+        Review review = Review.create(orderId, loginUserId, storeId, 5, "삭제할 리뷰 내용");
 
-        ReflectionTestUtils.setField(
-                review,
-                "id",
-                reviewId);
+        ReflectionTestUtils.setField(review, "id", reviewId);
 
-        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId))
-                .thenReturn(Optional.of(review));
+        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).thenReturn(Optional.of(review));
 
         // when
         reviewService.deleteReview(reviewId, loginUserId);
@@ -501,11 +404,9 @@ class ReviewServiceTest {
         assertThat(review.getDeletedAt()).isNotNull();
         assertThat(review.getDeletedBy()).isEqualTo(loginUserId.toString());
 
-        verify(reviewRepository)
-                .findByIdAndDeletedAtIsNull(reviewId);
+        verify(reviewRepository).findByIdAndDeletedAtIsNull(reviewId);
 
-        verify(storeService)
-                .updateAverageRating(storeId);
+        verify(storeService).updateAverageRating(storeId);
     }
 
     @Test
@@ -516,31 +417,19 @@ class ReviewServiceTest {
         UUID reviewId = UUID.randomUUID();
         Long anotherUserId = 2L;
 
-        Review review =
-                Review.create(
-                        orderId,
-                        loginUserId,
-                        storeId,
-                        5,
-                        "삭제 권한 테스트 리뷰");
+        Review review = Review.create(orderId, loginUserId, storeId, 5, "삭제 권한 테스트 리뷰");
 
-        ReflectionTestUtils.setField(
-                review,
-                "id",
-                reviewId);
+        ReflectionTestUtils.setField(review, "id", reviewId);
 
-        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId))
-                .thenReturn(Optional.of(review));
+        when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).thenReturn(Optional.of(review));
 
         // when & then
-        assertThatThrownBy(
-                () -> reviewService.deleteReview(reviewId, anotherUserId))
+        assertThatThrownBy(() -> reviewService.deleteReview(reviewId, anotherUserId))
                 .isInstanceOf(ReviewException.class)
                 .hasMessage(ReviewErrorCode.REVIEW_ACCESS_DENIED.getMessage());
 
         // 리뷰 조회는 수행됨
-        verify(reviewRepository)
-                .findByIdAndDeletedAtIsNull(reviewId);
+        verify(reviewRepository).findByIdAndDeletedAtIsNull(reviewId);
 
         // 권한 검증에서 실패하므로 평균 평점 갱신은 실행되지 않음
         verifyNoInteractions(storeService);

@@ -10,9 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.delivery.domain.store.dto.request.RegionRequest;
 import com.delivery.domain.store.dto.response.RegionResponse;
 import com.delivery.domain.store.service.RegionService;
+import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
+import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.config.CustomUserDetailsService;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -47,15 +50,20 @@ class RegionControllerUnitTest {
     @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private RegionService regionService;
     @MockitoBean private ErrorCodeRegistry errorCodeRegistry;
+    @MockitoBean private CustomUserDetailsService customUserDetailsService;
+    @MockitoBean private BlackListRepository blackListRepository;
+    @MockitoBean private UserCacheRepository userCacheRepository;
 
     @BeforeEach
     void setUpSecurityContext() {
-        CustomUserDetails mockUser = CustomUserDetails.builder()
-                .id(1L)
-                .username("admin")
-                .authorities(List.of(new SimpleGrantedAuthority("ROLE_MANAGER")))
-                .build();
-        Authentication auth = new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities());
+        CustomUserDetails mockUser =
+                CustomUserDetails.builder()
+                        .id(1L)
+                        .username("admin")
+                        .authorities(List.of(new SimpleGrantedAuthority("ROLE_MANAGER")))
+                        .build();
+        Authentication auth =
+                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
@@ -77,9 +85,10 @@ class RegionControllerUnitTest {
 
             given(regionService.createRegion(any(RegionRequest.class))).willReturn(response);
 
-            mockMvc.perform(post("/api/v1/regions")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/v1/regions")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.data.name").value("강남구"));
 
@@ -91,9 +100,10 @@ class RegionControllerUnitTest {
         void createRegion_fail_when_blank_name() throws Exception {
             RegionRequest request = new RegionRequest("", 37.5, 127.0);
 
-            mockMvc.perform(post("/api/v1/regions")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/v1/regions")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -105,10 +115,10 @@ class RegionControllerUnitTest {
         @Test
         @DisplayName("지역 목록 조회 성공")
         void getRegions_success() throws Exception {
-            List<RegionResponse> response = List.of(
-                    new RegionResponse(UUID.randomUUID(), "강남구", 37.5, 127.0),
-                    new RegionResponse(UUID.randomUUID(), "서초구", 37.4, 127.0)
-            );
+            List<RegionResponse> response =
+                    List.of(
+                            new RegionResponse(UUID.randomUUID(), "강남구", 37.5, 127.0),
+                            new RegionResponse(UUID.randomUUID(), "서초구", 37.4, 127.0));
 
             given(regionService.getRegions()).willReturn(response);
 
@@ -134,9 +144,10 @@ class RegionControllerUnitTest {
             given(regionService.updateRegion(eq(regionId), any(RegionRequest.class)))
                     .willReturn(response);
 
-            mockMvc.perform(put("/api/v1/regions/{regionId}", regionId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            put("/api/v1/regions/{regionId}", regionId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.name").value("서초구"));
 

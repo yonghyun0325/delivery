@@ -1,5 +1,7 @@
 package com.delivery.domain.order.service;
 
+import static com.delivery.domain.order.repository.OrderSpecification.*;
+
 import com.delivery.domain.menu.dto.response.MenuSnapshot;
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.order.dto.request.OrderCreateRequest;
@@ -10,30 +12,27 @@ import com.delivery.domain.order.dto.response.OrderListResponse;
 import com.delivery.domain.order.dto.response.OrderStatusResponse;
 import com.delivery.domain.order.entity.Order;
 import com.delivery.domain.order.entity.OrderItem;
-import com.delivery.domain.order.exception.OrderErrorCode;
 import com.delivery.domain.order.enums.OrderStatus;
+import com.delivery.domain.order.exception.OrderErrorCode;
+import com.delivery.domain.order.exception.OrderException;
 import com.delivery.domain.order.repository.OrderRepository;
 import com.delivery.domain.payment.entity.PaymentMethod;
 import com.delivery.domain.payment.service.PaymentService;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
-import com.delivery.domain.order.exception.OrderException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Set;
 import java.util.UUID;
-
-import static com.delivery.domain.order.repository.OrderSpecification.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -49,10 +48,7 @@ public class OrderService {
 
     // 고객 주문 생성
     @Transactional
-    public OrderCreateResponse createOrder(
-            OrderCreateRequest request,
-            Long currentUserId
-    ){
+    public OrderCreateResponse createOrder(OrderCreateRequest request, Long currentUserId) {
         // 요청한 storeId로 실제 존재하고 삭제되지 않은 가게를 조회
         // 존재하지 않거나 Soft Delete된 가게이면 STORE_NOT_FOUND 예외 발생
         Store store = findActiveStore(request.storeId());
@@ -63,39 +59,32 @@ public class OrderService {
         // 주문 엔티티 생성
         // userId는 요청값이 아니라 JWT에서 가져온 로그인 사용자 ID를 사용
         // status는 생성 시 기본값 REQUESTED로 설정됨
-        Order order = new Order(
-                currentUserId,
-                request.storeId(),
-                request.deliveryAddress()
-        );
+        Order order = new Order(currentUserId, request.storeId(), request.deliveryAddress());
 
         // 요청에 담긴 주문 메뉴 목록을 하나씩 처리
-        for(OrderItemCreateRequest itemRequest : request.items()){
+        for (OrderItemCreateRequest itemRequest : request.items()) {
 
             // 수량 검증 (수량은 1개 이상)
             validateOrderQuantity(itemRequest.quantity());
 
             // 메뉴 존재, 소속 가게, 노출 여부, 가격 검증
             // 검증된 메뉴의 주문 당시 정보를 스냅샷으로 반환
-            MenuSnapshot menuSnapshot = menuService.getOrderableMenu(
-                    itemRequest.menuId(),
-                    request.storeId()
-            );
+            MenuSnapshot menuSnapshot =
+                    menuService.getOrderableMenu(itemRequest.menuId(), request.storeId());
 
             // 주문 상세 엔티티 생성
             // 주문 당시 메뉴명(menuName)과 가격(menuPrice)으로 주문 상세 생성
-            OrderItem orderItem = new OrderItem(
-                    menuSnapshot.menuId(),
-                    menuSnapshot.name(),
-                    menuSnapshot.price(),
-                    itemRequest.quantity()
-            );
+            OrderItem orderItem =
+                    new OrderItem(
+                            menuSnapshot.menuId(),
+                            menuSnapshot.name(),
+                            menuSnapshot.price(),
+                            itemRequest.quantity());
 
             // 주문에 주문 상세 추가
             /* addOrderItem 내부에서 Order와 OrderItem의 연관관계를 연결하고,
-             totalPrice에 subtotalPrice를 누적함*/
+            totalPrice에 subtotalPrice를 누적함*/
             order.addOrderItem(orderItem);
-
         }
 
         // 모든 메뉴 금액이 합산된 후 최소 주문 금액 검증
@@ -106,40 +95,28 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         paymentService.createPayment(
-                savedOrder.getId(),
-                currentUserId,
-                savedOrder.getTotalPrice(),
-                PaymentMethod.CARD
-        );
+                savedOrder.getId(), currentUserId, savedOrder.getTotalPrice(), PaymentMethod.CARD);
 
         // 저장된 주문 엔티티를 응답 DTO로 변환
         return OrderCreateResponse.from(savedOrder);
     }
 
-
     // 주문 단건 조회
     @Transactional(readOnly = true)
     public OrderDetailResponse getOrder(
-            UUID orderId,
-            Long currentUserId,
-            Set<String> currentRoles
-    ) {
+            UUID orderId, Long currentUserId, Set<String> currentRoles) {
         // 삭제되지 않은 주문 주회
         // 주문 단건 응답에 메뉴 상세 목록이 포함되므로 orderItems도 함께 조회
-        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
-                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
-
+        Order order =
+                orderRepository
+                        .findByIdAndDeletedAtIsNull(orderId)
+                        .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // 현재 사용자의 역할(role)과 주문 소유 관계(id)에 따라 접근 가능 여부 검증
-        validateOrderDetailAccess(
-                order,
-                currentUserId,
-                currentRoles
-        );
+        validateOrderDetailAccess(order, currentUserId, currentRoles);
 
         // 조회된 주문 엔티티 상세 응답 DTO 변환
         return OrderDetailResponse.from(order);
-
     }
 
     // 고객 본인 주문 내역 조회
@@ -151,22 +128,17 @@ public class OrderService {
             OrderStatus status,
             int page,
             int size,
-            String sort
-    ) {
+            String sort) {
         // 날짜 범위 검증
         // startDate가 endDate보다 늦으면 잘못된 조회 조건으로 판단
         validateDateRange(startDate, endDate);
 
         // LocalDate를 LocalDateTime으로 변환
         // startDate는 해당 날짜의 00:00:00부터 조회
-        LocalDateTime startDateTime = startDate != null
-                ? startDate.atStartOfDay()
-                : null;
+        LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
 
         // endDate는 해당 날짜의 마지막 시간까지 조회
-        LocalDateTime endDateTime = endDate != null
-                ? endDate.atTime(LocalTime.MAX)
-                : null;
+        LocalDateTime endDateTime = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
 
         // 페이지 크기 보정
         // 과제 조건에 따라 10, 30, 50만 허용하고 그 외 값은 10으로 고정
@@ -179,12 +151,13 @@ public class OrderService {
         // 검색 조건 조합
         // OrderSpecification에 분리해둔 조건들을 조립
         // null인 조건은 Specification에서 제외됨
-        Specification<Order> spec = Specification.<Order>unrestricted()
-                .and(userIdEquals(currentUserId))   // 본인 주문만 조회
-                .and(deletedAtIsNull())               // Soft Delete 제외
-                .and(statusEquals(status))            // status가 있을 때만 상태 조건 추가
-                .and(createdAtGoe(startDateTime))     // startDate가 있을 때만 시작일 조건 추가
-                .and(createdAtLoe(endDateTime));      // endDate가 있을 때만 종료일 조건 추가
+        Specification<Order> spec =
+                Specification.<Order>unrestricted()
+                        .and(userIdEquals(currentUserId)) // 본인 주문만 조회
+                        .and(deletedAtIsNull()) // Soft Delete 제외
+                        .and(statusEquals(status)) // status가 있을 때만 상태 조건 추가
+                        .and(createdAtGoe(startDateTime)) // startDate가 있을 때만 시작일 조건 추가
+                        .and(createdAtLoe(endDateTime)); // endDate가 있을 때만 종료일 조건 추가
 
         // DB 조회
         // Specification = 검색 조건
@@ -194,7 +167,6 @@ public class OrderService {
         // Page<Order>를 응답 DTO로 변환
         return OrderListResponse.from(orders);
     }
-
 
     // 가게 주문 내역 조회
     @Transactional(readOnly = true)
@@ -207,8 +179,7 @@ public class OrderService {
             OrderStatus status,
             int page,
             int size,
-            String sort
-    ) {
+            String sort) {
 
         // URL로 받은 storeId의 가게가 실제 존재하고 삭제되지 않았는지 확인
         Store store = findActiveStore(storeId);
@@ -222,13 +193,9 @@ public class OrderService {
         // 검색 시작일과 종료일 범위 검증
         validateDateRange(startDate, endDate);
 
-        LocalDateTime startDateTime = startDate != null
-                ? startDate.atStartOfDay()
-                : null;
+        LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
 
-        LocalDateTime endDateTime = endDate != null
-                ? endDate.atTime(LocalTime.MAX)
-                : null;
+        LocalDateTime endDateTime = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
 
         int normalizedSize = normalizePageSize(size);
         Pageable pageable = createPageable(page, normalizedSize, sort);
@@ -236,18 +203,18 @@ public class OrderService {
         // 검증이 완료된 storeId의 주문만 검색(조회)
         // storeId 기준으로 본인 가게 주문만 조회
         // 날짜, 상태 조건은 값이 있을 때만 추가됨
-        Specification<Order> spec = Specification.<Order>unrestricted()
-                .and(storeIdEquals(storeId))
-                .and(deletedAtIsNull())
-                .and(statusEquals(status))
-                .and(createdAtGoe(startDateTime))
-                .and(createdAtLoe(endDateTime));
+        Specification<Order> spec =
+                Specification.<Order>unrestricted()
+                        .and(storeIdEquals(storeId))
+                        .and(deletedAtIsNull())
+                        .and(statusEquals(status))
+                        .and(createdAtGoe(startDateTime))
+                        .and(createdAtLoe(endDateTime));
 
         Page<Order> orders = orderRepository.findAll(spec, pageable);
 
         return OrderListResponse.from(orders);
     }
-
 
     // 날짜 범위 검증 메서드
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {
@@ -274,21 +241,16 @@ public class OrderService {
             direction = Sort.Direction.ASC;
         }
 
-        return PageRequest.of(
-                Math.max(page, 0),
-                size,
-                Sort.by(direction, "createdAt")
-        );
+        return PageRequest.of(Math.max(page, 0), size, Sort.by(direction, "createdAt"));
     }
-
 
     // 관리자 주문 삭제(Soft Delete)
     @Transactional
     public void deleteOrder(UUID orderId, Long currentAdminId) {
-        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
-                .orElseThrow(() ->
-                        new OrderException(OrderErrorCode.ORDER_NOT_FOUND)
-                );
+        Order order =
+                orderRepository
+                        .findByIdAndDeletedAtIsNull(orderId)
+                        .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // TODO: Spring Security/JWT 연동 후 MANAGER, MASTER 권한 검증
         // MANAGER, MASTER 권한으로 회원가입을 할 수 없어 우선 보류
@@ -300,7 +262,6 @@ public class OrderService {
         // 실제 DELETE가 아니라 deleted_at, deleted_by 값을 채우는 Soft Delete
         order.delete(String.valueOf(currentAdminId));
     }
-
 
     // 고객 주문 상태 변경
     // 주문 취소(고객)
@@ -325,7 +286,6 @@ public class OrderService {
         return OrderStatusResponse.from(order);
     }
 
-
     // 주문 최종 완료(고객)
     @Transactional
     public OrderStatusResponse completeOrder(UUID orderId, Long currentUserId) {
@@ -344,7 +304,6 @@ public class OrderService {
         return OrderStatusResponse.from(order);
     }
 
-
     // 가게 주문 상태 변경
     @Transactional
     public OrderStatusResponse changeStoreOrderStatus(
@@ -352,8 +311,7 @@ public class OrderService {
             UUID orderId,
             OrderStatus nextStatus,
             Long currentUserId,
-            Set<String> currentRoles
-    ) {
+            Set<String> currentRoles) {
         // 삭제되지 않은 주문 조회
         Order order = findActiveOrder(orderId);
 
@@ -385,22 +343,19 @@ public class OrderService {
         return OrderStatusResponse.from(order);
     }
 
-
     // 삭제되지 않은 주문 조회 메서드 (공통)
     private Order findActiveOrder(UUID orderId) {
-        return orderRepository.findByIdAndDeletedAtIsNull(orderId)
-                .orElseThrow(() ->
-                        new OrderException(OrderErrorCode.ORDER_NOT_FOUND)
-                );
+        return orderRepository
+                .findByIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 
     // 삭제되지 않은 가게 조회 메서드
     private Store findActiveStore(UUID storeId) {
         // storeId에 해당하는 가게가 존재하고 Soft Delete되지 않았는지 조회
-        return storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
-                .orElseThrow(() ->
-                        new OrderException(OrderErrorCode.STORE_NOT_FOUND)
-                );
+        return storeRepository
+                .findByStoreIdAndDeletedAtIsNull(storeId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.STORE_NOT_FOUND));
     }
 
     // 현재 로그인한 사용자가 해당 가게의 실제 소유자인지 검증
@@ -417,15 +372,10 @@ public class OrderService {
     // 역할별 가게 접근 권한 검증
     // OWNER - 본인이 소유한 가게만 접근 가능
     // MANAGER / MASTER - 가게 소유자 ID와 관계없이 모든 가게 접근 가능
-    private void validateStoreAccess(
-            Store store,
-            Long currentUserId,
-            Set<String> currentRoles
-    ) {
+    private void validateStoreAccess(Store store, Long currentUserId, Set<String> currentRoles) {
         // MANAGER 또는 MASTER라면 소유권 검증 없이 접근 허용
         boolean isAdmin =
-                currentRoles.contains("ROLE_MANAGER")
-                        || currentRoles.contains("ROLE_MASTER");
+                currentRoles.contains("ROLE_MANAGER") || currentRoles.contains("ROLE_MASTER");
 
         if (isAdmin) {
             return;
@@ -433,9 +383,7 @@ public class OrderService {
 
         // 관리자가 아니라면 OWNER 본인 가게인지 확인
         if (!store.getUserId().equals(currentUserId)) {
-            throw new OrderException(
-                    OrderErrorCode.FORBIDDEN_STORE_ACCESS
-            );
+            throw new OrderException(OrderErrorCode.FORBIDDEN_STORE_ACCESS);
         }
     }
 
@@ -445,14 +393,10 @@ public class OrderService {
      * MANAGER / MASTER - 소유권과 관계없이 전체 주문 조회 가능
      */
     private void validateOrderDetailAccess(
-            Order order,
-            Long currentUserId,
-            Set<String> currentRoles
-    ) {
+            Order order, Long currentUserId, Set<String> currentRoles) {
         // MANAGER 또는 MASTER는 전체 주문 조회 가능
         boolean isAdmin =
-                currentRoles.contains("ROLE_MANAGER")
-                        || currentRoles.contains("ROLE_MASTER");
+                currentRoles.contains("ROLE_MANAGER") || currentRoles.contains("ROLE_MASTER");
 
         if (isAdmin) {
             return;
@@ -460,8 +404,7 @@ public class OrderService {
 
         // CUSTOMER는 본인이 생성한 주문이면 조회 가능
         boolean isOwnOrder =
-                currentRoles.contains("ROLE_CUSTOMER")
-                        && order.getUserId().equals(currentUserId);
+                currentRoles.contains("ROLE_CUSTOMER") && order.getUserId().equals(currentUserId);
 
         if (isOwnOrder) {
             return;
@@ -471,8 +414,7 @@ public class OrderService {
         if (currentRoles.contains("ROLE_OWNER")) {
             Store store = findActiveStore(order.getStoreId());
 
-            boolean isOwnStore =
-                    store.getUserId().equals(currentUserId);
+            boolean isOwnStore = store.getUserId().equals(currentUserId);
 
             if (isOwnStore) {
                 return;
@@ -480,11 +422,8 @@ public class OrderService {
         }
 
         // 어떤 접근 조건도 충족하지 못하면 조회 차단
-        throw new OrderException(
-                OrderErrorCode.FORBIDDEN_ORDER_ACCESS
-        );
+        throw new OrderException(OrderErrorCode.FORBIDDEN_ORDER_ACCESS);
     }
-
 
     // 주문이 해당 URL 가게의 주문인지 검증
     private void validateOrderBelongsToStore(Order order, UUID storeId) {
@@ -503,9 +442,7 @@ public class OrderService {
     // 최소 주문 금액 검증
     private void validateMinimumOrderAmount(Order order, Store store) {
         if (order.getTotalPrice() < store.getMinOrderAmount()) {
-            throw new OrderException(
-                    OrderErrorCode.MINIMUM_ORDER_AMOUNT_NOT_MET
-            );
+            throw new OrderException(OrderErrorCode.MINIMUM_ORDER_AMOUNT_NOT_MET);
         }
     }
 
@@ -523,37 +460,34 @@ public class OrderService {
         }
 
         // 현재 상태에서 다음 상태로 변경 가능한지 확인
-        boolean validTransition = switch (currentStatus) {
+        boolean validTransition =
+                switch (currentStatus) {
 
-            // 고객이 주문을 요청한 상태
-            // REQUESTED → ACCEPTED / REJECTED / CUSTOMER_CANCELLED 가능
-            case REQUESTED ->
-                    nextStatus == OrderStatus.ACCEPTED
-                            || nextStatus == OrderStatus.REJECTED
-                            || nextStatus == OrderStatus.CUSTOMER_CANCELLED;
+                        // 고객이 주문을 요청한 상태
+                        // REQUESTED → ACCEPTED / REJECTED / CUSTOMER_CANCELLED 가능
+                    case REQUESTED ->
+                            nextStatus == OrderStatus.ACCEPTED
+                                    || nextStatus == OrderStatus.REJECTED
+                                    || nextStatus == OrderStatus.CUSTOMER_CANCELLED;
 
-            // 가게가 주문을 수락한 상태
-            // ACCEPTED → COOKING 가능
-            case ACCEPTED ->
-                    nextStatus == OrderStatus.COOKING;
+                        // 가게가 주문을 수락한 상태
+                        // ACCEPTED → COOKING 가능
+                    case ACCEPTED -> nextStatus == OrderStatus.COOKING;
 
-            // 조리 중
-            // COOKING → DELIVERING 가능
-            case COOKING ->
-                    nextStatus == OrderStatus.DELIVERING;
+                        // 조리 중
+                        // COOKING → DELIVERING 가능
+                    case COOKING -> nextStatus == OrderStatus.DELIVERING;
 
-            // 배달 중
-            // DELIVERING → DELIVERED 가능
-            case DELIVERING ->
-                    nextStatus == OrderStatus.DELIVERED;
+                        // 배달 중
+                        // DELIVERING → DELIVERED 가능
+                    case DELIVERING -> nextStatus == OrderStatus.DELIVERED;
 
-            // 배달 완료
-            // DELIVERED → COMPLETED 가능
-            case DELIVERED ->
-                    nextStatus == OrderStatus.COMPLETED;
+                        // 배달 완료
+                        // DELIVERED → COMPLETED 가능
+                    case DELIVERED -> nextStatus == OrderStatus.COMPLETED;
 
-            default -> false;
-        };
+                    default -> false;
+                };
 
         // 허용되지 않은 상태 변경이면 예외 발생
         if (!validTransition) {
@@ -570,7 +504,6 @@ public class OrderService {
             throw new OrderException(OrderErrorCode.ORDER_CANCEL_TIME_EXPIRED);
         }
     }
-
 
     // Customer 검증 메서드
     private void validateOrderAccessForCustomer(Order order, Long currentUserId) {

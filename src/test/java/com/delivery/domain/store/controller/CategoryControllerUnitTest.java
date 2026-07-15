@@ -10,9 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.delivery.domain.store.dto.request.CategoryRequest;
 import com.delivery.domain.store.dto.response.CategoryResponse;
 import com.delivery.domain.store.service.CategoryService;
+import com.delivery.domain.user.repository.UserRepository;
+import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
+import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.config.CustomUserDetailsService;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -47,15 +51,20 @@ class CategoryControllerUnitTest {
     @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private CategoryService categoryService;
     @MockitoBean private ErrorCodeRegistry errorCodeRegistry;
+    @MockitoBean private CustomUserDetailsService customUserDetailsService;
+    @MockitoBean private BlackListRepository blackListRepository;
+    @MockitoBean private UserCacheRepository userCacheRepository;
 
     @BeforeEach
     void setUpSecurityContext() {
-        CustomUserDetails mockUser = CustomUserDetails.builder()
-                .id(1L)
-                .username("admin")
-                .authorities(List.of(new SimpleGrantedAuthority("ROLE_MANAGER")))
-                .build();
-        Authentication auth = new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities());
+        CustomUserDetails mockUser =
+                CustomUserDetails.builder()
+                        .id(1L)
+                        .username("admin")
+                        .authorities(List.of(new SimpleGrantedAuthority("ROLE_MANAGER")))
+                        .build();
+        Authentication auth =
+                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
@@ -77,9 +86,10 @@ class CategoryControllerUnitTest {
 
             given(categoryService.createCategory(any(CategoryRequest.class))).willReturn(response);
 
-            mockMvc.perform(post("/api/v1/categories")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/v1/categories")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.data.name").value("한식"));
 
@@ -91,9 +101,10 @@ class CategoryControllerUnitTest {
         void createCategory_fail_when_blank_name() throws Exception {
             CategoryRequest request = new CategoryRequest("");
 
-            mockMvc.perform(post("/api/v1/categories")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/v1/categories")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -105,10 +116,10 @@ class CategoryControllerUnitTest {
         @Test
         @DisplayName("카테고리 목록 조회 성공")
         void getCategories_success() throws Exception {
-            List<CategoryResponse> response = List.of(
-                    new CategoryResponse(UUID.randomUUID(), "한식"),
-                    new CategoryResponse(UUID.randomUUID(), "중식")
-            );
+            List<CategoryResponse> response =
+                    List.of(
+                            new CategoryResponse(UUID.randomUUID(), "한식"),
+                            new CategoryResponse(UUID.randomUUID(), "중식"));
 
             given(categoryService.getCategories()).willReturn(response);
 
@@ -134,9 +145,10 @@ class CategoryControllerUnitTest {
             given(categoryService.updateCategory(eq(categoryId), any(CategoryRequest.class)))
                     .willReturn(response);
 
-            mockMvc.perform(put("/api/v1/categories/{categoryId}", categoryId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            put("/api/v1/categories/{categoryId}", categoryId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.name").value("중식"));
 

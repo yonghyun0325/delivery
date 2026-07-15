@@ -5,6 +5,7 @@ import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -31,12 +32,15 @@ public class CustomUserDetailsService implements UserDetailsService {
                         .collect(Collectors.toList());
 
         return new CustomUserDetails(
-                user.getId(),
-                username,
-                user.getPassword(),
-                user.getNickName(),
-                user.getPhoneNumber(),
-                user.getUserUuid(),
-                authorities);
+                user.getId(), username, user.getPassword(), user.getUserUuid(), authorities);
+    }
+
+    public CustomUserDetails loadUserByUuid(UUID userUuid) {
+        User user =
+                userRepository
+                        .findWithRolesByUserUuidAndDeletedAtIsNull(userUuid)
+                        .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_USER));
+
+        return CustomUserDetails.from(user);
     }
 }

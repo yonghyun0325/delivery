@@ -1,19 +1,17 @@
-package com.delivery.global.cache;
+ package com.delivery.global.cache;
 
-import com.delivery.common.base.BaseCacheRepository;
-import com.delivery.common.util.CacheType;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Repository;
+ import com.delivery.common.base.BaseCacheRepository;
+ import com.delivery.common.util.CacheType;
+ import java.util.Optional;
+ import org.springframework.cache.Cache;
+ import org.springframework.cache.CacheManager;
+ import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-import java.util.UUID;
-
-/**
- * 토큰 블랙리스트 캐시
- */
-@Repository
-public class BlackListRepository implements BaseCacheRepository<String, Boolean> {
+ /**
+  * 토큰 블랙리스트
+  */
+ @Repository
+ public class BlackListRepository implements BaseCacheRepository<String, String> {
     private final Cache cache;
 
     public BlackListRepository(CacheManager cacheManager) {
@@ -21,17 +19,17 @@ public class BlackListRepository implements BaseCacheRepository<String, Boolean>
     }
 
     @Override
-    public void save(String key, Boolean value) {
+    public void save(String key, String value) {
         cache.put(key, value);
     }
 
     @Override
-    public Optional<Boolean> findByKey(String key) {
-        return Optional.ofNullable(cache.get(key, Boolean.class));
+    public String findByKey(String key) {
+        return cache.get(key, String.class);
     }
 
     @Override
     public void delete(String key) {
         cache.evict(key);
     }
-}
+ }

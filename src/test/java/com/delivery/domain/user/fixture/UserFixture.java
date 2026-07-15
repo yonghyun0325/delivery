@@ -3,6 +3,8 @@ package com.delivery.domain.user.fixture;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
+import com.delivery.domain.user.entity.UserStatus;
+import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 
@@ -34,9 +36,34 @@ public enum UserFixture {
         return User.builder()
                 .id(userId)
                 .username(username)
+                .password(password)
                 .nickName(nickname)
                 .phoneNumber(phoneNumber)
+                .userStatus(UserStatus.ACTIVE)
                 .roles(Set.of(role))
+                .build();
+    }
+
+    public User createUserNoId() {
+        return User.builder()
+                .username(username)
+                .password(password)
+                .nickName(nickname)
+                .phoneNumber(phoneNumber)
+                .userStatus(UserStatus.ACTIVE)
+                .roles(Set.of(role))
+                .build();
+    }
+
+    public User createDeletedUserNoId() {
+        return User.builder()
+                .username(username)
+                .password(password)
+                .nickName(nickname)
+                .phoneNumber(phoneNumber)
+                .userStatus(UserStatus.DELETED)
+                .roles(Set.of(role))
+                .deletedAt(LocalDateTime.now())
                 .build();
     }
 }

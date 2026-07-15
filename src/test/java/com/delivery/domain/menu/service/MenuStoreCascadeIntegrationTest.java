@@ -80,9 +80,7 @@ class MenuStoreCascadeIntegrationTest extends AbstractIntegrationTest {
         menuRepository.save(new MenuEntity(storeId, "메뉴1", null, 1000));
 
         assertThatThrownBy(
-                        () ->
-                                storeService.deleteStore(
-                                        storeId, otherOwnerId, false, "other_owner"))
+                        () -> storeService.deleteStore(storeId, otherOwnerId, false, "other_owner"))
                 .isInstanceOf(StoreException.class);
 
         assertThat(menuRepository.findAllByStoreIdAndDeletedAtIsNull(storeId)).hasSize(1);

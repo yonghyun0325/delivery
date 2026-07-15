@@ -11,6 +11,7 @@ import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
+import com.delivery.global.cache.UserCacheRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final UserCacheRepository userCacheRepository;
 
     /**
      * 회원 자신 정보 조회
@@ -78,14 +80,15 @@ public class UserService {
 
     /**
      * 회원 삭제 탈퇴 후 이벤트 발생
+     *
      * @param userId 탈퇴 회원 PK키
      */
     public void deleteUser(Long userId) {
         User deletedUser = findActiveUser(userId);
-        refreshTokenRepository.delete(deletedUser.getUserUuid());
+        userCacheRepository.delete(deletedUser.getUserUuid());
         deletedUser.delete(deletedUser.getUsername());
-        applicationEventPublisher.publishEvent(new UserDeletedEvent(deletedUser.getId(), deletedUser.getUsername()));
-        // NOTE : 사용하는 쪽은 @EventListener
+        applicationEventPublisher.publishEvent(
+                new UserDeletedEvent(deletedUser.getId(), deletedUser.getUsername()));
     }
 
     /**

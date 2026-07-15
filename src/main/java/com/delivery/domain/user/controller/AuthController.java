@@ -40,9 +40,10 @@ public class AuthController implements AuthApi {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<RestApiResponse<Valid>> logout(HttpServletRequest request) {
+    public ResponseEntity<RestApiResponse<Void>> logout(HttpServletRequest request) {
         authService.logout(request);
-        return ResponseEntity.ok(
-                RestApiResponse.success(HttpStatus.OK, "로그아웃 성공", null));
+        return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "로그아웃 성공", null));
     }
+
+
 }

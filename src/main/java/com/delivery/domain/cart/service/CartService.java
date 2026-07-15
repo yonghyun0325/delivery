@@ -105,10 +105,7 @@ public class CartService {
     @Transactional
     public void clearMyCart(CustomUserDetails userDetails) {
         lockUser(userDetails.getId());
-        Cart cart =
-                cartRepository
-                        .findByUserIdAndDeletedAtIsNull(userDetails.getId())
-                        .orElse(null);
+        Cart cart = cartRepository.findByUserIdAndDeletedAtIsNull(userDetails.getId()).orElse(null);
 
         if (cart == null) {
             return;

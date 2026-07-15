@@ -7,8 +7,8 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 
 /**
- * Menu/AI 통합 테스트는 @Transactional 롤백 없이 공유 DB에서 여러 테스트 메서드가 함께 실행되므로,
- * User.username/nickName의 유니크 제약을 피하려면 호출마다 랜덤 값이 필요하다.
+ * Menu/AI 통합 테스트는 @Transactional 롤백 없이 공유 DB에서 여러 테스트 메서드가 함께 실행되므로, User.username/nickName의 유니크
+ * 제약을 피하려면 호출마다 랜덤 값이 필요하다.
  */
 @AllArgsConstructor
 public enum TestUserFixture {

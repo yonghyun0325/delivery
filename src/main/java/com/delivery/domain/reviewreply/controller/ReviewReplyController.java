@@ -38,17 +38,10 @@ public class ReviewReplyController implements ReviewReplyApi {
             @Valid @RequestBody ReviewReplyRequest request) {
 
         ReviewReplyResponse response =
-                reviewReplyService.createReply(
-                        reviewId,
-                        request,
-                        userDetails.getId());
+                reviewReplyService.createReply(reviewId, request, userDetails.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(
-                        RestApiResponse.success(
-                                HttpStatus.CREATED,
-                                "리뷰 답글 등록에 성공했습니다.",
-                                response));
+                .body(RestApiResponse.success(HttpStatus.CREATED, "리뷰 답글 등록에 성공했습니다.", response));
     }
 
     // 리뷰 답글 조회
@@ -57,14 +50,10 @@ public class ReviewReplyController implements ReviewReplyApi {
     public ResponseEntity<RestApiResponse<ReviewReplyResponse>> getReply(
             @PathVariable UUID reviewId) {
 
-        ReviewReplyResponse response =
-                reviewReplyService.getReply(reviewId);
+        ReviewReplyResponse response = reviewReplyService.getReply(reviewId);
 
         return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "리뷰 답글 조회에 성공했습니다.",
-                        response));
+                RestApiResponse.success(HttpStatus.OK, "리뷰 답글 조회에 성공했습니다.", response));
     }
 
     // 답글 작성자 본인만 수정
@@ -78,17 +67,10 @@ public class ReviewReplyController implements ReviewReplyApi {
             @Valid @RequestBody ReviewReplyRequest request) {
 
         ReviewReplyResponse response =
-                reviewReplyService.updateReply(
-                        reviewId,
-                        replyId,
-                        request,
-                        userDetails.getId());
+                reviewReplyService.updateReply(reviewId, replyId, request, userDetails.getId());
 
         return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "리뷰 답글 수정에 성공했습니다.",
-                        response));
+                RestApiResponse.success(HttpStatus.OK, "리뷰 답글 수정에 성공했습니다.", response));
     }
 
     // 답글 작성자 본인만 삭제
@@ -100,21 +82,10 @@ public class ReviewReplyController implements ReviewReplyApi {
             @PathVariable UUID reviewId,
             @PathVariable UUID replyId) {
 
-        String deletedBy =
-                userDetails.getId()
-                        + "_"
-                        + userDetails.getUsername();
+        String deletedBy = userDetails.getId() + "_" + userDetails.getUsername();
 
-        reviewReplyService.deleteReply(
-                reviewId,
-                replyId,
-                userDetails.getId(),
-                deletedBy);
+        reviewReplyService.deleteReply(reviewId, replyId, userDetails.getId(), deletedBy);
 
-        return ResponseEntity.ok(
-                RestApiResponse.success(
-                        HttpStatus.OK,
-                        "리뷰 답글 삭제에 성공했습니다.",
-                        null));
+        return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "리뷰 답글 삭제에 성공했습니다.", null));
     }
 }
