@@ -70,7 +70,7 @@ class ReviewReplyServiceTest {
         // given
         ReviewReplyRequest request = mock(ReviewReplyRequest.class);
 
-        when(request.getContent()).thenReturn("이용해주셔서 감사합니다.");
+        when(request.content()).thenReturn("이용해주셔서 감사합니다.");
 
         // 삭제되지 않은 리뷰 조회
         when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).thenReturn(Optional.of(review));
@@ -113,7 +113,7 @@ class ReviewReplyServiceTest {
         // given
         ReviewReplyRequest request = mock(ReviewReplyRequest.class);
 
-        when(request.getContent()).thenReturn("이용해주셔서 감사합니다.");
+        when(request.content()).thenReturn("이용해주셔서 감사합니다.");
 
         // 리뷰 조회 성공
         when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).thenReturn(Optional.of(review));
@@ -151,7 +151,7 @@ class ReviewReplyServiceTest {
 
         ReviewReplyRequest request = mock(ReviewReplyRequest.class);
 
-        when(request.getContent()).thenReturn("답글을 등록하려고 합니다.");
+        when(request.content()).thenReturn("답글을 등록하려고 합니다.");
 
         // 삭제되지 않은 리뷰 조회 성공
         when(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).thenReturn(Optional.of(review));
@@ -191,7 +191,7 @@ class ReviewReplyServiceTest {
 
         ReviewReplyRequest request = mock(ReviewReplyRequest.class);
 
-        when(request.getContent()).thenReturn("수정된 답글 내용");
+        when(request.content()).thenReturn("수정된 답글 내용");
 
         // 삭제되지 않은 답글 조회 성공
         when(reviewReplyRepository.findByIdAndDeletedAtIsNull(replyId))
