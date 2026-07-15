@@ -78,7 +78,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     } else {
                         errorCode = AuthErrorCode.INVALID_ACCESS_TOKEN;
                         setErrorResponse(response, errorCode);
-                        logger.warn(errorCode.getMessage());
+                        log.warn(errorCode.getMessage());
                         return;
                     }
                 }
@@ -86,12 +86,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             } catch (IllegalArgumentException e) {
                 errorCode = AuthErrorCode.INVALID_ACCESS_TOKEN;
                 setErrorResponse(response, errorCode);
-                logger.warn(errorCode.getMessage(), e);
+                log.warn(errorCode.getMessage(), e);
                 return;
             } catch (ExpiredJwtException e) {
                 errorCode = AuthErrorCode.EXPIRED_ACCESS_TOKEN;
                 setErrorResponse(response, errorCode);
-                logger.warn(errorCode.getMessage(), e);
+                log.warn(errorCode.getMessage(), e);
                 return;
             }
         } else {
