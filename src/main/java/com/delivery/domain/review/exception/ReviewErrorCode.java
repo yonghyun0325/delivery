@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 public enum ReviewErrorCode implements ErrorCode {
 
     // 400 Bad Request
+    ORDER_ID_REQUIRED(HttpStatus.BAD_REQUEST, "주문 ID는 필수입니다."),
+    RATING_REQUIRED(HttpStatus.BAD_REQUEST, "평점은 필수입니다."),
     INVALID_RATING(HttpStatus.BAD_REQUEST, "평점은 1점 이상 5점 이하여야 합니다."),
     EMPTY_CONTENT(HttpStatus.BAD_REQUEST, "리뷰 내용은 필수입니다."),
     REVIEW_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 리뷰입니다."),
