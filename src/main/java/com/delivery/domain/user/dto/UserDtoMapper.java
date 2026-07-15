@@ -11,7 +11,7 @@ import lombok.experimental.UtilityClass;
 public class UserDtoMapper {
     public AuthResponse toAuthResponse(
             CustomUserDetails user, String accessToken, String refreshToken) {
-        return new AuthResponse(user.getUsername(), user.getNickName(), accessToken, refreshToken);
+        return new AuthResponse(user.getUsername(), accessToken, refreshToken);
     }
 
     public AddressResponse toAddressResponse(Address address) {

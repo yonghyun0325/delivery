@@ -90,7 +90,7 @@ public class GlobalExceptionHandler {
     }
 
     // TODO : HttpMessageNotReadableException 에러 처리
-    // TODO : InsufficientAuthenticationException 에러 처리
+    // TODO : InsufficientAuthenticationException 에러 처리 만료된 토큰
 
     private ResponseEntity<RestApiResponse<?>> buildResponseEntity(ErrorCode errorCode) {
         return ResponseEntity.status(errorCode.getHttpStatus())

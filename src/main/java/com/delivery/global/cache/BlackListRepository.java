@@ -24,8 +24,8 @@
     }
 
     @Override
-    public Optional<String> findByKey(String key) {
-        return Optional.ofNullable(cache.get(key, String.class));
+    public String findByKey(String key) {
+        return cache.get(key, String.class);
     }
 
     @Override

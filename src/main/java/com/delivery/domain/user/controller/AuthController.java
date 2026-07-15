@@ -44,4 +44,6 @@ public class AuthController implements AuthApi {
         authService.logout(request);
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "로그아웃 성공", null));
     }
+
+
 }

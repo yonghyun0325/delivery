@@ -24,8 +24,8 @@ public class UserCacheRepository implements BaseCacheRepository<UUID, CustomUser
     }
 
     @Override
-    public Optional<CustomUserDetails> findByKey(UUID key) {
-        return Optional.ofNullable(cache.get(key, CustomUserDetails.class));
+    public CustomUserDetails findByKey(UUID key) {
+        return cache.get(key, CustomUserDetails.class);
     }
 
     @Override
