@@ -159,6 +159,22 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        @DisplayName("지역으로 가게를 필터링한다.")
+        void searchStores_by_region() {
+            Region otherRegion = regionRepository.save(Region.builder().name("부산").build());
+
+            storeService.createStore(OWNER_ID, defaultRequest());
+            storeService.createStore(OWNER_ID, new StoreRequest(
+                    savedCategory.getCategoryId(), otherRegion.getRegionId(),
+                    "부산 가게", "부산시 해운대구", "01011112222", null, 5000));
+
+            Page<StoreResponse> result = storeService.getStores(
+                    null, savedRegion.getRegionId(), null, PageRequest.of(0, 10));
+
+            assertThat(result.getContent()).allMatch(s -> s.regionId().equals(savedRegion.getRegionId()));
+        }
+
+        @Test
         @DisplayName("검색 결과가 없으면 빈 페이지를 반환한다.")
         void searchStores_no_result() {
             Page<StoreResponse> result = storeService.getStores(null, null, "없는가게이름xyz", PageRequest.of(0, 10));

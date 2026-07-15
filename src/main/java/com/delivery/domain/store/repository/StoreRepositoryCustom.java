@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface StoreRepositoryCustom {
-    Page<Store> searchStores(UUID categoryId, String name, Pageable pageable);
+    Page<Store> searchStores(UUID categoryId, UUID regionId, String name, Pageable pageable);
 }

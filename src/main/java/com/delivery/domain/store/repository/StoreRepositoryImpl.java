@@ -22,12 +22,13 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> searchStores(UUID categoryId, String name, Pageable pageable) {
+    public Page<Store> searchStores(UUID categoryId, UUID regionId, String name, Pageable pageable) {
         List<Store> content = queryFactory
                 .selectFrom(store)
                 .where(
                         store.deletedAt.isNull(),
                         categoryIdEq(categoryId),
+                        regionIdEq(regionId),
                         nameContains(name)
                 )
                 .orderBy(store.createdAt.desc())
@@ -40,11 +41,16 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
                 .where(
                         store.deletedAt.isNull(),
                         categoryIdEq(categoryId),
+                        regionIdEq(regionId),
                         nameContains(name)
                 )
                 .fetchCount();
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+    private BooleanExpression regionIdEq(UUID regionId) {
+        return regionId != null ? store.regionId.eq(regionId) : null;
     }
 
     private BooleanExpression categoryIdEq(UUID categoryId) {

@@ -68,7 +68,7 @@ public class StoreService {
             size = 10;
         }
         Pageable validatedPageable = PageRequest.of(pageable.getPageNumber(), size);
-        return storeRepository.searchStores(categoryId, name, validatedPageable)
+        return storeRepository.searchStores(categoryId, regionId, name, validatedPageable)
                 .map(StoreResponse::from);
     }
 
