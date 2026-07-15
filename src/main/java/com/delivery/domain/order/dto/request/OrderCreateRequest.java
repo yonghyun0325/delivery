@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public record OrderCreateRequest(
         // 고객 주문 생성 요청 DTO
-        @NotNull(message = "가게 ID는 필수입니다.") UUID storeId,
-        @NotBlank(message = "배달 주소는 필수입니다.") @Size(max = 255, message = "배달 주소는 255자 이하여야 합니다.")
+        @NotNull(message = "ORDER_STORE_ID_REQUIRED") UUID storeId,
+        @NotBlank(message = "ORDER_DELIVERY_ADDRESS_REQUIRED") @Size(max = 255, message = "ORDER_DELIVERY_ADDRESS_TOO_LONG")
                 String deliveryAddress,
-        @NotEmpty(message = "주문 상품은 1개 이상이어야 합니다.") @Valid List<OrderItemCreateRequest> items
+        @NotEmpty(message = "ORDER_ITEMS_REQUIRED") @Valid List<OrderItemCreateRequest> items
 
         // 서버에서 관리해야 할 값
         /*

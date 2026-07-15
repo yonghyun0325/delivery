@@ -6,6 +6,12 @@ import org.springframework.http.HttpStatus;
 public enum OrderErrorCode implements ErrorCode {
 
     // 400 Bad Request
+    // 주문 생성 요청 필드 검증
+    ORDER_STORE_ID_REQUIRED(HttpStatus.BAD_REQUEST, "가게 ID는 필수입니다."),
+    ORDER_DELIVERY_ADDRESS_REQUIRED(HttpStatus.BAD_REQUEST, "배달 주소는 필수입니다."),
+    ORDER_DELIVERY_ADDRESS_TOO_LONG(HttpStatus.BAD_REQUEST, "배달 주소는 255자 이하여야 합니다."),
+    ORDER_ITEMS_REQUIRED(HttpStatus.BAD_REQUEST, "주문 상품은 1개 이상이어야 합니다."),
+
     // 주문 생성 검증
     INVALID_ORDER_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 주문 요청입니다."),
     INVALID_ORDER_QUANTITY(HttpStatus.BAD_REQUEST, "주문 수량은 1개 이상이어야 합니다."),
