@@ -100,7 +100,7 @@ public class PaymentService {
             throw new PaymentException(PaymentErrorCode.PAYMENT_ALREADY_CANCELED);
         }
 
-        validateCancelableOrder(order);
+        validateCancelableOrder(order, userDetail);
         payment.cancel(cancelReason);
         order.changeStatus(OrderStatus.CUSTOMER_CANCELLED);
         return PaymentResponse.from(payment);
@@ -122,9 +122,13 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
     }
 
-    private void validateCancelableOrder(Order order) {
+    private void validateCancelableOrder(Order order, CustomUserDetails userDetail) {
         if (!order.canTransitionTo(OrderStatus.CUSTOMER_CANCELLED)) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_ORDER_STATE_INVALID);
+        }
+
+        if (hasAnyRole(userDetail, Role.MANAGER, Role.MASTER)) {
+            return;
         }
 
         if (!order.isCancelableByCustomerAtNow()) {
