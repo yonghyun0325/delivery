@@ -16,6 +16,7 @@ import java.util.UUID;
 import com.delivery.domain.user.UserDeletedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,13 +25,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest(
-        properties = {
-            "gemini.api-key=test-dummy-key",
-            "gemini.base-url=https://generativelanguage.googleapis.com",
-            "gemini.model=gemini-1.5-flash"
-        })
+@SpringBootTest(properties = {
+        "gemini.api-key=test-dummy-key",
+        "gemini.base-url=https://generativelanguage.googleapis.com",
+        "gemini.model=gemini-1.5-flash"
+})
+@Transactional
 class StoreServiceIntegrationTest extends AbstractIntegrationTest {
+
     @Autowired private StoreService storeService;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private RegionRepository regionRepository;
@@ -39,13 +41,12 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
 
     private Category savedCategory;
     private Region savedRegion;
+    private final Long OWNER_ID = 1L;
+    private final Long OTHER_USER_ID = 2L;
 
     @BeforeEach
     void setUp() {
         savedCategory = categoryRepository.save(Category.builder().name("한식").build());
-        savedRegion =
-                regionRepository.save(
-                        Region.builder().name("강남구").latitude(37.5).longitude(127.0).build());
         savedRegion = regionRepository.save(
                 Region.builder().name("강남구").latitude(37.5).longitude(127.0).build());
     }
@@ -198,63 +199,114 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @Test
-    @Transactional
-    @DisplayName("가게 등록 성공")
-    void createStore_success() {
-        // given
-        StoreRequest request =
-                new StoreRequest(
-                        savedCategory.getCategoryId(),
-                        savedRegion.getRegionId(),
-                        "테스트 가게",
-                        "서울시 강남구",
-                        "01012345678",
-                        "테스트 가게입니다",
-                        10000);
+    @Nested
+    @DisplayName("가게 수정")
+    class UpdateStore {
 
-        // when
-        StoreResponse response = storeService.createStore(1L, request);
+        @Test
+        @DisplayName("소유자가 가게를 수정한다.")
+        void updateStore_success_when_owner() {
+            StoreResponse created = createDefaultStore();
+            StoreRequest updateRequest = new StoreRequest(
+                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
+                    "수정된 가게", "서울시 송파구", "01011112222", "수정됨", 20000);
 
-        // then
-        assertThat(response.name()).isEqualTo("테스트 가게");
-        assertThat(response.address()).isEqualTo("서울시 강남구");
-        assertThat(response.isOpen()).isFalse();
-        assertThat(response.averageRating()).isEqualTo(0.0);
+            StoreResponse updated = storeService.updateStore(created.storeId(), OWNER_ID, false, updateRequest);
+
+            assertThat(updated.name()).isEqualTo("수정된 가게");
+            assertThat(updated.address()).isEqualTo("서울시 송파구");
+            assertThat(updated.minOrderAmount()).isEqualTo(20000);
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 다른 사람의 가게도 수정할 수 있다.")
+        void updateStore_success_when_elevated() {
+            StoreResponse created = createDefaultStore();
+            StoreRequest updateRequest = new StoreRequest(
+                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
+                    "관리자 수정 가게", "서울시 마포구", "01033334444", null, 15000);
+
+            StoreResponse updated = storeService.updateStore(created.storeId(), OTHER_USER_ID, true, updateRequest);
+
+            assertThat(updated.name()).isEqualTo("관리자 수정 가게");
+        }
+
+        @Test
+        @DisplayName("소유자가 아닌 사용자가 수정 시 예외가 발생한다.")
+        void updateStore_fail_when_access_denied() {
+            StoreResponse created = createDefaultStore();
+            StoreRequest updateRequest = new StoreRequest(
+                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
+                    "수정 시도", "서울시 강서구", "01055556666", null, 10000);
+
+            assertThatThrownBy(() -> storeService.updateStore(created.storeId(), OTHER_USER_ID, false, updateRequest))
+                    .isInstanceOf(StoreException.class)
+                    .hasMessage("해당 가게에 대한 권한이 없습니다.");
+        }
     }
 
-    @Test
-    @Transactional
-    @DisplayName("중복된 가게 등록 시 예외가 발생해야 한다.")
-    void createStore_fail_when_duplicate() {
-        // given
-        StoreRequest request =
-                new StoreRequest(
-                        savedCategory.getCategoryId(),
-                        savedRegion.getRegionId(),
-                        "테스트 가게",
-                        "서울시 강남구",
-                        "01012345678",
-                        "테스트",
-                        10000);
+    @Nested
+    @DisplayName("영업 상태 변경")
+    class UpdateStoreStatus {
 
-        storeService.createStore(1L, request);
+        @Test
+        @DisplayName("소유자가 영업 상태를 변경한다.")
+        void updateStoreStatus_success() {
+            StoreResponse created = createDefaultStore();
+            assertThat(created.isOpen()).isFalse();
 
-        // when & then
-        assertThatThrownBy(() -> storeService.createStore(1L, request))
-                .isInstanceOf(StoreException.class)
-                .hasMessage("이미 등록된 가게입니다.");
+            StoreResponse updated = storeService.updateStoreStatus(created.storeId(), OWNER_ID, false, true);
+
+            assertThat(updated.isOpen()).isTrue();
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 다른 사람의 가게 영업 상태도 변경할 수 있다.")
+        void updateStoreStatus_success_when_elevated() {
+            StoreResponse created = createDefaultStore();
+
+            StoreResponse updated = storeService.updateStoreStatus(created.storeId(), OTHER_USER_ID, true, true);
+
+            assertThat(updated.isOpen()).isTrue();
+        }
     }
 
-    @Test
-    @DisplayName("존재하지 않는 가게 조회 시 예외가 발생해야 한다.")
-    void getStore_fail_when_not_found() {
-        // given
-        UUID randomId = UUID.randomUUID();
+    @Nested
+    @DisplayName("가게 삭제")
+    class DeleteStore {
 
-        // when & then
-        assertThatThrownBy(() -> storeService.getStore(randomId))
-                .isInstanceOf(StoreException.class)
-                .hasMessage("가게를 찾을 수 없습니다.");
+        @Test
+        @DisplayName("소유자가 가게를 삭제하면 조회가 불가능하다.")
+        void deleteStore_success_when_owner() {
+            StoreResponse created = createDefaultStore();
+
+            storeService.deleteStore(created.storeId(), OWNER_ID, false, OWNER_ID + "_owner");
+
+            assertThatThrownBy(() -> storeService.getStore(created.storeId()))
+                    .isInstanceOf(StoreException.class)
+                    .hasMessage("가게를 찾을 수 없습니다.");
+        }
+
+        @Test
+        @DisplayName("MANAGER/MASTER는 다른 사람의 가게도 삭제할 수 있다.")
+        void deleteStore_success_when_elevated() {
+            StoreResponse created = createDefaultStore();
+
+            storeService.deleteStore(created.storeId(), OTHER_USER_ID, true, OTHER_USER_ID + "_manager");
+
+            assertThatThrownBy(() -> storeService.getStore(created.storeId()))
+                    .isInstanceOf(StoreException.class)
+                    .hasMessage("가게를 찾을 수 없습니다.");
+        }
+
+        @Test
+        @DisplayName("소유자가 아닌 사용자가 삭제 시 예외가 발생한다.")
+        void deleteStore_fail_when_access_denied() {
+            StoreResponse created = createDefaultStore();
+
+            assertThatThrownBy(() -> storeService.deleteStore(created.storeId(), OTHER_USER_ID, false, OTHER_USER_ID + "_other"))
+                    .isInstanceOf(StoreException.class)
+                    .hasMessage("해당 가게에 대한 권한이 없습니다.");
+        }
     }
 }
