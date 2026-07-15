@@ -1,6 +1,7 @@
 package com.delivery.global.exception;
 
 import com.delivery.domain.ai.exception.AiErrorCode;
+import com.delivery.domain.cart.exception.CartErrorCode;
 import com.delivery.domain.menu.exception.MenuErrorCode;
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.domain.user.exception.UserErrorCode;
@@ -18,6 +19,7 @@ public class ErrorCodeRegistry {
         register(UserErrorCode.values());
         register(AuthErrorCode.values());
         register(MenuErrorCode.values());
+        register(CartErrorCode.values());
         register(AiErrorCode.values());
         register(StoreErrorCode.values());
     }

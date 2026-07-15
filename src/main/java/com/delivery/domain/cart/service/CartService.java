@@ -4,6 +4,8 @@ import com.delivery.domain.cart.dto.response.CartItemResponse;
 import com.delivery.domain.cart.dto.response.CartResponse;
 import com.delivery.domain.cart.entity.Cart;
 import com.delivery.domain.cart.entity.CartItem;
+import com.delivery.domain.cart.exception.CartErrorCode;
+import com.delivery.domain.cart.exception.CartException;
 import com.delivery.domain.cart.repository.CartItemRepository;
 import com.delivery.domain.cart.repository.CartRepository;
 import com.delivery.domain.menu.dto.response.MenuSnapshot;
@@ -43,7 +45,13 @@ public class CartService {
     public CartResponse addCartItem(CustomUserDetails userDetails, UUID menuId, int quantity) {
         lockUser(userDetails.getId());
         Cart cart = cartRepository.findByUserIdAndDeletedAtIsNull(userDetails.getId()).orElse(null);
-        UUID storeId = cart != null ? cart.getStoreId() : getMenuStoreId(menuId);
+        UUID menuStoreId = getMenuStoreId(menuId);
+
+        if (cart != null && !cart.getStoreId().equals(menuStoreId)) {
+            throw new CartException(CartErrorCode.CART_STORE_MISMATCH);
+        }
+
+        UUID storeId = cart != null ? cart.getStoreId() : menuStoreId;
         MenuSnapshot menuSnapshot = menuService.getOrderableMenu(menuId, storeId);
 
         if (cart == null) {

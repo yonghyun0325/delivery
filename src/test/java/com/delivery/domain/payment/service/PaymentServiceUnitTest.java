@@ -497,6 +497,29 @@ class PaymentServiceUnitTest {
             assertThat(response.paymentStatus()).isEqualTo(PaymentStatus.CANCELED);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.CUSTOMER_CANCELLED);
         }
+
+        @Test
+        void cancelPayment_success_when_manager_cancels_after_customer_deadline() {
+            UUID paymentId = UUID.randomUUID();
+            UUID orderId = UUID.randomUUID();
+            Payment payment = createPayment(paymentId, orderId, 1L, PaymentStatus.PAID);
+            Order order =
+                    createOrder(
+                            orderId,
+                            1L,
+                            OrderStatus.REQUESTED,
+                            LocalDateTime.now().minusMinutes(6));
+            CustomUserDetails userDetails = createUserDetails(99L, Set.of(Role.MANAGER));
+
+            when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+            when(orderRepository.findByIdAndDeletedAtIsNull(orderId)).thenReturn(Optional.of(order));
+
+            PaymentResponse response =
+                    paymentService.cancelPayment(paymentId, "관리자 취소", userDetails);
+
+            assertThat(response.paymentStatus()).isEqualTo(PaymentStatus.CANCELED);
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.CUSTOMER_CANCELLED);
+        }
     }
 
     private Payment createPayment(

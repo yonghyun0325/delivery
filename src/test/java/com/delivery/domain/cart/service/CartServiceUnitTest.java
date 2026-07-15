@@ -11,6 +11,8 @@ import static org.mockito.Mockito.when;
 import com.delivery.domain.cart.dto.response.CartResponse;
 import com.delivery.domain.cart.entity.Cart;
 import com.delivery.domain.cart.entity.CartItem;
+import com.delivery.domain.cart.exception.CartErrorCode;
+import com.delivery.domain.cart.exception.CartException;
 import com.delivery.domain.cart.repository.CartItemRepository;
 import com.delivery.domain.cart.repository.CartRepository;
 import com.delivery.domain.menu.dto.response.MenuSnapshot;
@@ -109,11 +111,13 @@ class CartServiceUnitTest {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
             UUID storeId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(storeId, "Jjamppong", "spicy", 9000);
             Cart cart = createCart(1L, storeId);
             CartItem cartItem = CartItem.create(cart, menuId, "Jjamppong", 1, 9000L);
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
             when(menuService.getOrderableMenu(menuId, storeId))
                     .thenReturn(new MenuSnapshot(menuId, "Jjamppong", 9000));
             when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
@@ -135,11 +139,13 @@ class CartServiceUnitTest {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
             UUID storeId = UUID.randomUUID();
+            MenuEntity menu = new MenuEntity(storeId, "Bibimbap", "rice", 10000);
             Cart cart = createCart(1L, storeId);
             CartItem newItem = CartItem.create(cart, menuId, "Bibimbap", 1, 10000L);
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
             when(menuService.getOrderableMenu(menuId, storeId))
                     .thenReturn(new MenuSnapshot(menuId, "Bibimbap", 10000));
             when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
@@ -159,15 +165,21 @@ class CartServiceUnitTest {
         void addCartItem_fails_when_store_is_different() {
             CustomUserDetails userDetails = createUserDetails(1L);
             UUID menuId = UUID.randomUUID();
-            Cart cart = createCart(1L, UUID.randomUUID());
+            UUID cartStoreId = UUID.randomUUID();
+            UUID otherStoreId = UUID.randomUUID();
+            Cart cart = createCart(1L, cartStoreId);
+            MenuEntity menu = new MenuEntity(otherStoreId, "Other Store Menu", "desc", 8000);
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
-            when(menuService.getOrderableMenu(menuId, cart.getStoreId()))
-                    .thenThrow(new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
 
             assertThatThrownBy(() -> cartService.addCartItem(userDetails, menuId, 1))
-                    .isInstanceOf(MenuException.class);
+                    .isInstanceOf(CartException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_STORE_MISMATCH);
+
+            verify(menuService, never()).getOrderableMenu(any(), any());
         }
 
         @Test
