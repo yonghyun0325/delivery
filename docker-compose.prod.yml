@@ -37,6 +37,8 @@ services:
     environment:
       # 컨테이너 네트워크 안에서는 postgres 서비스명으로 접속
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/delivery
+      # application-prod.properties(ddl-auto=validate 등 운영 전용 오버라이드) 활성화
+      SPRING_PROFILES_ACTIVE: prod
 
     ports:
       - "8080:8080"
