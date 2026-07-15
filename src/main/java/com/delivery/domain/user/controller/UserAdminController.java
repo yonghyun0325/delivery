@@ -1,6 +1,7 @@
 package com.delivery.domain.user.controller;
 
 import com.delivery.common.RestApiResponse;
+import com.delivery.domain.user.controller.swagger.UserAdminApi;
 import com.delivery.domain.user.dto.request.UpdateUserRoleRequest;
 import com.delivery.domain.user.dto.request.UserSearchRequest;
 import com.delivery.domain.user.dto.response.PageResponse;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/users")
-public class UserAdminController {
+public class UserAdminController implements UserAdminApi {
     private final UserAdminService userAdminService;
 
     @GetMapping("/{userId}")

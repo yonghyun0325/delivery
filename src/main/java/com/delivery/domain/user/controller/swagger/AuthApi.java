@@ -13,7 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@Tag(name = "인증/인가", description = "인증/인가 관련 API")
+@Tag(name = "회원")
 public interface AuthApi {
     @Operation(summary = "회원가입", description = "사용자가 회원가입 합니다.")
     @ApiResponses({
@@ -42,4 +42,13 @@ public interface AuthApi {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ResponseEntity<RestApiResponse<Void>> logout(HttpServletRequest request);
+
+
+    @Operation(summary = "리프래시 토큰 발급", description = "사용자가 리프래시 토큰을 사용해 토큰을 재발급 받습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "재발급에 성공"),
+            @ApiResponse(responseCode = "401", description = "Access Token이 유효하지 않습니다."),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<RestApiResponse<AuthResponse>> refreshToken(HttpServletRequest request);
 }

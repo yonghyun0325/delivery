@@ -2,6 +2,8 @@ package com.delivery.global.security.jwt;
 
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.exception.AuthErrorCode;
+import com.delivery.domain.user.exception.UserErrorCode;
+import com.delivery.domain.user.exception.UserException;
 import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.cache.UserCacheRepository;
@@ -58,10 +60,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     CustomUserDetails userDetails = userCacheRepository.findByKey(userUuid);
 
-                    if (userDetails == null) {
-                        userDetails = customUserDetailsService.loadUserByUuid(userUuid);
-                        userCacheRepository.save(userUuid, userDetails);
-                        log.debug("Jwt 캐싱 {} : {}", userUuid, userDetails);
+                    try {
+                        if (userDetails == null) {
+                            userDetails = customUserDetailsService.loadUserByUuid(userUuid);
+                            userCacheRepository.save(userUuid, userDetails);
+                            log.debug("Jwt 캐싱 {} : {}", userUuid, userDetails);
+                        }
+                    } catch (UserException e) {
+                        errorCode = UserErrorCode.NOT_EXIST_USER;
+                        setErrorResponse(response, errorCode);
+                        log.warn("존재하지 않는 회원입니다(UUID) : {}",  userUuid, e);
+                        return;
                     }
 
                     if (jwtUtil.validateToken(accessToken, userDetails)) {
@@ -78,10 +87,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 errorCode = AuthErrorCode.INVALID_ACCESS_TOKEN;
                 setErrorResponse(response, errorCode);
                 logger.warn(errorCode.getMessage(), e);
+                return;
             } catch (ExpiredJwtException e) {
                 errorCode = AuthErrorCode.EXPIRED_ACCESS_TOKEN;
                 setErrorResponse(response, errorCode);
                 logger.warn(errorCode.getMessage(), e);
+                return;
             }
         } else {
             logger.debug("Authorization Header가 없습니다.");

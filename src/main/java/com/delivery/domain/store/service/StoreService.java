@@ -12,12 +12,14 @@ import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.CategoryRepository;
 import com.delivery.domain.store.repository.RegionRepository;
 import com.delivery.domain.store.repository.StoreRepository;
+import com.delivery.domain.store.enums.StoreSortType;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,13 +64,13 @@ public class StoreService {
         return StoreResponse.from(storeRepository.save(store));
     }
 
-    public Page<StoreResponse> getStores(UUID categoryId, UUID regionId, String name, Pageable pageable) {
+    public Page<StoreResponse> getStores(UUID categoryId, UUID regionId, String name, StoreSortType sortType, Pageable pageable) {
         int size = pageable.getPageSize();
         if (size != 10 && size != 30 && size != 50) {
             size = 10;
         }
         Pageable validatedPageable = PageRequest.of(pageable.getPageNumber(), size);
-        return storeRepository.searchStores(categoryId, regionId, name, validatedPageable)
+        return storeRepository.searchStores(categoryId, regionId, name, sortType, validatedPageable)
                 .map(StoreResponse::from);
     }
 

@@ -154,4 +154,20 @@ class UserControllerTest {
 
         verifyNoInteractions(userService);
     }
+
+//    @Test
+//    @WithMockCustomUser
+//    @DisplayName("리프래시 토큰 발급에 성공한다.")
+//    void refresh_success() throws Exception {
+//        // given
+//
+//
+//        // when
+//
+//
+//        // then
+//
+//
+//    }
+
 }

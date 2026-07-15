@@ -6,6 +6,7 @@ import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.response.AuthResponse;
 import com.delivery.domain.user.service.AuthService;
+import com.delivery.global.security.jwt.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 public class AuthController implements AuthApi {
     private final AuthService authService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping
     public ResponseEntity<RestApiResponse<AuthResponse>> signUp(
@@ -45,5 +47,9 @@ public class AuthController implements AuthApi {
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "로그아웃 성공", null));
     }
 
-
+    @PostMapping("/refresh")
+    public ResponseEntity<RestApiResponse<AuthResponse>> refreshToken(HttpServletRequest request) {
+        return ResponseEntity.ok(
+                RestApiResponse.success(HttpStatus.OK, "리프래시 토큰 발급 성공", authService.refresh(jwtUtil.resolveRefreshToken(request))));
+    }
 }

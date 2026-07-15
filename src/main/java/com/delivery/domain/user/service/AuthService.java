@@ -133,12 +133,10 @@ public class AuthService {
     /**
      * 리프래시 토큰 발급
      *
-     * @param request
+     * @param refreshToken
      * @return
      */
-    public AuthResponse refresh(HttpServletRequest request) {
-        String refreshToken = jwtUtil.resolveRefreshToken(request);
-
+    public AuthResponse refresh(String refreshToken) {
         // 리프래시 토큰 유무 체크
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
@@ -161,6 +159,8 @@ public class AuthService {
                     userRepository
                             .findWithRolesByUserUuidAndDeletedAtIsNull(userUuid)
                             .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_USER));
+
+            refreshTokenRepository.delete(sessionId);
 
             CustomUserDetails userDetails = CustomUserDetails.from(user);
 

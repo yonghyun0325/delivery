@@ -1,5 +1,6 @@
 package com.delivery.global.config;
 
+import com.delivery.global.security.jwt.JwtHeaderType;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -25,8 +26,10 @@ public class ApiDocumentationConfig {
                                         .url("http://localhost:8080")
                                         .description("Local Server")))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-                .components(
-                        new Components().addSecuritySchemes("bearerAuth", createSecurityScheme()))
+                .addSecurityItem(new SecurityRequirement().addList("refreshToken"))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", createSecurityScheme("bearer", "JWT"))
+                        .addSecuritySchemes("refreshToken", createRefreshTokenScheme()))
                 .externalDocs(
                         new ExternalDocumentation()
                                 .description("Delivery Git Repository")
@@ -70,11 +73,19 @@ public class ApiDocumentationConfig {
                 .contact(new Contact().name("코딩의 민족"));
     }
 
-    private SecurityScheme createSecurityScheme() {
+    private SecurityScheme createSecurityScheme(String scheme, String format) {
         return new SecurityScheme()
                 .name("bearerAuth")
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
                 .bearerFormat("JWT");
+    }
+
+    private SecurityScheme createRefreshTokenScheme() {
+        return new SecurityScheme()
+                .name("Refresh Token")
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.HEADER)
+                .name(JwtHeaderType.REFRESH_TOKEN.getHeader());
     }
 }

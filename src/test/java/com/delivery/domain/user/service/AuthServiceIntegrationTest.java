@@ -1,9 +1,5 @@
 package com.delivery.domain.user.service;
 
-import static com.delivery.global.security.jwt.JwtHeaderType.REFRESH_TOKEN;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-
 import com.delivery.config.AbstractIntegrationTest;
 import com.delivery.config.WithMockCustomUser;
 import com.delivery.domain.user.dto.request.LoginRequest;
@@ -22,10 +18,6 @@ import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.delivery.testutil.ConcurrencyTestingUtil;
-
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -37,6 +29,17 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.delivery.global.security.jwt.JwtHeaderType.REFRESH_TOKEN;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -158,7 +161,8 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
             var savedToken = refreshTokenRepository.findByKey(sessionId);
 
             // when
-            AuthResponse actual = authService.refresh(request);
+
+            AuthResponse actual = authService.refresh(jwtUtil.resolveRefreshToken(request));
 
             // then
             assertThat(actual.accessToken()).isNotNull();
@@ -186,7 +190,7 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
             userRepository.delete(user);
 
             // when & then
-            assertThatThrownBy(() -> authService.refresh(request))
+            assertThatThrownBy(() -> authService.refresh(jwtUtil.resolveRefreshToken(request)))
                     .isInstanceOf(UserException.class)
                     .hasMessage(UserErrorCode.NOT_EXIST_USER.getMessage());
         }
@@ -199,7 +203,7 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
             request.addHeader(REFRESH_TOKEN.getHeader(), " ");
 
             // when & then
-            assertThatThrownBy(() -> authService.refresh(request))
+            assertThatThrownBy(() -> authService.refresh(jwtUtil.resolveRefreshToken(request)))
                     .isInstanceOf(AuthException.class)
                     .hasMessage(AuthErrorCode.INVALID_REFRESH_TOKEN.getMessage());
         }

@@ -167,8 +167,4 @@ public class JwtUtil implements Serializable {
                 Base64.getDecoder().decode(jwtProperties.getRefreshSecret()),
                 SignatureAlgorithm.HS256.getJcaName());
     }
-
-    public long getTimeRemaining(String token) {
-        return Math.max(0, getExpirationDateFromToken(token).getTime() - System.currentTimeMillis());
-    }
 }

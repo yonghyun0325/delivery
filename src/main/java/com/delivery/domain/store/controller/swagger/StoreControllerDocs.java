@@ -4,6 +4,7 @@ import com.delivery.common.RestApiResponse;
 import com.delivery.domain.store.dto.request.StoreRequest;
 import com.delivery.domain.store.dto.request.StoreStatusRequest;
 import com.delivery.domain.store.dto.response.StoreResponse;
+import com.delivery.domain.store.enums.StoreSortType;
 import com.delivery.global.security.config.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +23,11 @@ public interface StoreControllerDocs {
 
     @Operation(summary = "가게 목록 조회", description = "가게 목록을 검색 조건으로 조회합니다.")
     ResponseEntity<RestApiResponse<Page<StoreResponse>>> getStores(
-            UUID categoryId, UUID regionId, String name, Pageable pageable);
+            UUID categoryId,
+            UUID regionId,
+            String name,
+            StoreSortType sortType,
+            Pageable pageable);
 
     @Operation(summary = "가게 단건 조회", description = "가게 상세 정보를 조회합니다.")
     ResponseEntity<RestApiResponse<StoreResponse>> getStore(UUID storeId);
