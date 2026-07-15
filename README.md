@@ -79,7 +79,7 @@ src="https://github.com/user-attachments/assets/b3c5092b-fdf3-46d0-b967-6fd5b502
 - Service 계층에서 트랜잭션과 비즈니스 규칙을 처리합니다.
 - PostgreSQL은 영속 데이터를, Redis는 인증 관련 데이터를 관리합니다.
 - Docker Compose로 실행 환경을 구성하고 AWS EC2에 배포했습니다.
-- GitHub Actions를 통해 코드 빌드와 테스트를 자동 검증합니다.
+- GitHub Actions를 통해 코드 빌드와 테스트를 자동 검증하고, `main` 브랜치 반영 시 EC2로 자동 배포(CD)합니다.
 
 ---
 
@@ -479,7 +479,7 @@ Windows:
 |---|---|
 | 이강석 | 회원·인증 |
 | 정수민 | 음식점 |
-| 임은택 | 메뉴·AI |
+| 임은택 | 메뉴·AI·CI/CD |
 | 안예진 | 주문 |
 | 송채영 | 결제·장바구니 |
 | 이용현 | 리뷰·리뷰 답글·Docker·AWS EC2 |
@@ -503,7 +503,6 @@ Windows:
 
 ## 🚧 향후 고도화 계획
 
-- GitHub Actions 기반 자동 배포 파이프라인 구축
 - Redis 캐시를 활용한 반복 조회 성능 개선
 - 주문·결제 동시 요청에 대한 락과 멱등성 강화
 - 테스트 커버리지 확대 및 통합 테스트 보강
