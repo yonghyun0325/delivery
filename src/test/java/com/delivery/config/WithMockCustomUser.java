@@ -2,8 +2,6 @@ package com.delivery.config;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.UUID;
-
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 /** 커스텀 유저 인증 객체 @WithMockCustomUser */

@@ -14,31 +14,22 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * 추상 컨트롤러 테스트 클래스
- */
+/** 추상 컨트롤러 테스트 클래스 */
 @Import({GlobalExceptionHandler.class, ErrorCodeRegistry.class})
 public abstract class AbstractControllerTest {
-    @Autowired
-    protected MockMvc mockMvc;
+    @Autowired protected MockMvc mockMvc;
 
-    @Autowired
-    protected ObjectMapper objectMapper;
+    @Autowired protected ObjectMapper objectMapper;
 
-    @MockitoBean
-    protected UserCacheRepository userCacheRepository;
+    @MockitoBean protected UserCacheRepository userCacheRepository;
 
-    @MockitoBean
-    protected RefreshTokenRepository refreshTokenRepository;
+    @MockitoBean protected RefreshTokenRepository refreshTokenRepository;
 
-    @MockitoBean
-    protected JwtUtil jwtUtil;
+    @MockitoBean protected JwtUtil jwtUtil;
 
     @MockitoBean protected JwtProperties jwtProperties;
 
-    @MockitoBean
-    protected CustomUserDetailsService customUserDetailsService;
+    @MockitoBean protected CustomUserDetailsService customUserDetailsService;
 
-    @MockitoBean
-    protected BlackListRepository blackListRepository;
+    @MockitoBean protected BlackListRepository blackListRepository;
 }
