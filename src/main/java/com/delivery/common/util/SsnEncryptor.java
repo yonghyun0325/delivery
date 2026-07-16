@@ -22,7 +22,7 @@ public class SsnEncryptor {
      */
     public String encrypt(String ssn) {
         if (ssn == null || ssn.isBlank()) {
-            return ssn;
+            throw new BusinessException(GlobalErrorCode.BAD_REQUEST);
         }
         byte[] encrypt = aesBytesEncryptor.encrypt(ssn.getBytes(StandardCharsets.UTF_8));
         return new String(Base64.encode(encrypt), StandardCharsets.UTF_8);
@@ -36,7 +36,7 @@ public class SsnEncryptor {
      */
     public String decrypt(String ssn) {
         if (ssn == null || ssn.isBlank()) {
-            return ssn;
+            throw new BusinessException(GlobalErrorCode.BAD_REQUEST);
         }
         try {
             byte[] decode = Base64.decode(ssn.getBytes(StandardCharsets.UTF_8));
