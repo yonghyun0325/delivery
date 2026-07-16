@@ -16,7 +16,6 @@ Docker·AWS EC2·GitHub Actions를 활용해 개발부터 배포까지 경험했
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.16-6DB33F?logo=springboot&logoColor=white)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-6DB33F?logo=springsecurity&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-Token_Storage-DC382D?logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazonwebservices&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI-2088FF?logo=githubactions&logoColor=white)
@@ -54,7 +53,7 @@ Docker·AWS EC2·GitHub Actions를 활용해 개발부터 배포까지 경험했
 | Security | Spring Security, JWT |
 | Persistence | Spring Data JPA, Hibernate |
 | Database | PostgreSQL 17 |
-| Cache | Redis |
+| Cache |  |
 | External API | Gemini API |
 | Test | JUnit 5, Mockito, Spring Boot Test |
 | Documentation | Swagger/OpenAPI, Scalar |
