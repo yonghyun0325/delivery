@@ -1,8 +1,10 @@
 package com.delivery.config;
 
+import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.cache.UserCacheRepository;
+import com.delivery.global.cache.WithdrawnUserRepository;
 import com.delivery.global.config.JwtProperties;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.exception.GlobalExceptionHandler;
@@ -32,4 +34,6 @@ public abstract class AbstractControllerTest {
     @MockitoBean protected CustomUserDetailsService customUserDetailsService;
 
     @MockitoBean protected BlackListRepository blackListRepository;
+
+    @MockitoBean protected WithdrawnUserRepository withdrawnUserRepository;
 }

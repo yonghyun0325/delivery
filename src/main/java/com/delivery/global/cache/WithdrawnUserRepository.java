@@ -9,26 +9,24 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 /**
- * 액세스 토큰 블랙리스트
- * Key : SessionId
- * Value : 액세스 토큰
+ * 탈퇴 유저 캐시
  */
 @Repository
-public class BlackListRepository implements BaseCacheRepository<UUID, String> {
+public class WithdrawnUserRepository implements BaseCacheRepository<UUID, Boolean> {
     private final Cache cache;
 
-    public BlackListRepository(CacheManager cacheManager) {
-        this.cache = cacheManager.getCache(CacheType.BLACK_LIST.name());
+    public WithdrawnUserRepository(CacheManager cacheManager) {
+        this.cache = cacheManager.getCache(CacheType.DRAWN_USER.name());
     }
 
     @Override
-    public void save(UUID key, String value) {
+    public void save(UUID key, Boolean value) {
         cache.put(key, value);
     }
 
     @Override
-    public String findByKey(UUID key) {
-        return cache.get(key, String.class);
+    public Boolean findByKey(UUID key) {
+        return cache.get(key, Boolean.class);
     }
 
     @Override

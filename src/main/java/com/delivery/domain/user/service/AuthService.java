@@ -102,7 +102,8 @@ public class AuthService {
     }
 
     /**
-     * 로그아웃 : 리프래시 토큰 삭제
+     * 로그아웃
+     * Refresh Token과 User 캐시 삭제 후 블랙리스트 등록
      *
      * @param request
      */
@@ -120,9 +121,9 @@ public class AuthService {
             refreshTokenRepository.delete(sessionId);
             userCacheRepository.delete(userUuid);
 
-            blackListRepository.save(accessToken, "logout");
+            blackListRepository.save(sessionId, accessToken);
         } catch (ExpiredJwtException e) {
-            return;
+            log.info("이미 만료된 토큰으로 로그아웃 시도");
         } catch (JwtException e) {
             throw new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN);
         }
@@ -144,12 +145,18 @@ public class AuthService {
             UUID userUuid = jwtUtil.getUserUuidFromRefreshToken(refreshToken);
             UUID sessionId = jwtUtil.getSessionIdFromRefreshToken(refreshToken);
 
+            // 블랙리스트에 등록된 세션인지 검증
+            if (blackListRepository.findByKey(sessionId) != null) {
+                throw new AuthException(AuthErrorCode.BLACKLISTED_TOKEN);
+            }
+
             String savedRefreshToken = refreshTokenRepository.findByKey(sessionId);
 
             if (savedRefreshToken == null) {
                 throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
             }
 
+            // 캐시에 보관된 토큰과 일치하는지 검증
             validateRefreshToken(refreshToken, savedRefreshToken);
 
             User user =
@@ -157,11 +164,12 @@ public class AuthService {
                             .findWithRolesByUserUuidAndDeletedAtIsNull(userUuid)
                             .orElseThrow(() -> new UserException(UserErrorCode.NOT_EXIST_USER));
 
+            CustomUserDetails userDetails = CustomUserDetails.from(user);
+            AuthResponse response = createAuthResponse(userDetails);
+
             refreshTokenRepository.delete(sessionId);
 
-            CustomUserDetails userDetails = CustomUserDetails.from(user);
-
-            return createAuthResponse(userDetails);
+            return response;
         } catch (ExpiredJwtException e) {
             throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
         } catch (JwtException | IllegalArgumentException e) {

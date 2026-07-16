@@ -1,13 +1,16 @@
 package com.delivery.global.cache;
 
 import com.delivery.common.base.BaseCacheRepository;
-import com.delivery.common.util.CacheType;
+import com.delivery.global.config.CacheType;
 import com.delivery.global.security.config.CustomUserDetails;
 import java.util.UUID;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 유저 캐시
+ */
 @Repository
 public class UserCacheRepository implements BaseCacheRepository<UUID, CustomUserDetails> {
     private final Cache cache;

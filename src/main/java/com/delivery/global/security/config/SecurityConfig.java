@@ -54,7 +54,7 @@ public class SecurityConfig {
 
                                 // 공통 권한
                                 .requestMatchers(
-                                        HttpMethod.POST, "/api/v1/auth", "/api/v1/auth/login")
+                                        HttpMethod.POST, "/api/v1/auth", "/api/v1/auth/login", "/api/v1/auth/refresh")
                                 .permitAll()
                                 .requestMatchers(
                                         HttpMethod.GET,

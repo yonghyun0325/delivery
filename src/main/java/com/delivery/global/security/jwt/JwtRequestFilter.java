@@ -6,11 +6,13 @@ import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.UserCacheRepository;
+import com.delivery.global.cache.WithdrawnUserRepository;
 import com.delivery.global.exception.ErrorCode;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.config.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +37,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
     private final BlackListRepository blackListRepository;
     private final UserCacheRepository userCacheRepository;
+    private final WithdrawnUserRepository withdrawnUserRepository;
     private final JwtUtil jwtUtil;
 
     @Override
@@ -42,20 +45,23 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String accessToken = jwtUtil.resolveAccessToken(request);
-        ErrorCode errorCode = null;
 
         if (accessToken != null) {
             try {
+                UUID userUuid = jwtUtil.getUserUuidFromAccessToken(accessToken);
                 UUID sessionId = jwtUtil.getSessionIdFromAccessToken(accessToken);
+
+                // 탈퇴 유저 확인
+                if (withdrawnUserRepository.findByKey(userUuid) != null) {
+                    handleErrorResponse(response, UserErrorCode.NOT_EXIST_USER);
+                    return;
+                }
 
                 // 블랙 리스트 등록 여부 확인
                 if (blackListRepository.findByKey(sessionId) != null) {
-                    errorCode = AuthErrorCode.BLACKLISTED_TOKEN;
-                    setErrorResponse(response, errorCode);
-                    log.info(AuthErrorCode.BLACKLISTED_TOKEN.getMessage());
+                    handleErrorResponse(response, AuthErrorCode.BLACKLISTED_TOKEN);
                     return;
                 }
-                UUID userUuid = jwtUtil.getUserUuidFromAccessToken(accessToken);
 
                 // 중복 인증 방지
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -68,9 +74,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                             log.info("Jwt 캐싱 {} : {}", userUuid, userDetails);
                         }
                     } catch (UserException e) {
-                        errorCode = UserErrorCode.NOT_EXIST_USER;
-                        setErrorResponse(response, errorCode);
-                        log.warn("존재하지 않는 회원입니다(UUID) : {}", userUuid, e);
+                        handleErrorResponse(response, UserErrorCode.NOT_EXIST_USER, e);
                         return;
                     }
 
@@ -78,21 +82,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     if (jwtUtil.validateToken(accessToken, userDetails)) {
                         setAuthentication(request, userDetails);
                     } else {
-                        errorCode = AuthErrorCode.INVALID_ACCESS_TOKEN;
-                        setErrorResponse(response, errorCode);
-                        log.warn(errorCode.getMessage());
+                        handleErrorResponse(response, AuthErrorCode.INVALID_ACCESS_TOKEN);
                         return;
                     }
                 }
-            } catch (IllegalArgumentException e) {
-                errorCode = AuthErrorCode.INVALID_ACCESS_TOKEN;
-                setErrorResponse(response, errorCode);
-                log.warn(errorCode.getMessage(), e);
-                return;
             } catch (ExpiredJwtException e) {
-                errorCode = AuthErrorCode.EXPIRED_ACCESS_TOKEN;
-                setErrorResponse(response, errorCode);
-                log.warn(errorCode.getMessage(), e);
+                handleErrorResponse(response, AuthErrorCode.EXPIRED_ACCESS_TOKEN, e);
+                return;
+            } catch (IllegalArgumentException | JwtException e) {
+                handleErrorResponse(response, AuthErrorCode.INVALID_ACCESS_TOKEN, e);
                 return;
             }
         } else {
@@ -126,4 +124,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }
+
+    private void handleErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        setErrorResponse(response, errorCode);
+        log.warn(errorCode.getMessage());
+    }
+
+    private void handleErrorResponse(HttpServletResponse response, ErrorCode errorCode, Exception e) throws IOException {
+        setErrorResponse(response, errorCode);
+        log.warn(errorCode.getMessage(), e);
+    }
+
 }
