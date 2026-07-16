@@ -1,10 +1,7 @@
 package com.delivery.common.base;
 
-import java.util.Optional;
-
 /**
- * 캐시 인터페이스
- * 구현체 생성하여 사용
+ * 캐시 인터페이스 구현체 생성하여 사용
  *
  * @param <K>
  * @param <V>
