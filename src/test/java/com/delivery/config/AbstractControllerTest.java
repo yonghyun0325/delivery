@@ -1,6 +1,5 @@
 package com.delivery.config;
 
-import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.cache.UserCacheRepository;

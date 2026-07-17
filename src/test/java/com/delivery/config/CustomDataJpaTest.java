@@ -9,9 +9,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-/**
- * JPA 테스트 커스텀 어노테이션
- */
+/** JPA 테스트 커스텀 어노테이션 */
 @DataJpaTest
 @EnableJpaAuditing
 @Target(ElementType.TYPE)

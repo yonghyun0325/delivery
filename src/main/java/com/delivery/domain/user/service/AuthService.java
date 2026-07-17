@@ -102,8 +102,7 @@ public class AuthService {
     }
 
     /**
-     * 로그아웃
-     * Refresh Token과 User 캐시 삭제 후 블랙리스트 등록
+     * 로그아웃 Refresh Token과 User 캐시 삭제 후 블랙리스트 등록
      *
      * @param request
      */
@@ -224,6 +223,7 @@ public class AuthService {
 
     /**
      * 리프레시 토큰이 일치하는지 확인
+     *
      * @param refreshToken
      * @param savedToken
      */

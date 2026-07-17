@@ -16,9 +16,8 @@ import com.delivery.domain.user.fixture.AddressFixture;
 import com.delivery.domain.user.fixture.UserFixture;
 import com.delivery.domain.user.repository.AddressRepository;
 import com.delivery.domain.user.repository.UserRepository;
-import java.util.*;
-
 import com.delivery.global.cache.WithdrawnUserRepository;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

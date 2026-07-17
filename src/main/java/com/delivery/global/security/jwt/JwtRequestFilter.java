@@ -13,6 +13,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -22,8 +23,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
 
 @Slf4j
 @Component
@@ -85,9 +84,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }
 
-    private void handleErrorResponse(HttpServletResponse response, ErrorCode errorCode, Exception e) throws IOException {
+    private void handleErrorResponse(HttpServletResponse response, ErrorCode errorCode, Exception e)
+            throws IOException {
         setErrorResponse(response, errorCode);
         log.warn(errorCode.getMessage(), e);
     }
-
 }

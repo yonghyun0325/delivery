@@ -9,11 +9,10 @@ import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.cache.WithdrawnUserRepository;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.config.CustomUserDetailsService;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Slf4j
 @Service

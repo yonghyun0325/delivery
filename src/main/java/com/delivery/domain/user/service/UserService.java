@@ -14,12 +14,11 @@ import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.cache.WithdrawnUserRepository;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -83,8 +82,8 @@ public class UserService {
     }
 
     /**
-     * 회원  탈퇴
-     * User 캐시 삭제 후, 탈퇴 회원 캐시 저장
+     * 회원 탈퇴 User 캐시 삭제 후, 탈퇴 회원 캐시 저장
+     *
      * @param userId 탈퇴 회원 PK키
      */
     public void deleteUser(Long userId) {

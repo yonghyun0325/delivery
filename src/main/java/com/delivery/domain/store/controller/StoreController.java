@@ -5,8 +5,8 @@ import com.delivery.domain.store.controller.swagger.StoreControllerDocs;
 import com.delivery.domain.store.dto.request.StoreRequest;
 import com.delivery.domain.store.dto.request.StoreStatusRequest;
 import com.delivery.domain.store.dto.response.StoreResponse;
-import com.delivery.domain.store.service.StoreService;
 import com.delivery.domain.store.enums.StoreSortType;
+import com.delivery.domain.store.service.StoreService;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.global.security.config.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -45,7 +45,8 @@ public class StoreController implements StoreControllerDocs {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) StoreSortType sortType,
             Pageable pageable) {
-        Page<StoreResponse> response = storeService.getStores(categoryId, regionId, name, sortType, pageable);
+        Page<StoreResponse> response =
+                storeService.getStores(categoryId, regionId, name, sortType, pageable);
         return ResponseEntity.ok(RestApiResponse.success(HttpStatus.OK, "조회 성공", response));
     }
 
