@@ -1,6 +1,5 @@
 package com.delivery.config;
 
-import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.cache.UserCacheRepository;
@@ -9,6 +8,7 @@ import com.delivery.global.config.JwtProperties;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.exception.GlobalExceptionHandler;
 import com.delivery.global.security.config.CustomUserDetailsService;
+import com.delivery.global.security.jwt.JwtAuthenticationService;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,4 +36,6 @@ public abstract class AbstractControllerTest {
     @MockitoBean protected BlackListRepository blackListRepository;
 
     @MockitoBean protected WithdrawnUserRepository withdrawnUserRepository;
+
+    @MockitoBean protected JwtAuthenticationService jwtAuthenticationService;
 }

@@ -2,20 +2,16 @@ package com.delivery.domain.store.repository;
 
 import com.delivery.domain.store.entity.QStore;
 import com.delivery.domain.store.entity.Store;
-import com.querydsl.core.types.Order;
+import com.delivery.domain.store.enums.StoreSortType;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import com.delivery.domain.store.enums.StoreSortType;
-import com.querydsl.core.types.OrderSpecifier;
-
-import java.util.List;
-import java.util.UUID;
 
 public class StoreRepositoryImpl implements StoreRepositoryCustom {
 
@@ -27,29 +23,34 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> searchStores(UUID categoryId, UUID regionId, String name, StoreSortType sortType, Pageable pageable) {
-        List<Store> content = queryFactory
-                .selectFrom(store)
-                .where(
-                        store.deletedAt.isNull(),
-                        categoryIdEq(categoryId),
-                        regionIdEq(regionId),
-                        nameContains(name)
-                )
-                .orderBy(toOrderSpecifier(sortType))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+    public Page<Store> searchStores(
+            UUID categoryId,
+            UUID regionId,
+            String name,
+            StoreSortType sortType,
+            Pageable pageable) {
+        List<Store> content =
+                queryFactory
+                        .selectFrom(store)
+                        .where(
+                                store.deletedAt.isNull(),
+                                categoryIdEq(categoryId),
+                                regionIdEq(regionId),
+                                nameContains(name))
+                        .orderBy(toOrderSpecifier(sortType))
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize())
+                        .fetch();
 
-        long total = queryFactory
-                .selectFrom(store)
-                .where(
-                        store.deletedAt.isNull(),
-                        categoryIdEq(categoryId),
-                        regionIdEq(regionId),
-                        nameContains(name)
-                )
-                .fetchCount();
+        long total =
+                queryFactory
+                        .selectFrom(store)
+                        .where(
+                                store.deletedAt.isNull(),
+                                categoryIdEq(categoryId),
+                                regionIdEq(regionId),
+                                nameContains(name))
+                        .fetchCount();
 
         return new PageImpl<>(content, pageable, total);
     }

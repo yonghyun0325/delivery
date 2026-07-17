@@ -23,11 +23,7 @@ public interface StoreControllerDocs {
 
     @Operation(summary = "가게 목록 조회", description = "가게 목록을 검색 조건으로 조회합니다.")
     ResponseEntity<RestApiResponse<Page<StoreResponse>>> getStores(
-            UUID categoryId,
-            UUID regionId,
-            String name,
-            StoreSortType sortType,
-            Pageable pageable);
+            UUID categoryId, UUID regionId, String name, StoreSortType sortType, Pageable pageable);
 
     @Operation(summary = "가게 단건 조회", description = "가게 상세 정보를 조회합니다.")
     ResponseEntity<RestApiResponse<StoreResponse>> getStore(UUID storeId);

@@ -16,10 +16,9 @@ import com.delivery.domain.review.entity.Review;
 import com.delivery.domain.review.repository.ReviewRepository;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
+import com.delivery.global.cache.WithdrawnUserRepository;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.delivery.global.cache.WithdrawnUserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

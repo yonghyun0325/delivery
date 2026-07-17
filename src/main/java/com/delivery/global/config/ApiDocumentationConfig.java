@@ -30,8 +30,7 @@ public class ApiDocumentationConfig {
                 .components(
                         new Components()
                                 .addSecuritySchemes(
-                                        "bearerAuth", createSecurityScheme("bearer", "JWT"))
-                                .addSecuritySchemes("refreshToken", createRefreshTokenScheme()))
+                                        "bearerAuth", createSecurityScheme("bearer", "JWT")))
                 .externalDocs(
                         new ExternalDocumentation()
                                 .description("Delivery Git Repository")

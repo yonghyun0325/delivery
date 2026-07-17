@@ -17,6 +17,7 @@ import com.delivery.global.cache.WithdrawnUserRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.config.CustomUserDetailsService;
+import com.delivery.global.security.jwt.JwtAuthenticationService;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -56,6 +56,7 @@ class RegionControllerUnitTest {
     @MockitoBean private BlackListRepository blackListRepository;
     @MockitoBean private UserCacheRepository userCacheRepository;
     @MockitoBean private WithdrawnUserRepository withdrawnUserRepository;
+    @MockitoBean private JwtAuthenticationService jwtAuthenticationService;
 
     @BeforeEach
     void setUpSecurityContext() {

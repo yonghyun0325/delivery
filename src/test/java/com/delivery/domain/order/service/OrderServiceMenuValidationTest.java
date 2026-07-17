@@ -17,7 +17,6 @@ import com.delivery.domain.order.dto.request.OrderCreateRequest;
 import com.delivery.domain.order.dto.request.OrderItemCreateRequest;
 import com.delivery.domain.order.entity.Order;
 import com.delivery.domain.order.entity.OrderItem;
-import com.delivery.domain.order.exception.OrderException;
 import com.delivery.domain.order.repository.OrderRepository;
 import com.delivery.domain.payment.entity.PaymentMethod;
 import com.delivery.domain.payment.exception.PaymentErrorCode;
@@ -80,7 +79,11 @@ class OrderServiceMenuValidationTest {
         verify(menuService).getOrderableMenu(menuId, storeId);
         verify(orderRepository, never()).save(any(Order.class));
         verify(paymentService, never())
-                .createPayment(any(UUID.class), any(Long.class), any(Integer.class), any(PaymentMethod.class));
+                .createPayment(
+                        any(UUID.class),
+                        any(Long.class),
+                        any(Integer.class),
+                        any(PaymentMethod.class));
     }
 
     @Test
@@ -145,7 +148,8 @@ class OrderServiceMenuValidationTest {
                         });
         doThrow(new PaymentException(PaymentErrorCode.PAYMENT_ALREADY_EXISTS))
                 .when(paymentService)
-                .createPayment(any(UUID.class), eq(currentUserId), eq(12_000), eq(PaymentMethod.CARD));
+                .createPayment(
+                        any(UUID.class), eq(currentUserId), eq(12_000), eq(PaymentMethod.CARD));
 
         assertThatThrownBy(() -> orderService.createOrder(createOrderRequest(1), currentUserId))
                 .isInstanceOf(PaymentException.class)
@@ -154,9 +158,7 @@ class OrderServiceMenuValidationTest {
 
     private OrderCreateRequest createOrderRequest(int quantity) {
         return new OrderCreateRequest(
-                storeId,
-                "서울시 강남구",
-                List.of(new OrderItemCreateRequest(menuId, quantity)));
+                storeId, "서울시 강남구", List.of(new OrderItemCreateRequest(menuId, quantity)));
     }
 
     private Store mockStore() {

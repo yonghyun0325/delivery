@@ -67,8 +67,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<RestApiResponse<?>> handleMissingServletRequestParameterException(
-            MissingServletRequestParameterException e,
-            HttpServletRequest request) {
+            MissingServletRequestParameterException e, HttpServletRequest request) {
         ErrorCode errorCode = GlobalErrorCode.INVALID_PARAMETER_TYPE;
 
         log.warn(
@@ -80,11 +79,9 @@ public class GlobalExceptionHandler {
         return buildResponseEntity(errorCode);
     }
 
-
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<RestApiResponse<?>> handleHttpMessageNotReadableException(
-            HttpMessageNotReadableException e,
-            HttpServletRequest request) {
+            HttpMessageNotReadableException e, HttpServletRequest request) {
         ErrorCode errorCode = GlobalErrorCode.BAD_REQUEST;
 
         log.warn(

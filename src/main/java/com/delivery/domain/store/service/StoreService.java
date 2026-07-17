@@ -3,23 +3,21 @@ package com.delivery.domain.store.service;
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.review.entity.Review;
 import com.delivery.domain.review.repository.ReviewRepository;
-import com.delivery.domain.review.service.ReviewService;
 import com.delivery.domain.store.dto.request.StoreRequest;
 import com.delivery.domain.store.dto.response.StoreResponse;
 import com.delivery.domain.store.entity.Store;
+import com.delivery.domain.store.enums.StoreSortType;
 import com.delivery.domain.store.exception.StoreErrorCode;
 import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.CategoryRepository;
 import com.delivery.domain.store.repository.RegionRepository;
 import com.delivery.domain.store.repository.StoreRepository;
-import com.delivery.domain.store.enums.StoreSortType;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,13 +62,19 @@ public class StoreService {
         return StoreResponse.from(storeRepository.save(store));
     }
 
-    public Page<StoreResponse> getStores(UUID categoryId, UUID regionId, String name, StoreSortType sortType, Pageable pageable) {
+    public Page<StoreResponse> getStores(
+            UUID categoryId,
+            UUID regionId,
+            String name,
+            StoreSortType sortType,
+            Pageable pageable) {
         int size = pageable.getPageSize();
         if (size != 10 && size != 30 && size != 50) {
             size = 10;
         }
         Pageable validatedPageable = PageRequest.of(pageable.getPageNumber(), size);
-        return storeRepository.searchStores(categoryId, regionId, name, sortType, validatedPageable)
+        return storeRepository
+                .searchStores(categoryId, regionId, name, sortType, validatedPageable)
                 .map(StoreResponse::from);
     }
 
@@ -88,7 +92,8 @@ public class StoreService {
     }
 
     @Transactional
-    public StoreResponse updateStore(UUID storeId, Long userId, boolean isElevated, StoreRequest request) {
+    public StoreResponse updateStore(
+            UUID storeId, Long userId, boolean isElevated, StoreRequest request) {
         Store store = getStoreWithOwnerCheck(storeId, userId, isElevated);
         categoryRepository
                 .findById(request.categoryId())
@@ -101,7 +106,8 @@ public class StoreService {
     }
 
     @Transactional
-    public StoreResponse updateStoreStatus(UUID storeId, Long userId, boolean isElevated, Boolean isOpen) {
+    public StoreResponse updateStoreStatus(
+            UUID storeId, Long userId, boolean isElevated, Boolean isOpen) {
         Store store = getStoreWithOwnerCheck(storeId, userId, isElevated);
         store.updateStatus(isOpen);
         return StoreResponse.from(store);
