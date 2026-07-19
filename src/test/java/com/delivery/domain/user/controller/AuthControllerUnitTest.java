@@ -9,12 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.delivery.config.AbstractControllerTest;
 import com.delivery.config.WithMockCustomUser;
+import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.response.AuthResponse;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.domain.user.exception.AuthException;
 import com.delivery.domain.user.service.AuthService;
+import com.delivery.global.security.principal.CustomUserDetails;
 import jakarta.servlet.http.Cookie;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -97,60 +99,60 @@ class AuthControllerUnitTest extends AbstractControllerTest {
         }
     }
 
-    //    @Nested
-    //    @DisplayName("로그인 테스트")
-    //    class login {
-    //        @Test
-    //        @DisplayName("로그인 성공")
-    //        void login_success() throws Exception {
-    //            // given
-    //            LoginRequest request = new LoginRequest("test1234", "Testtest123!");
-    //
-    //            AuthResponse response = new AuthResponse("test1234", "accessToken",
-    // "refreshToken");
-    //
-    //            given(authService.login(any(CustomUserDetails.class))).willReturn(response);
-    //
-    //            // when & then
-    //            mockMvc.perform(
-    //                            post("/api/v1/auth/login")
-    //                                    .contentType(MediaType.APPLICATION_JSON)
-    //                                    .content(objectMapper.writeValueAsString(request)))
-    //                    .andExpect(status().isOk())
-    //                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-    //                    .andExpect(cookie().value("refreshToken", "refreshToken"))
-    //                    .andExpect(cookie().httpOnly("refreshToken", true))
-    //                    .andExpect(cookie().secure("refreshToken", false))
-    //                    .andExpect(jsonPath("$.data").value("accessToken"));
-    //
-    //            verify(authService).login(any(CustomUserDetails.class));
-    //        }
-    //
-    //        @Test
-    //        @DisplayName("로그인 시 아이디 또는 비밀번호 입력을 안하면 예외가 발생해야한다.")
-    //        void login_fail_when_invalid() throws Exception {
-    //            // given
-    //            LoginRequest request = new LoginRequest("", "Testtext123!");
-    //
-    //            LoginRequest request2 = new LoginRequest("test1234", "");
-    //
-    //            // when & then
-    //            mockMvc.perform(
-    //                            post("/api/v1/auth/login")
-    //                                    .contentType(MediaType.APPLICATION_JSON)
-    //                                    .content(objectMapper.writeValueAsString(request)))
-    //                    .andExpect(status().isBadRequest())
-    //                    .andExpect(jsonPath("$.message").value("아이디를 입력해주세요."));
-    //            mockMvc.perform(
-    //                            post("/api/v1/auth/login")
-    //                                    .contentType(MediaType.APPLICATION_JSON)
-    //                                    .content(objectMapper.writeValueAsString(request2)))
-    //                    .andExpect(status().isBadRequest())
-    //                    .andExpect(jsonPath("$.message").value("비밀번호를 입력해주세요."));
-    //
-    //            verifyNoInteractions(authService);
-    //        }
-    //    }
+        @Nested
+        @DisplayName("로그인 테스트")
+        class login {
+            @Test
+            @DisplayName("로그인 성공")
+            void login_success() throws Exception {
+                // given
+                LoginRequest request = new LoginRequest("test1234", "Testtest123!");
+
+                AuthResponse response = new AuthResponse("test1234", "accessToken",
+     "refreshToken");
+
+                given(authService.login(any(LoginRequest.class))).willReturn(response);
+
+                // when & then
+                mockMvc.perform(
+                                post("/api/v1/auth/login")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                        .andExpect(status().isOk())
+                        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(cookie().value("refreshToken", "refreshToken"))
+                        .andExpect(cookie().httpOnly("refreshToken", true))
+                        .andExpect(cookie().secure("refreshToken", false))
+                        .andExpect(jsonPath("$.data").value("accessToken"));
+
+                verify(authService).login(any(LoginRequest.class));
+            }
+
+            @Test
+            @DisplayName("로그인 시 아이디 또는 비밀번호 입력을 안하면 예외가 발생해야한다.")
+            void login_fail_when_invalid() throws Exception {
+                // given
+                LoginRequest request = new LoginRequest("", "Testtext123!");
+
+                LoginRequest request2 = new LoginRequest("test1234", "");
+
+                // when & then
+                mockMvc.perform(
+                                post("/api/v1/auth/login")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.message").value("아이디를 입력해주세요."));
+                mockMvc.perform(
+                                post("/api/v1/auth/login")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request2)))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.message").value("비밀번호를 입력해주세요."));
+
+                verifyNoInteractions(authService);
+            }
+        }
 
     @Nested
     @DisplayName("Refresh Token")

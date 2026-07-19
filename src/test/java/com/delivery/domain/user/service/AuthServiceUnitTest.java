@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.exception.AuthErrorCode;
@@ -20,10 +21,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceUnitTest {
     @Mock private UserRepository userRepository;
+    @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtUtil jwtUtil;
     @Mock private RefreshTokenRepository refreshTokenRepository;
     @Mock private BlackListRepository blackListRepository;
@@ -71,47 +77,47 @@ class AuthServiceUnitTest {
         }
     }
 
-    //    @Nested
-    //    @DisplayName("로그인 실패 테스트")
-    //    class Login {
-    //        @Test
-    //        @DisplayName("로그인 시 존재하지 않는 아이디를 입력하면 예외가 발생해야한다.")
-    //        void login_fail_when_invalid_login() {
-    //            // given
-    //            LoginRequest request = new LoginRequest("test1234", "testtest1234!");
-    //
-    //
-    // when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-    //                    .thenThrow(new InternalAuthenticationServiceException("아이디"));
-    //
-    //            // when & then
-    //            assertThatThrownBy(() -> authService.login(request))
-    //                    .isInstanceOf(AuthException.class)
-    //                    .hasMessage("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다.");
-    //
-    //            verify(authenticationManager)
-    //                    .authenticate(any(UsernamePasswordAuthenticationToken.class));
-    //        }
-    //
-    //        @Test
-    //        @DisplayName("로그인 시 틀린 비밀번호를 입력하면 예외가 발생해야한다.")
-    //        void login_fail_when_invalid_password() {
-    //            // given
-    //            LoginRequest request = new LoginRequest("test1234", "testtest1234!");
-    //
-    //
-    // when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-    //                    .thenThrow(new BadCredentialsException("비밀번호"));
-    //
-    //            // when & then
-    //            assertThatThrownBy(() -> authService.login(request))
-    //                    .isInstanceOf(AuthException.class)
-    //                    .hasMessage("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다.");
-    //
-    //            verify(authenticationManager)
-    //                    .authenticate(any(UsernamePasswordAuthenticationToken.class));
-    //        }
-    //    }
+        @Nested
+        @DisplayName("로그인 실패 테스트")
+        class Login {
+            @Test
+            @DisplayName("로그인 시 존재하지 않는 아이디를 입력하면 예외가 발생해야한다.")
+            void login_fail_when_invalid_login() {
+                // given
+                LoginRequest request = new LoginRequest("test1234", "testtest1234!");
+
+
+     when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                        .thenThrow(new InternalAuthenticationServiceException("아이디"));
+
+                // when & then
+                assertThatThrownBy(() -> authService.login(request))
+                        .isInstanceOf(AuthException.class)
+                        .hasMessage("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다.");
+
+                verify(authenticationManager)
+                        .authenticate(any(UsernamePasswordAuthenticationToken.class));
+            }
+
+            @Test
+            @DisplayName("로그인 시 틀린 비밀번호를 입력하면 예외가 발생해야한다.")
+            void login_fail_when_invalid_password() {
+                // given
+                LoginRequest request = new LoginRequest("test1234", "testtest1234!");
+
+
+     when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                        .thenThrow(new BadCredentialsException("비밀번호"));
+
+                // when & then
+                assertThatThrownBy(() -> authService.login(request))
+                        .isInstanceOf(AuthException.class)
+                        .hasMessage("아이디가 존재하지 않거나 비밀번호가 올바르지 않습니다.");
+
+                verify(authenticationManager)
+                        .authenticate(any(UsernamePasswordAuthenticationToken.class));
+            }
+        }
 
     @Test
     @DisplayName("변형된 refresh token 요청 시 INVALID_REFRESH_TOKEN 예외 반환")

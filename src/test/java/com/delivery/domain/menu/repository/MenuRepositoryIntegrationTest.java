@@ -13,6 +13,8 @@ import com.delivery.global.config.JpaAuditingConfig;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.delivery.global.config.QueryDslConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,7 +37,8 @@ import org.springframework.data.domain.AuditorAware;
     MenuRepositoryIntegrationTest.TestAuditorConfig.class,
     EncryptConfig.class,
     SsnEncryptor.class,
-    CryptoConverter.class
+    CryptoConverter.class,
+    QueryDslConfig.class
 })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class MenuRepositoryIntegrationTest extends AbstractIntegrationTest {
