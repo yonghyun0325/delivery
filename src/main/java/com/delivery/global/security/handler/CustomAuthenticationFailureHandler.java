@@ -3,7 +3,6 @@ package com.delivery.global.security.handler;
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;

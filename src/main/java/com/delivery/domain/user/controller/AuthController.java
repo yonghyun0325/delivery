@@ -49,12 +49,14 @@ public class AuthController implements AuthApi {
 
     @PostMapping("/login")
     public ResponseEntity<RestApiResponse<String>> login(@Valid @RequestBody LoginRequest request) {
-        throw new UnsupportedOperationException("Security Filter로 처리.");
+        // Security Filter 에서 처리
+        return null;
     }
 
     @PostMapping("/logout")
     public ResponseEntity<RestApiResponse<Void>> logout(HttpServletRequest request) {
-        throw new UnsupportedOperationException("Security Filter로 처리.");
+        // Security Filter 에서 처리
+        return null;
     }
 
     @PostMapping("/refresh")
