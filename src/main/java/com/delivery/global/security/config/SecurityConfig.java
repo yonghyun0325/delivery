@@ -1,6 +1,5 @@
 package com.delivery.global.security.config;
 
-import com.delivery.domain.user.service.AuthService;
 import com.delivery.global.security.handler.*;
 import com.delivery.global.security.jwt.JwtAuthenticationService;
 import com.delivery.global.security.jwt.JwtRequestFilter;
@@ -70,7 +69,7 @@ public class SecurityConfig {
                                 .requestMatchers(
                                         HttpMethod.POST,
                                         "/api/v1/auth",
-                                         "/api/v1/auth/login",
+                                        "/api/v1/auth/login",
                                         "/api/v1/auth/refresh")
                                 .permitAll()
 

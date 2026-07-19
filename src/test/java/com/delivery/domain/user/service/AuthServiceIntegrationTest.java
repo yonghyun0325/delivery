@@ -22,7 +22,6 @@ import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.delivery.global.security.principal.CustomUserDetails;
 import com.delivery.testutil.ConcurrencyTestingUtil;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -112,35 +111,35 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
                         });
     }
 
-        @Test
-        @Transactional
-        @DisplayName("로그인 성공")
-        void login_success() {
-            // given
-            Set<Role> roles = new HashSet<>();
-            roles.add(Role.CUSTOMER);
+    @Test
+    @Transactional
+    @DisplayName("로그인 성공")
+    void login_success() {
+        // given
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.CUSTOMER);
 
-            User user =
-                    User.builder()
-                            .username("test1234")
-                            .password(passwordEncoder.encode("testtest1234!"))
-                            .nickName("test")
-                            .phoneNumber("01012345678")
-                            .userStatus(UserStatus.ACTIVE)
-                            .roles(roles)
-                            .build();
+        User user =
+                User.builder()
+                        .username("test1234")
+                        .password(passwordEncoder.encode("testtest1234!"))
+                        .nickName("test")
+                        .phoneNumber("01012345678")
+                        .userStatus(UserStatus.ACTIVE)
+                        .roles(roles)
+                        .build();
 
-            User savedUser = userRepository.save(user);
-            LoginRequest loginRequest = new LoginRequest("test1234", "testtest1234!");
+        User savedUser = userRepository.save(user);
+        LoginRequest loginRequest = new LoginRequest("test1234", "testtest1234!");
 
-            // when
-            AuthResponse loginResponse = authService.login(loginRequest);
+        // when
+        AuthResponse loginResponse = authService.login(loginRequest);
 
-            // then
-            assertThat(loginResponse.username()).isEqualTo(savedUser.getUsername());
-            assertThat(loginResponse.accessToken()).isNotBlank();
-            assertThat(loginResponse.refreshToken()).isNotBlank();
-        }
+        // then
+        assertThat(loginResponse.username()).isEqualTo(savedUser.getUsername());
+        assertThat(loginResponse.accessToken()).isNotBlank();
+        assertThat(loginResponse.refreshToken()).isNotBlank();
+    }
 
     @Nested
     @DisplayName("리프래시 토큰 발급")
@@ -212,48 +211,47 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-        @Nested
-        @DisplayName("로그아웃")
-        class logout {
-            @Test
-            @WithMockCustomUser
-            @DisplayName("로그아웃 시 리프래시 토큰이 삭제되어야 한다.")
-            void logout_with_delete_refresh_token() {
-                // given
-                UUID userUuid = UUID.randomUUID();
-                UUID sessionId = UUID.randomUUID();
+    @Nested
+    @DisplayName("로그아웃")
+    class logout {
+        @Test
+        @WithMockCustomUser
+        @DisplayName("로그아웃 시 리프래시 토큰이 삭제되어야 한다.")
+        void logout_with_delete_refresh_token() {
+            // given
+            UUID userUuid = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
 
-                User user = UserFixture.ROLE_CUSTOMER.createUser(1L);
-                CustomUserDetails userDetails = CustomUserDetails.from(user);
+            User user = UserFixture.ROLE_CUSTOMER.createUser(1L);
+            CustomUserDetails userDetails = CustomUserDetails.from(user);
 
-                // when
-                refreshTokenRepository.save(sessionId, "refreshToken");
+            // when
+            refreshTokenRepository.save(sessionId, "refreshToken");
 
-                String accessToken = jwtUtil.generateAccessToken(userDetails, userUuid,
-     sessionId);
+            String accessToken = jwtUtil.generateAccessToken(userDetails, userUuid, sessionId);
 
-                MockHttpServletRequest request = new MockHttpServletRequest();
-                request.addHeader("Authorization", "Bearer " + accessToken);
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.addHeader("Authorization", "Bearer " + accessToken);
 
-                authService.logout(request);
+            authService.logout(request);
 
-                String token = refreshTokenRepository.findByKey(sessionId);
+            String token = refreshTokenRepository.findByKey(sessionId);
 
-                // then
-                assertThat(token).isNull();
-            }
-
-            @Test
-            @DisplayName("로그아웃 시 액세스 토큰이 없으면 INVALID_REFRESH_TOKEN 예외를 반환한다.")
-            void logout_with_access_token_is_null() {
-                // given
-                MockHttpServletRequest request = new MockHttpServletRequest();
-                request.addHeader("Authorization", "");
-
-                // when & then
-                assertThatThrownBy(() -> authService.logout(request))
-                        .isInstanceOf(AuthException.class)
-                        .hasMessage(AuthErrorCode.INVALID_ACCESS_TOKEN.getMessage());
-            }
+            // then
+            assertThat(token).isNull();
         }
+
+        @Test
+        @DisplayName("로그아웃 시 액세스 토큰이 없으면 INVALID_REFRESH_TOKEN 예외를 반환한다.")
+        void logout_with_access_token_is_null() {
+            // given
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.addHeader("Authorization", "");
+
+            // when & then
+            assertThatThrownBy(() -> authService.logout(request))
+                    .isInstanceOf(AuthException.class)
+                    .hasMessage(AuthErrorCode.INVALID_ACCESS_TOKEN.getMessage());
+        }
+    }
 }

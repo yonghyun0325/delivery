@@ -1,6 +1,5 @@
 package com.delivery.global.config;
 
-import com.delivery.global.security.jwt.JwtHeaderType;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;

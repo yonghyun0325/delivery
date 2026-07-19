@@ -7,15 +7,14 @@ import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.entity.UserStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,29 +25,29 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
     // Query
     @Override
     public Page<User> findAll(UserSearchRequest request, Pageable pageable) {
-        List<User> result =  queryFactory
-                .selectFrom(user)
-                .where(
-                        userStatusEq(request.userStatus()),
-                        usernameStartsWith(request.username()),
-                        roleEq(request.role()),
-                        createdAtBetween(request.startDate(), request.endDate())
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(user.createdAt.desc())
-                .fetch();
+        List<User> result =
+                queryFactory
+                        .selectFrom(user)
+                        .where(
+                                userStatusEq(request.userStatus()),
+                                usernameStartsWith(request.username()),
+                                roleEq(request.role()),
+                                createdAtBetween(request.startDate(), request.endDate()))
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize())
+                        .orderBy(user.createdAt.desc())
+                        .fetch();
 
-        Long total = queryFactory
-                .select(user.count())
-                .from(user)
-                .where(
-                        userStatusEq(request.userStatus()),
-                        usernameStartsWith(request.username()),
-                        roleEq(request.role()),
-                        createdAtBetween(request.startDate(), request.endDate())
-                )
-                .fetchOne();
+        Long total =
+                queryFactory
+                        .select(user.count())
+                        .from(user)
+                        .where(
+                                userStatusEq(request.userStatus()),
+                                usernameStartsWith(request.username()),
+                                roleEq(request.role()),
+                                createdAtBetween(request.startDate(), request.endDate()))
+                        .fetchOne();
 
         return new PageImpl<>(result, pageable, total == null ? 0 : total);
     }
@@ -70,9 +69,7 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
     }
 
     // 검색 기간
-    private BooleanExpression createdAtBetween(
-            LocalDate startDate,
-            LocalDate endDate) {
+    private BooleanExpression createdAtBetween(LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null) {
             return user.createdAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
         }

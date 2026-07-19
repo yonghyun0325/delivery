@@ -10,19 +10,16 @@ import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.domain.user.repository.UserSpecification;
 import com.delivery.global.cache.UserCacheRepository;
-import java.util.Set;
-
 import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.GlobalErrorCode;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,12 +94,14 @@ public class UserAdminService {
 
     /**
      * 날짜 조건 쿼리
+     *
      * @param request
      */
     private void validateDateRange(UserSearchRequest request) {
-        if (request.startDate() != null && request.endDate() != null && request.startDate().isAfter(request.endDate())) {
+        if (request.startDate() != null
+                && request.endDate() != null
+                && request.startDate().isAfter(request.endDate())) {
             throw new BusinessException(GlobalErrorCode.INVALID_DATE_RANGE);
         }
     }
-
 }
