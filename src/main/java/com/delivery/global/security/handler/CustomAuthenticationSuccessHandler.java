@@ -1,22 +1,20 @@
-package com.delivery.global.security.config;
+package com.delivery.global.security.handler;
 
 import com.delivery.common.RestApiResponse;
-import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.response.AuthResponse;
 import com.delivery.domain.user.service.AuthService;
+import com.delivery.global.security.principal.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 

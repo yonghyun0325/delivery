@@ -8,7 +8,7 @@ import com.delivery.domain.menu.fixture.TestUserFixture;
 import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;

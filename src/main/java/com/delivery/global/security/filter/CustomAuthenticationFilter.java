@@ -1,17 +1,13 @@
-package com.delivery.global.security.config;
+package com.delivery.global.security.filter;
 
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.exception.AuthException;
-import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.GlobalErrorCode;
-import com.delivery.global.security.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;

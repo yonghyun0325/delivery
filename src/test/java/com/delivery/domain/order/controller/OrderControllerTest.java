@@ -12,7 +12,7 @@ import com.delivery.config.AbstractIntegrationTest;
 import com.delivery.domain.ai.client.GeminiClient;
 import com.delivery.domain.order.enums.OrderStatus;
 import com.delivery.domain.order.service.OrderService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;

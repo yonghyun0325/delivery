@@ -1,4 +1,4 @@
-package com.delivery.global.security.config;
+package com.delivery.global.security.handler;
 
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.exception.AuthErrorCode;

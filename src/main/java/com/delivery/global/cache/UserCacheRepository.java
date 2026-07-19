@@ -2,7 +2,7 @@ package com.delivery.global.cache;
 
 import com.delivery.common.base.BaseCacheRepository;
 import com.delivery.global.config.CacheType;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.util.UUID;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;

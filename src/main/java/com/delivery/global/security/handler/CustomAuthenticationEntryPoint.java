@@ -1,4 +1,4 @@
-package com.delivery.global.security.config;
+package com.delivery.global.security.handler;
 
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.exception.AuthErrorCode;
@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @RequiredArgsConstructor

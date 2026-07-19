@@ -1,6 +1,5 @@
 package com.delivery.domain.user.controller;
 
-import static com.delivery.global.security.jwt.JwtHeaderType.REFRESH_TOKEN;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -10,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.delivery.config.AbstractControllerTest;
 import com.delivery.config.WithMockCustomUser;
-import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.response.AuthResponse;
 import com.delivery.domain.user.entity.Role;
@@ -19,7 +17,6 @@ import com.delivery.domain.user.exception.AuthException;
 import com.delivery.domain.user.service.AuthService;
 import java.util.stream.Stream;
 
-import com.delivery.global.security.config.CustomUserDetails;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

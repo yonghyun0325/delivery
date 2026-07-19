@@ -3,7 +3,7 @@ package com.delivery.global.security.jwt;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.delivery.global.config.JwtProperties;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;

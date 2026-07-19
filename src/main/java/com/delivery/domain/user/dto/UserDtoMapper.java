@@ -3,7 +3,7 @@ package com.delivery.domain.user.dto;
 import com.delivery.domain.user.dto.response.*;
 import com.delivery.domain.user.entity.Address;
 import com.delivery.domain.user.entity.User;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import lombok.experimental.UtilityClass;
 
 /** DTO MAPPING 유틸리티 클래스 */

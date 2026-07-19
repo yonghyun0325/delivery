@@ -24,7 +24,7 @@ import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.global.exception.BusinessException;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
