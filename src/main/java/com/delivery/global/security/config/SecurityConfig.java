@@ -1,7 +1,6 @@
 package com.delivery.global.security.config;
 
 import com.delivery.domain.user.service.AuthService;
-import com.delivery.global.security.filter.CustomAuthenticationFilter;
 import com.delivery.global.security.handler.*;
 import com.delivery.global.security.jwt.JwtAuthenticationService;
 import com.delivery.global.security.jwt.JwtRequestFilter;
@@ -34,32 +33,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity httpSecurity,
-            CustomAuthenticationFilter authenticationFilter,
-            CustomLogoutSuccessHandler logoutSuccessHandler,
             JwtRequestFilter jwtRequestFilter,
             AccessDeniedHandler accessDeniedHandler,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint)
             throws Exception {
         // csrf 비활성화
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
-        httpSecurity.formLogin(AbstractHttpConfigurer::disable);
-        httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
 
         // 세션 STATELESS
         httpSecurity.sessionManagement(
                 sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // Logout 핸들러 설정
-        httpSecurity.logout(
-                logout ->
-                        logout.logoutUrl("/api/v1/auth/logout")
-                                .deleteCookies("refreshToken")
-                                .logoutSuccessHandler(logoutSuccessHandler));
-
         // 필터 관리
-        httpSecurity.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        httpSecurity.addFilterAfter(jwtRequestFilter, CustomAuthenticationFilter.class);
+        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         // 예외 핸들러 설정
         httpSecurity.exceptionHandling(
@@ -131,41 +118,6 @@ public class SecurityConfig {
             AuthenticationConfiguration authenticationConfiguration) throws Exception {
 
         return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public CustomAuthenticationFilter customAuthenticationFilter(
-            AuthenticationManager authenticationManager,
-            CustomAuthenticationSuccessHandler successHandler,
-            CustomAuthenticationFailureHandler failureHandler) {
-
-        CustomAuthenticationFilter authenticationFilter =
-                new CustomAuthenticationFilter(authenticationManager);
-
-        // Login 필터 설정
-        authenticationFilter.setAuthenticationSuccessHandler(successHandler);
-        authenticationFilter.setAuthenticationFailureHandler(failureHandler);
-        authenticationFilter.setFilterProcessesUrl("/api/v1/auth/login");
-
-        return authenticationFilter;
-    }
-
-    @Bean
-    public CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler(
-            ObjectMapper objectMapper, AuthService authService) {
-        return new CustomAuthenticationSuccessHandler(objectMapper, authService);
-    }
-
-    @Bean
-    public CustomAuthenticationFailureHandler customAuthenticationFailureHandler(
-            ObjectMapper objectMapper) {
-        return new CustomAuthenticationFailureHandler(objectMapper);
-    }
-
-    @Bean
-    public CustomLogoutSuccessHandler customLogoutSuccessHandler(
-            ObjectMapper objectMapper, AuthService authService) {
-        return new CustomLogoutSuccessHandler(objectMapper, authService);
     }
 
     @Bean
