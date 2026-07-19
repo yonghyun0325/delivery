@@ -17,7 +17,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     private final ObjectMapper objectMapper;
@@ -27,7 +26,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletRequest request,
             HttpServletResponse response,
             AccessDeniedException accessDeniedException)
-            throws IOException, ServletException {
+            throws IOException {
         ErrorCode errorCode = GlobalErrorCode.FORBIDDEN;
         HttpStatus httpStatus = errorCode.getHttpStatus();
         String message = errorCode.getMessage();

@@ -1,10 +1,16 @@
 package com.delivery.global.security.config;
 
+import com.delivery.domain.user.service.AuthService;
+import com.delivery.global.security.jwt.JwtAuthenticationService;
 import com.delivery.global.security.jwt.JwtRequestFilter;
+import com.delivery.global.security.jwt.JwtUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,27 +29,44 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-    private final JwtRequestFilter jwtRequestFilter;
-    private final AccessDeniedHandler accessDeniedHandler;
-
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
-            throws Exception {
-        return configuration.getAuthenticationManager();
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity,
+                                           CustomAuthenticationFilter authenticationFilter,
+                                           CustomLogoutSuccessHandler logoutSuccessHandler,
+                                           JwtRequestFilter jwtRequestFilter,
+                                           AccessDeniedHandler accessDeniedHandler,
+                                           CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
+        // csrf 비활성화
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
+        httpSecurity.formLogin(AbstractHttpConfigurer::disable);
+        httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
 
+        // 세션 STATELESS
+        httpSecurity.sessionManagement(
+                sessionManagement ->
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        // Logout 핸들러 설정
+        httpSecurity.logout(logout -> logout
+                .logoutUrl("/api/v1/auth/logout")
+                .deleteCookies("refreshToken")
+                .logoutSuccessHandler(logoutSuccessHandler)
+        );
+
+        // 필터 관리
+        httpSecurity.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterAfter(jwtRequestFilter, CustomAuthenticationFilter.class);
+
+        // 예외 핸들러 설정
+        httpSecurity.exceptionHandling(
+                config ->
+                        config.authenticationEntryPoint(customAuthenticationEntryPoint)
+                                .accessDeniedHandler(accessDeniedHandler));
+
+        // URL 인가 설정
         httpSecurity.authorizeHttpRequests(
                 (requests) ->
+                        // Swagger
                         requests.requestMatchers(
                                         "/swagger-ui/**",
                                         "/v3/api-docs/**",
@@ -56,14 +79,18 @@ public class SecurityConfig {
                                 .requestMatchers(
                                         HttpMethod.POST,
                                         "/api/v1/auth",
-                                        "/api/v1/auth/login",
+//                                        "/api/v1/auth/login",
                                         "/api/v1/auth/refresh")
                                 .permitAll()
+
+                                // 중복 체크
                                 .requestMatchers(
                                         HttpMethod.GET,
                                         "/api/v1/users/check-id",
                                         "/api/v1/users/check-nickname")
                                 .permitAll()
+
+                                // 기본 권한
                                 .requestMatchers(
                                         HttpMethod.GET,
                                         "/api/v1/stores",
@@ -72,28 +99,88 @@ public class SecurityConfig {
                                         "/api/v1/stores/*/reviews",
                                         "/api/v1/stores/*/ratings")
                                 .permitAll()
+
+                                // 카테고리, 지역 권한
                                 .requestMatchers(
                                         HttpMethod.GET, "/api/v1/categories", "/api/v1/regions")
                                 .permitAll()
 
                                 // 관리자
                                 .requestMatchers("/api/v1/admin/users/**")
-                                .hasAnyRole("MASTER", "MANAGER")
+                                .hasAnyRole("MANAGER")
 
                                 // 나머지
                                 .anyRequest()
                                 .authenticated());
 
-        httpSecurity.exceptionHandling(
-                config ->
-                        config.authenticationEntryPoint(customAuthenticationEntryPoint)
-                                .accessDeniedHandler(accessDeniedHandler));
-
-        httpSecurity.sessionManagement(
-                sessionManagement ->
-                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        // 필터 관리
-        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
+
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CustomAuthenticationFilter customAuthenticationFilter(
+            AuthenticationManager authenticationManager,
+            CustomAuthenticationSuccessHandler successHandler,
+            CustomAuthenticationFailureHandler failureHandler) {
+
+        CustomAuthenticationFilter authenticationFilter =
+                new CustomAuthenticationFilter(authenticationManager);
+
+        // Login 필터 설정
+        authenticationFilter.setAuthenticationSuccessHandler(successHandler);
+        authenticationFilter.setAuthenticationFailureHandler(failureHandler);
+        authenticationFilter.setFilterProcessesUrl("/api/v1/auth/login");
+
+        return authenticationFilter;
+    }
+
+    @Bean
+    public CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler(
+            ObjectMapper objectMapper,
+            AuthService authService) {
+        return new CustomAuthenticationSuccessHandler(objectMapper, authService);
+    }
+
+    @Bean
+    public CustomAuthenticationFailureHandler customAuthenticationFailureHandler(
+            ObjectMapper objectMapper) {
+        return new CustomAuthenticationFailureHandler(objectMapper);
+    }
+
+    @Bean
+    public CustomLogoutSuccessHandler customLogoutSuccessHandler(ObjectMapper objectMapper, AuthService authService) {
+        return new CustomLogoutSuccessHandler(objectMapper, authService);
+    }
+
+    @Bean
+    public CustomAccessDeniedHandler customAccessDeniedHandler(ObjectMapper objectMapper) {
+        return new CustomAccessDeniedHandler(objectMapper);
+    }
+
+    @Bean
+    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        return new CustomAuthenticationEntryPoint(objectMapper);
+    }
+
+    @Bean
+    public JwtRequestFilter jwtRequestFilter(JwtAuthenticationService jwtAuthenticationService, ObjectMapper objectMapper, JwtUtil jwtUtil) {
+        return new JwtRequestFilter(jwtAuthenticationService, objectMapper, jwtUtil);
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy(
+                "ROLE_MASTER > ROLE_MANAGER > ROLE_OWNER > ROLE_CUSTOMER");
     }
 }
