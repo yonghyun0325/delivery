@@ -81,12 +81,4 @@ public class ApiDocumentationConfig {
                 .scheme("bearer")
                 .bearerFormat("JWT");
     }
-
-    private SecurityScheme createRefreshTokenScheme() {
-        return new SecurityScheme()
-                .name("Refresh Token")
-                .type(SecurityScheme.Type.APIKEY)
-                .in(SecurityScheme.In.HEADER)
-                .name(JwtHeaderType.REFRESH_TOKEN.getHeader());
-    }
 }
