@@ -71,6 +71,12 @@ public class User extends BaseEntity {
                 .build();
     }
 
+    public void updatedPassword(String password) {
+        if (password != null && !password.isBlank()) {
+            this.password = password;
+        }
+    }
+
     public void updateNickName(String nickName) {
         if (nickName != null && !nickName.isBlank()) {
             this.nickName = nickName;

@@ -39,6 +39,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 @SpringBootTest
 @ActiveProfiles("test")
 class AuthServiceIntegrationTest extends AbstractIntegrationTest {
