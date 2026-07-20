@@ -19,9 +19,8 @@ import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.fixture.UserFixture;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
-import com.delivery.global.cache.WithdrawnUserRepository;
-import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
+import com.delivery.global.security.principal.CustomUserDetails;
 import com.delivery.testutil.ConcurrencyTestingUtil;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +34,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -44,13 +42,11 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @ActiveProfiles("test")
 class AuthServiceIntegrationTest extends AbstractIntegrationTest {
-    @Autowired private ApplicationEventPublisher applicationEventPublisher;
     @Autowired private AuthService authService;
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
     @Autowired private JwtUtil jwtUtil;
-    @Autowired private WithdrawnUserRepository withdrawnUserRepository;
 
     @AfterEach
     void tearDown() {

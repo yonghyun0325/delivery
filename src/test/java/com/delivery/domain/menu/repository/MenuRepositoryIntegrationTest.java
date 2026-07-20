@@ -10,6 +10,7 @@ import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.global.config.CustomAuditorAware;
 import com.delivery.global.config.EncryptConfig;
 import com.delivery.global.config.JpaAuditingConfig;
+import com.delivery.global.config.QueryDslConfig;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,7 +36,8 @@ import org.springframework.data.domain.AuditorAware;
     MenuRepositoryIntegrationTest.TestAuditorConfig.class,
     EncryptConfig.class,
     SsnEncryptor.class,
-    CryptoConverter.class
+    CryptoConverter.class,
+    QueryDslConfig.class
 })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class MenuRepositoryIntegrationTest extends AbstractIntegrationTest {

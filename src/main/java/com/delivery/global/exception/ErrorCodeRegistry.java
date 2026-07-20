@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
+/** MethodArgumentNotValidException 예외 처리를 위한 ErrorCode 저장 클래스 */
 @Component
 public class ErrorCodeRegistry {
     private final Map<String, ErrorCode> registry = new HashMap<>();

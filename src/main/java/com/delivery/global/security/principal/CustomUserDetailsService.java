@@ -1,4 +1,4 @@
-package com.delivery.global.security.config;
+package com.delivery.global.security.principal;
 
 import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;

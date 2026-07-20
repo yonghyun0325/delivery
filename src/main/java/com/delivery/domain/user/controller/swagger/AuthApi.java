@@ -3,14 +3,11 @@ package com.delivery.domain.user.controller.swagger;
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
-import com.delivery.domain.user.dto.response.AuthResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -34,8 +31,7 @@ public interface AuthApi {
         @ApiResponse(responseCode = "400", description = "필수 입력값 누락 또는 아이디, 비밀번호 틀림."),
         @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ResponseEntity<RestApiResponse<String>> login(
-            @Valid @RequestBody LoginRequest request);
+    public ResponseEntity<RestApiResponse<String>> login(@Valid @RequestBody LoginRequest request);
 
     @Operation(summary = "로그아웃", description = "사용자가 로그아웃 합니다.")
     @ApiResponses({
@@ -51,5 +47,6 @@ public interface AuthApi {
         @ApiResponse(responseCode = "401", description = "Access Token이 유효하지 않습니다."),
         @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ResponseEntity<RestApiResponse<String>> refreshToken(@CookieValue(value = "refreshToken", required = false) String refreshToken);
+    public ResponseEntity<RestApiResponse<String>> refreshToken(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken);
 }

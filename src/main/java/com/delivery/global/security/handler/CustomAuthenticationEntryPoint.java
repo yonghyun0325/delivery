@@ -1,10 +1,9 @@
-package com.delivery.global.security.config;
+package com.delivery.global.security.handler;
 
 import com.delivery.common.RestApiResponse;
+import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.global.exception.ErrorCode;
-import com.delivery.global.exception.GlobalErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -12,32 +11,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.stereotype.Component;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
-public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void handle(
+    public void commence(
             HttpServletRequest request,
             HttpServletResponse response,
-            AccessDeniedException accessDeniedException)
-            throws IOException, ServletException {
-        ErrorCode errorCode = GlobalErrorCode.FORBIDDEN;
+            AuthenticationException authException)
+            throws IOException {
+        ErrorCode errorCode = AuthErrorCode.TOKEN_NOT_FOUND;
         HttpStatus httpStatus = errorCode.getHttpStatus();
         String message = errorCode.getMessage();
         String error = errorCode.getName();
 
         log.warn(
-                "ErrorCode : {}, ErrorMessage : {}",
+                "사용자 인증 실패 - ErrorCode : {}, ErrorMessage : {}",
                 errorCode.getName(),
                 errorCode.getMessage(),
-                accessDeniedException);
+                authException);
 
         response.setStatus(httpStatus.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

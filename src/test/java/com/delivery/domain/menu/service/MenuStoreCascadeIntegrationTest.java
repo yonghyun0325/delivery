@@ -11,7 +11,6 @@ import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.StoreRepository;
 import com.delivery.domain.store.service.StoreService;
-import com.delivery.global.cache.WithdrawnUserRepository;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +38,6 @@ class MenuStoreCascadeIntegrationTest extends AbstractIntegrationTest {
     @Autowired private StoreService storeService;
     @Autowired private StoreRepository storeRepository;
     @Autowired private MenuRepository menuRepository;
-    @Autowired private WithdrawnUserRepository withdrawnUserRepository;
 
     @Test
     @DisplayName("가게 삭제 시 소속 메뉴가 실제로 소프트 삭제되고 deletedBy가 일치한다")

@@ -11,15 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.delivery.domain.store.dto.request.StoreRequest;
 import com.delivery.domain.store.dto.response.StoreResponse;
 import com.delivery.domain.store.service.StoreService;
-import com.delivery.global.cache.BlackListRepository;
-import com.delivery.global.cache.RefreshTokenRepository;
-import com.delivery.global.cache.UserCacheRepository;
-import com.delivery.global.cache.WithdrawnUserRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
-import com.delivery.global.security.config.CustomUserDetails;
-import com.delivery.global.security.config.CustomUserDetailsService;
-import com.delivery.global.security.jwt.JwtAuthenticationService;
-import com.delivery.global.security.jwt.JwtUtil;
+import com.delivery.global.security.principal.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -48,15 +41,8 @@ class StoreControllerUnitTest {
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
 
-    @MockitoBean private RefreshTokenRepository refreshTokenRepository;
-    @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private StoreService storeService;
     @MockitoBean private ErrorCodeRegistry errorCodeRegistry;
-    @MockitoBean private CustomUserDetailsService customUserDetailsService;
-    @MockitoBean private BlackListRepository blackListRepository;
-    @MockitoBean private UserCacheRepository userCacheRepository;
-    @MockitoBean private WithdrawnUserRepository withdrawnUserRepository;
-    @MockitoBean private JwtAuthenticationService jwtAuthenticationService;
 
     @BeforeEach
     void setUpSecurityContext() {

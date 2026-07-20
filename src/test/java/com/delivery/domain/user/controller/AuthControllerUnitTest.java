@@ -1,6 +1,5 @@
 package com.delivery.domain.user.controller;
 
-import static com.delivery.global.security.jwt.JwtHeaderType.REFRESH_TOKEN;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -17,9 +16,8 @@ import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.domain.user.exception.AuthException;
 import com.delivery.domain.user.service.AuthService;
-import java.util.stream.Stream;
-
 import jakarta.servlet.http.Cookie;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -186,8 +184,9 @@ class AuthControllerUnitTest extends AbstractControllerTest {
                     .willThrow(new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN));
 
             // when & then
-            mockMvc.perform(post("/api/v1/auth/refresh")
-                    .cookie(new Cookie("refreshToken", "expired-token-value")))
+            mockMvc.perform(
+                            post("/api/v1/auth/refresh")
+                                    .cookie(new Cookie("refreshToken", "expired-token-value")))
                     .andExpect(status().isUnauthorized())
                     .andExpect(
                             jsonPath("$.message")

@@ -18,11 +18,10 @@ import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.fixture.UserFixture;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.UserCacheRepository;
-import com.delivery.global.cache.WithdrawnUserRepository;
 import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.GlobalErrorCode;
-import com.delivery.global.security.config.CustomUserDetails;
-import com.delivery.global.security.config.CustomUserDetailsService;
+import com.delivery.global.security.principal.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetailsService;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +45,6 @@ public class UserAdminServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired private UserRepository userRepository;
     @Autowired private CustomUserDetailsService customUserDetailsService;
     @Autowired private UserCacheRepository userCacheRepository;
-    @Autowired private WithdrawnUserRepository withdrawnUserRepository;
     private UserAdminResponse savedUser;
 
     @BeforeEach

@@ -19,6 +19,8 @@ public enum UserErrorCode implements ErrorCode {
             "닉네임은 최소 2자 이상, 16자 이하의 알파벳 대소문자(a~z, A~Z), 숫자(0~9), 한글이어야 합니다."),
     INVALID_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "전화번호는 11자리의 숫자이어야 합니다."),
     EXCEED_MAX_ADDRESS(HttpStatus.BAD_REQUEST, "배송지는 최대 10개까지 등록할 수 있습니다."),
+    INVALID_ROLE(HttpStatus.BAD_REQUEST, "존재하지 않는 권한 입니다."),
+    INVALID_USER_STATUS(HttpStatus.BAD_REQUEST, "존재하지 유저 상태 입니다."),
 
     // 404 Not Found
     NOT_EXIST_USER(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),

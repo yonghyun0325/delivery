@@ -8,7 +8,7 @@ import com.delivery.domain.store.dto.response.StoreResponse;
 import com.delivery.domain.store.enums.StoreSortType;
 import com.delivery.domain.store.service.StoreService;
 import com.delivery.domain.user.entity.Role;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

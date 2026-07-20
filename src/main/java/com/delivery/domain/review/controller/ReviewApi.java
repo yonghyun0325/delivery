@@ -4,7 +4,7 @@ import com.delivery.common.RestApiResponse;
 import com.delivery.domain.review.dto.request.ReviewRequest;
 import com.delivery.domain.review.dto.response.ReviewResponse;
 import com.delivery.domain.review.enums.ReviewSortType;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;

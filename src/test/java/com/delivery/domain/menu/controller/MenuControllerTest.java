@@ -24,8 +24,7 @@ import com.delivery.domain.menu.fixture.MenuFixture;
 import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.global.exception.ErrorCodeRegistry;
-import com.delivery.global.security.config.CustomUserDetails;
-import com.delivery.global.security.jwt.JwtRequestFilter;
+import com.delivery.global.security.principal.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +60,7 @@ class MenuControllerTest {
 
     // @WebMvcTest는 Filter 타입 빈을 자동으로 스캔 대상에 포함시키는데,
     // JwtRequestFilter는 JwtUtil에 의존해 실제 컨텍스트 로딩이 실패한다. 모킹으로 우회.
-    @MockitoBean private JwtRequestFilter jwtRequestFilter;
+    // @MockitoBean private JwtRequestFilter jwtRequestFilter;
 
     // @AuthenticationPrincipal은 SecurityContextHolder를 직접 읽으므로(필터 체인과 무관),
     // addFilters=false 슬라이스에서도 이렇게 수동으로 세팅해야 principal이 주입된다.

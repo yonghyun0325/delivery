@@ -8,7 +8,7 @@ import com.delivery.domain.order.dto.response.OrderListResponse;
 import com.delivery.domain.order.dto.response.OrderStatusResponse;
 import com.delivery.domain.order.enums.OrderStatus;
 import com.delivery.domain.order.service.OrderService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.Set;

@@ -4,7 +4,7 @@ import com.delivery.common.RestApiResponse;
 import com.delivery.domain.reviewreply.dto.request.ReviewReplyRequest;
 import com.delivery.domain.reviewreply.dto.response.ReviewReplyResponse;
 import com.delivery.domain.reviewreply.service.ReviewReplyService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

@@ -7,7 +7,7 @@ import com.delivery.domain.user.dto.request.UpdatePhoneNumberRequest;
 import com.delivery.domain.user.dto.response.UserResponse;
 import com.delivery.domain.user.dto.response.UserValidationResponse;
 import com.delivery.domain.user.service.UserService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

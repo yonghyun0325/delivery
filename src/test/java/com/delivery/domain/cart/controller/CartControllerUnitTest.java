@@ -17,7 +17,7 @@ import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.exception.GlobalErrorCode;
 import com.delivery.global.exception.GlobalExceptionHandler;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.util.List;
 import java.util.UUID;
 import org.hamcrest.Matchers;
