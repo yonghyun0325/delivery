@@ -2,6 +2,9 @@ package com.delivery.domain.user.entity;
 
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.domain.user.exception.AuthException;
+import com.delivery.domain.user.exception.UserErrorCode;
+import com.delivery.domain.user.exception.UserException;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -32,6 +35,21 @@ public enum Role {
         }
 
         return roles;
+    }
+
+    @JsonCreator
+    public static Role from(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        for (Role role : Role.values()) {
+            if (role.name().equalsIgnoreCase(value)) {
+                return role;
+            }
+        }
+
+        throw new UserException(UserErrorCode.INVALID_ROLE);
     }
 
     public static class Authority {

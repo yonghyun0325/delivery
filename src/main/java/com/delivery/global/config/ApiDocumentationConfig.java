@@ -1,6 +1,5 @@
 package com.delivery.global.config;
 
-import com.delivery.global.security.jwt.JwtHeaderType;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -30,8 +29,7 @@ public class ApiDocumentationConfig {
                 .components(
                         new Components()
                                 .addSecuritySchemes(
-                                        "bearerAuth", createSecurityScheme("bearer", "JWT"))
-                                .addSecuritySchemes("refreshToken", createRefreshTokenScheme()))
+                                        "bearerAuth", createSecurityScheme("bearer", "JWT")))
                 .externalDocs(
                         new ExternalDocumentation()
                                 .description("Delivery Git Repository")
@@ -81,13 +79,5 @@ public class ApiDocumentationConfig {
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
                 .bearerFormat("JWT");
-    }
-
-    private SecurityScheme createRefreshTokenScheme() {
-        return new SecurityScheme()
-                .name("Refresh Token")
-                .type(SecurityScheme.Type.APIKEY)
-                .in(SecurityScheme.In.HEADER)
-                .name(JwtHeaderType.REFRESH_TOKEN.getHeader());
     }
 }

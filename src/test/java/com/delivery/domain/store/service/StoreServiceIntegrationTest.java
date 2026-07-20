@@ -12,12 +12,9 @@ import com.delivery.domain.store.enums.StoreSortType;
 import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.CategoryRepository;
 import com.delivery.domain.store.repository.RegionRepository;
-import com.delivery.domain.store.enums.StoreSortType;
-import java.util.UUID;
-import java.util.Comparator;
-
 import com.delivery.domain.user.UserDeletedEvent;
-import com.delivery.global.cache.WithdrawnUserRepository;
+import java.util.Comparator;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,14 +24,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest(properties = {
-        "gemini.api-key=test-dummy-key",
-        "gemini.base-url=https://generativelanguage.googleapis.com",
-        "gemini.model=gemini-1.5-flash"
-})
+@SpringBootTest(
+        properties = {
+            "gemini.api-key=test-dummy-key",
+            "gemini.base-url=https://generativelanguage.googleapis.com",
+            "gemini.model=gemini-1.5-flash"
+        })
 @Transactional
 class StoreServiceIntegrationTest extends AbstractIntegrationTest {
 
@@ -42,7 +39,6 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private RegionRepository regionRepository;
     @Autowired private ApplicationEventPublisher applicationEventPublisher;
-    @Autowired private WithdrawnUserRepository withdrawnUserRepository;
 
     private Category savedCategory;
     private Region savedRegion;
@@ -52,8 +48,9 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     void setUp() {
         savedCategory = categoryRepository.save(Category.builder().name("한식").build());
-        savedRegion = regionRepository.save(
-                Region.builder().name("강남구").latitude(37.5).longitude(127.0).build());
+        savedRegion =
+                regionRepository.save(
+                        Region.builder().name("강남구").latitude(37.5).longitude(127.0).build());
     }
 
     private StoreRequest defaultRequest() {
@@ -129,11 +126,19 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("필터 없이 전체 가게를 조회한다.")
         void searchStores_no_filter() {
             storeService.createStore(OWNER_ID, defaultRequest());
-            storeService.createStore(OWNER_ID, new StoreRequest(
-                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
-                    "다른 가게", "서울시 서초구", "01098765432", null, 5000));
+            storeService.createStore(
+                    OWNER_ID,
+                    new StoreRequest(
+                            savedCategory.getCategoryId(),
+                            savedRegion.getRegionId(),
+                            "다른 가게",
+                            "서울시 서초구",
+                            "01098765432",
+                            null,
+                            5000));
 
-            Page<StoreResponse> result = storeService.getStores(null, null, null, null, PageRequest.of(0, 10));
+            Page<StoreResponse> result =
+                    storeService.getStores(null, null, null, null, PageRequest.of(0, 10));
 
             assertThat(result.getTotalElements()).isGreaterThanOrEqualTo(2);
         }
@@ -142,11 +147,19 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("이름으로 가게를 검색한다.")
         void searchStores_by_name() {
             storeService.createStore(OWNER_ID, defaultRequest());
-            storeService.createStore(OWNER_ID, new StoreRequest(
-                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
-                    "다른 가게", "서울시 서초구", "01098765432", null, 5000));
+            storeService.createStore(
+                    OWNER_ID,
+                    new StoreRequest(
+                            savedCategory.getCategoryId(),
+                            savedRegion.getRegionId(),
+                            "다른 가게",
+                            "서울시 서초구",
+                            "01098765432",
+                            null,
+                            5000));
 
-            Page<StoreResponse> result = storeService.getStores(null, null, "테스트", null, PageRequest.of(0, 10));
+            Page<StoreResponse> result =
+                    storeService.getStores(null, null, "테스트", null, PageRequest.of(0, 10));
 
             assertThat(result.getTotalElements()).isEqualTo(1);
             assertThat(result.getContent().get(0).name()).isEqualTo("테스트 가게");
@@ -158,14 +171,23 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
             Category otherCategory = categoryRepository.save(Category.builder().name("중식").build());
 
             storeService.createStore(OWNER_ID, defaultRequest());
-            storeService.createStore(OWNER_ID, new StoreRequest(
-                    otherCategory.getCategoryId(), savedRegion.getRegionId(),
-                    "중식 가게", "서울시 서초구", "01098765432", null, 5000));
+            storeService.createStore(
+                    OWNER_ID,
+                    new StoreRequest(
+                            otherCategory.getCategoryId(),
+                            savedRegion.getRegionId(),
+                            "중식 가게",
+                            "서울시 서초구",
+                            "01098765432",
+                            null,
+                            5000));
 
-            Page<StoreResponse> result = storeService.getStores(
-                    savedCategory.getCategoryId(), null, null, null, PageRequest.of(0, 10));
+            Page<StoreResponse> result =
+                    storeService.getStores(
+                            savedCategory.getCategoryId(), null, null, null, PageRequest.of(0, 10));
 
-            assertThat(result.getContent()).allMatch(s -> s.categoryId().equals(savedCategory.getCategoryId()));
+            assertThat(result.getContent())
+                    .allMatch(s -> s.categoryId().equals(savedCategory.getCategoryId()));
         }
 
         @Test
@@ -174,20 +196,30 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
             Region otherRegion = regionRepository.save(Region.builder().name("부산").build());
 
             storeService.createStore(OWNER_ID, defaultRequest());
-            storeService.createStore(OWNER_ID, new StoreRequest(
-                    savedCategory.getCategoryId(), otherRegion.getRegionId(),
-                    "부산 가게", "부산시 해운대구", "01011112222", null, 5000));
+            storeService.createStore(
+                    OWNER_ID,
+                    new StoreRequest(
+                            savedCategory.getCategoryId(),
+                            otherRegion.getRegionId(),
+                            "부산 가게",
+                            "부산시 해운대구",
+                            "01011112222",
+                            null,
+                            5000));
 
-            Page<StoreResponse> result = storeService.getStores(
-                    null, savedRegion.getRegionId(), null, null, PageRequest.of(0, 10));
+            Page<StoreResponse> result =
+                    storeService.getStores(
+                            null, savedRegion.getRegionId(), null, null, PageRequest.of(0, 10));
 
-            assertThat(result.getContent()).allMatch(s -> s.regionId().equals(savedRegion.getRegionId()));
+            assertThat(result.getContent())
+                    .allMatch(s -> s.regionId().equals(savedRegion.getRegionId()));
         }
 
         @Test
         @DisplayName("검색 결과가 없으면 빈 페이지를 반환한다.")
         void searchStores_no_result() {
-            Page<StoreResponse> result = storeService.getStores(null, null, "없는가게이름xyz", null, PageRequest.of(0, 10));
+            Page<StoreResponse> result =
+                    storeService.getStores(null, null, "없는가게이름xyz", null, PageRequest.of(0, 10));
 
             assertThat(result.getTotalElements()).isEqualTo(0);
         }
@@ -196,30 +228,47 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("최신순으로 가게를 정렬한다.")
         void searchStores_sort_by_created_at() {
             storeService.createStore(OWNER_ID, defaultRequest());
-            storeService.createStore(OWNER_ID, new StoreRequest(
-                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
-                    "다른 가게", "서울시 서초구", "01098765432", null, 5000));
+            storeService.createStore(
+                    OWNER_ID,
+                    new StoreRequest(
+                            savedCategory.getCategoryId(),
+                            savedRegion.getRegionId(),
+                            "다른 가게",
+                            "서울시 서초구",
+                            "01098765432",
+                            null,
+                            5000));
 
-            Page<StoreResponse> result = storeService.getStores(
-                    null, null, null, StoreSortType.LATEST, PageRequest.of(0, 10));
+            Page<StoreResponse> result =
+                    storeService.getStores(
+                            null, null, null, StoreSortType.LATEST, PageRequest.of(0, 10));
 
-            assertThat(result.getContent()).isSortedAccordingTo(
-                    Comparator.comparing(StoreResponse::createdAt).reversed());
+            assertThat(result.getContent())
+                    .isSortedAccordingTo(Comparator.comparing(StoreResponse::createdAt).reversed());
         }
 
         @Test
         @DisplayName("평점 높은 순으로 가게를 정렬한다.")
         void searchStores_sort_by_rating() {
             storeService.createStore(OWNER_ID, defaultRequest());
-            storeService.createStore(OWNER_ID, new StoreRequest(
-                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
-                    "다른 가게", "서울시 서초구", "01098765432", null, 5000));
+            storeService.createStore(
+                    OWNER_ID,
+                    new StoreRequest(
+                            savedCategory.getCategoryId(),
+                            savedRegion.getRegionId(),
+                            "다른 가게",
+                            "서울시 서초구",
+                            "01098765432",
+                            null,
+                            5000));
 
-            Page<StoreResponse> result = storeService.getStores(
-                    null, null, null, StoreSortType.RATING_HIGH, PageRequest.of(0, 10));
+            Page<StoreResponse> result =
+                    storeService.getStores(
+                            null, null, null, StoreSortType.RATING_HIGH, PageRequest.of(0, 10));
 
-            assertThat(result.getContent()).isSortedAccordingTo(
-                    Comparator.comparingDouble(StoreResponse::averageRating).reversed());
+            assertThat(result.getContent())
+                    .isSortedAccordingTo(
+                            Comparator.comparingDouble(StoreResponse::averageRating).reversed());
         }
 
         @Test
@@ -229,7 +278,8 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
 
             applicationEventPublisher.publishEvent(new UserDeletedEvent(OWNER_ID, "testuser"));
 
-            Page<StoreResponse> result = storeService.getStores(null, null, null, null, PageRequest.of(0, 10));
+            Page<StoreResponse> result =
+                    storeService.getStores(null, null, null, null, PageRequest.of(0, 10));
             assertThat(result.getContent()).anyMatch(s -> s.name().equals("테스트 가게"));
         }
     }
@@ -242,11 +292,18 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("소유자가 가게를 수정한다.")
         void updateStore_success_when_owner() {
             StoreResponse created = createDefaultStore();
-            StoreRequest updateRequest = new StoreRequest(
-                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
-                    "수정된 가게", "서울시 송파구", "01011112222", "수정됨", 20000);
+            StoreRequest updateRequest =
+                    new StoreRequest(
+                            savedCategory.getCategoryId(),
+                            savedRegion.getRegionId(),
+                            "수정된 가게",
+                            "서울시 송파구",
+                            "01011112222",
+                            "수정됨",
+                            20000);
 
-            StoreResponse updated = storeService.updateStore(created.storeId(), OWNER_ID, false, updateRequest);
+            StoreResponse updated =
+                    storeService.updateStore(created.storeId(), OWNER_ID, false, updateRequest);
 
             assertThat(updated.name()).isEqualTo("수정된 가게");
             assertThat(updated.address()).isEqualTo("서울시 송파구");
@@ -257,11 +314,18 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("MANAGER/MASTER는 다른 사람의 가게도 수정할 수 있다.")
         void updateStore_success_when_elevated() {
             StoreResponse created = createDefaultStore();
-            StoreRequest updateRequest = new StoreRequest(
-                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
-                    "관리자 수정 가게", "서울시 마포구", "01033334444", null, 15000);
+            StoreRequest updateRequest =
+                    new StoreRequest(
+                            savedCategory.getCategoryId(),
+                            savedRegion.getRegionId(),
+                            "관리자 수정 가게",
+                            "서울시 마포구",
+                            "01033334444",
+                            null,
+                            15000);
 
-            StoreResponse updated = storeService.updateStore(created.storeId(), OTHER_USER_ID, true, updateRequest);
+            StoreResponse updated =
+                    storeService.updateStore(created.storeId(), OTHER_USER_ID, true, updateRequest);
 
             assertThat(updated.name()).isEqualTo("관리자 수정 가게");
         }
@@ -270,11 +334,20 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("소유자가 아닌 사용자가 수정 시 예외가 발생한다.")
         void updateStore_fail_when_access_denied() {
             StoreResponse created = createDefaultStore();
-            StoreRequest updateRequest = new StoreRequest(
-                    savedCategory.getCategoryId(), savedRegion.getRegionId(),
-                    "수정 시도", "서울시 강서구", "01055556666", null, 10000);
+            StoreRequest updateRequest =
+                    new StoreRequest(
+                            savedCategory.getCategoryId(),
+                            savedRegion.getRegionId(),
+                            "수정 시도",
+                            "서울시 강서구",
+                            "01055556666",
+                            null,
+                            10000);
 
-            assertThatThrownBy(() -> storeService.updateStore(created.storeId(), OTHER_USER_ID, false, updateRequest))
+            assertThatThrownBy(
+                            () ->
+                                    storeService.updateStore(
+                                            created.storeId(), OTHER_USER_ID, false, updateRequest))
                     .isInstanceOf(StoreException.class)
                     .hasMessage("해당 가게에 대한 권한이 없습니다.");
         }
@@ -290,7 +363,8 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
             StoreResponse created = createDefaultStore();
             assertThat(created.isOpen()).isFalse();
 
-            StoreResponse updated = storeService.updateStoreStatus(created.storeId(), OWNER_ID, false, true);
+            StoreResponse updated =
+                    storeService.updateStoreStatus(created.storeId(), OWNER_ID, false, true);
 
             assertThat(updated.isOpen()).isTrue();
         }
@@ -300,7 +374,8 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         void updateStoreStatus_success_when_elevated() {
             StoreResponse created = createDefaultStore();
 
-            StoreResponse updated = storeService.updateStoreStatus(created.storeId(), OTHER_USER_ID, true, true);
+            StoreResponse updated =
+                    storeService.updateStoreStatus(created.storeId(), OTHER_USER_ID, true, true);
 
             assertThat(updated.isOpen()).isTrue();
         }
@@ -327,7 +402,8 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         void deleteStore_success_when_elevated() {
             StoreResponse created = createDefaultStore();
 
-            storeService.deleteStore(created.storeId(), OTHER_USER_ID, true, OTHER_USER_ID + "_manager");
+            storeService.deleteStore(
+                    created.storeId(), OTHER_USER_ID, true, OTHER_USER_ID + "_manager");
 
             assertThatThrownBy(() -> storeService.getStore(created.storeId()))
                     .isInstanceOf(StoreException.class)
@@ -339,7 +415,13 @@ class StoreServiceIntegrationTest extends AbstractIntegrationTest {
         void deleteStore_fail_when_access_denied() {
             StoreResponse created = createDefaultStore();
 
-            assertThatThrownBy(() -> storeService.deleteStore(created.storeId(), OTHER_USER_ID, false, OTHER_USER_ID + "_other"))
+            assertThatThrownBy(
+                            () ->
+                                    storeService.deleteStore(
+                                            created.storeId(),
+                                            OTHER_USER_ID,
+                                            false,
+                                            OTHER_USER_ID + "_other"))
                     .isInstanceOf(StoreException.class)
                     .hasMessage("해당 가게에 대한 권한이 없습니다.");
         }

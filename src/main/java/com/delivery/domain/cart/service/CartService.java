@@ -16,7 +16,7 @@ import com.delivery.domain.menu.service.MenuService;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.exception.BusinessException;
 import com.delivery.global.exception.GlobalErrorCode;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

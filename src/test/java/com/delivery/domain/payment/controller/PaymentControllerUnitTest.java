@@ -17,7 +17,7 @@ import com.delivery.domain.payment.exception.PaymentException;
 import com.delivery.domain.payment.service.PaymentService;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.exception.GlobalExceptionHandler;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

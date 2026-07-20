@@ -31,7 +31,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class UserControllerTest extends AbstractControllerTest {
+class UserControllerUnitTest extends AbstractControllerTest {
     @MockitoBean private UserService userService;
 
     @Test

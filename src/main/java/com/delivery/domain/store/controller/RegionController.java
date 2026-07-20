@@ -5,7 +5,7 @@ import com.delivery.domain.store.controller.swagger.RegionControllerDocs;
 import com.delivery.domain.store.dto.request.RegionRequest;
 import com.delivery.domain.store.dto.response.RegionResponse;
 import com.delivery.domain.store.service.RegionService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;

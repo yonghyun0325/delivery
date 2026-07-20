@@ -3,7 +3,7 @@ package com.delivery.domain.reviewreply.controller;
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.reviewreply.dto.request.ReviewReplyRequest;
 import com.delivery.domain.reviewreply.dto.response.ReviewReplyResponse;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

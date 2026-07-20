@@ -1,6 +1,6 @@
 package com.delivery.global.config;
 
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.util.Optional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;

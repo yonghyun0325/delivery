@@ -13,7 +13,6 @@ import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
-import com.delivery.global.cache.WithdrawnUserRepository;
 import com.delivery.global.security.jwt.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,21 +21,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceUnitTest {
     @Mock private UserRepository userRepository;
-    @Mock private PasswordEncoder passwordEncoder;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtUtil jwtUtil;
     @Mock private RefreshTokenRepository refreshTokenRepository;
-    @Mock private WithdrawnUserRepository withdrawnUserRepository;
     @Mock private BlackListRepository blackListRepository;
     @InjectMocks private AuthService authService;
 
@@ -120,18 +115,18 @@ class AuthServiceUnitTest {
             verify(authenticationManager)
                     .authenticate(any(UsernamePasswordAuthenticationToken.class));
         }
+    }
 
-        @Test
-        @DisplayName("변형된 refresh token 요청 시 INVALID_REFRESH_TOKEN 예외 반환")
-        void refresh_fail_when_corrupted_token() {
+    @Test
+    @DisplayName("변형된 refresh token 요청 시 INVALID_REFRESH_TOKEN 예외 반환")
+    void refresh_fail_when_corrupted_token() {
 
-            // given
-            String refreshToken = "asdzxcvbn";
+        // given
+        String refreshToken = "asdzxcvbn";
 
-            // when & then
-            assertThatThrownBy(() -> authService.refresh(refreshToken))
-                    .isInstanceOf(AuthException.class)
-                    .hasMessage(AuthErrorCode.INVALID_REFRESH_TOKEN.getMessage());
-        }
+        // when & then
+        assertThatThrownBy(() -> authService.refresh(refreshToken))
+                .isInstanceOf(AuthException.class)
+                .hasMessage(AuthErrorCode.INVALID_REFRESH_TOKEN.getMessage());
     }
 }

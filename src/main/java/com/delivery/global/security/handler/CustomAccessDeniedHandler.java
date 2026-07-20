@@ -1,8 +1,8 @@
-package com.delivery.global.security.config;
+package com.delivery.global.security.handler;
 
 import com.delivery.common.RestApiResponse;
-import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.global.exception.ErrorCode;
+import com.delivery.global.exception.GlobalErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,32 +11,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
-public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void commence(
+    public void handle(
             HttpServletRequest request,
             HttpServletResponse response,
-            AuthenticationException authException)
+            AccessDeniedException accessDeniedException)
             throws IOException {
-        ErrorCode errorCode = AuthErrorCode.TOKEN_NOT_FOUND;
+        ErrorCode errorCode = GlobalErrorCode.FORBIDDEN;
         HttpStatus httpStatus = errorCode.getHttpStatus();
         String message = errorCode.getMessage();
         String error = errorCode.getName();
 
         log.warn(
-                "사용자 인증 실패 - ErrorCode : {}, ErrorMessage : {}",
+                "ErrorCode : {}, ErrorMessage : {}",
                 errorCode.getName(),
                 errorCode.getMessage(),
-                authException);
+                accessDeniedException);
 
         response.setStatus(httpStatus.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

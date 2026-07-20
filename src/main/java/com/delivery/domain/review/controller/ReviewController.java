@@ -5,7 +5,7 @@ import com.delivery.domain.review.dto.request.ReviewRequest;
 import com.delivery.domain.review.dto.response.ReviewResponse;
 import com.delivery.domain.review.enums.ReviewSortType;
 import com.delivery.domain.review.service.ReviewService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;

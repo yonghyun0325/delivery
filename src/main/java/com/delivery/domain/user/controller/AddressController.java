@@ -6,7 +6,7 @@ import com.delivery.domain.user.dto.request.CreateAddressRequest;
 import com.delivery.domain.user.dto.request.UpdateAddressRequest;
 import com.delivery.domain.user.dto.response.AddressResponse;
 import com.delivery.domain.user.service.AddressService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;

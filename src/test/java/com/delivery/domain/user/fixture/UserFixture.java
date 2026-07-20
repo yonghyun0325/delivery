@@ -11,10 +11,10 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public enum UserFixture {
-    ROLE_MASTER("test123", "testtest123", "닉네임", "01012345678", Role.MASTER),
-    ROLE_MANAGER("test123", "testtest123", "닉네임", "01012345678", Role.MANAGER),
-    ROLE_OWNER("test123", "testtest123", "닉네임", "01012345678", Role.OWNER),
-    ROLE_CUSTOMER("test123", "testtest123", "닉네임", "01012345678", Role.CUSTOMER);
+    ROLE_MASTER("test123", "Testtest123!", "닉네임", "01012345678", Role.MASTER),
+    ROLE_MANAGER("test123", "Testtest123!", "닉네임", "01012345678", Role.MANAGER),
+    ROLE_OWNER("test123", "Testtest123!", "닉네임", "01012345678", Role.OWNER),
+    ROLE_CUSTOMER("test123", "Testtest123!", "닉네임", "01012345678", Role.CUSTOMER);
 
     private final String username;
     private final String password;
@@ -24,10 +24,11 @@ public enum UserFixture {
 
     // Create DTO
     public SignUpRequest createRequestDto() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
         return SignUpRequest.builder()
-                .username(username)
+                .username(suffix)
                 .password(password)
-                .nickName(nickname)
+                .nickName(suffix)
                 .phoneNumber(phoneNumber)
                 .role(role)
                 .build();

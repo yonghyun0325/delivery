@@ -11,7 +11,8 @@ import java.util.UUID;
 public record OrderCreateRequest(
         // 고객 주문 생성 요청 DTO
         @NotNull(message = "ORDER_STORE_ID_REQUIRED") UUID storeId,
-        @NotBlank(message = "ORDER_DELIVERY_ADDRESS_REQUIRED") @Size(max = 255, message = "ORDER_DELIVERY_ADDRESS_TOO_LONG")
+        @NotBlank(message = "ORDER_DELIVERY_ADDRESS_REQUIRED")
+                @Size(max = 255, message = "ORDER_DELIVERY_ADDRESS_TOO_LONG")
                 String deliveryAddress,
         @NotEmpty(message = "ORDER_ITEMS_REQUIRED") @Valid List<OrderItemCreateRequest> items
 

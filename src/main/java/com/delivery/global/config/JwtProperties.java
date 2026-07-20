@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class JwtProperties {
     public static final long ACCESS_TOKEN_VALIDITY = Duration.ofMinutes(30).toMillis();
     public static final long REFRESH_TOKEN_VALIDITY = Duration.ofDays(14).toMillis();
+    public static final long REFRESH_TOKEN_VALIDITY_SECONDS = Duration.ofDays(14).toSeconds();
     private final String accessSecret;
     private final String refreshSecret;
 

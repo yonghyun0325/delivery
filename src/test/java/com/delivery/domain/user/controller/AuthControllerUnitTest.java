@@ -1,6 +1,5 @@
 package com.delivery.domain.user.controller;
 
-import static com.delivery.global.security.jwt.JwtHeaderType.REFRESH_TOKEN;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -17,6 +16,7 @@ import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.exception.AuthErrorCode;
 import com.delivery.domain.user.exception.AuthException;
 import com.delivery.domain.user.service.AuthService;
+import jakarta.servlet.http.Cookie;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -55,9 +55,10 @@ class AuthControllerUnitTest extends AbstractControllerTest {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.data.username").value("test1234"))
-                    .andExpect(jsonPath("$.data.accessToken").value("accessToken"))
-                    .andExpect(jsonPath("$.data.refreshToken").value("refreshToken"));
+                    .andExpect(cookie().value("refreshToken", "refreshToken"))
+                    .andExpect(cookie().httpOnly("refreshToken", true))
+                    .andExpect(cookie().secure("refreshToken", false))
+                    .andExpect(jsonPath("$.data").value("accessToken"));
 
             verify(authService).signUp(any(SignUpRequest.class));
         }
@@ -117,9 +118,10 @@ class AuthControllerUnitTest extends AbstractControllerTest {
                                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.data.username").value("test1234"))
-                    .andExpect(jsonPath("$.data.accessToken").value("accessToken"))
-                    .andExpect(jsonPath("$.data.refreshToken").value("refreshToken"));
+                    .andExpect(cookie().value("refreshToken", "refreshToken"))
+                    .andExpect(cookie().httpOnly("refreshToken", true))
+                    .andExpect(cookie().secure("refreshToken", false))
+                    .andExpect(jsonPath("$.data").value("accessToken"));
 
             verify(authService).login(any(LoginRequest.class));
         }
@@ -158,19 +160,20 @@ class AuthControllerUnitTest extends AbstractControllerTest {
         @DisplayName("리프래시 토큰 발급에 성공한다.")
         void refresh_success() throws Exception {
             // given
-            String token = "refresh-token";
-            AuthResponse response = new AuthResponse("test1234", "token", "token");
+            String refreshToken = "refreshToken";
+            AuthResponse response = new AuthResponse("test1234", "token", refreshToken);
             given(authService.refresh(any())).willReturn(response);
 
             // when & then
             mockMvc.perform(
                             post("/api/v1/auth/refresh")
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .header(REFRESH_TOKEN.getHeader(), token))
+                                    .cookie(new Cookie("refreshToken", "expired-token-value")))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.username").value("test1234"))
-                    .andExpect(jsonPath("$.data.accessToken").value("token"))
-                    .andExpect(jsonPath("$.data.refreshToken").value("token"));
+                    .andExpect(cookie().value("refreshToken", refreshToken))
+                    .andExpect(cookie().httpOnly("refreshToken", true))
+                    .andExpect(cookie().secure("refreshToken", false))
+                    .andExpect(jsonPath("$.data").value("token"));
         }
 
         @Test
@@ -181,7 +184,9 @@ class AuthControllerUnitTest extends AbstractControllerTest {
                     .willThrow(new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN));
 
             // when & then
-            mockMvc.perform(post("/api/v1/auth/refresh").header(REFRESH_TOKEN.getHeader(), "token"))
+            mockMvc.perform(
+                            post("/api/v1/auth/refresh")
+                                    .cookie(new Cookie("refreshToken", "expired-token-value")))
                     .andExpect(status().isUnauthorized())
                     .andExpect(
                             jsonPath("$.message")

@@ -10,8 +10,9 @@ import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.domain.user.repository.UserSpecification;
 import com.delivery.global.cache.UserCacheRepository;
+import com.delivery.global.exception.BusinessException;
+import com.delivery.global.exception.GlobalErrorCode;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,10 +53,10 @@ public class UserAdminService {
     public PageResponse<UserAdminListResponse> findAllUserInfo(
             UserSearchRequest request, Pageable pageable) {
 
-        Specification<User> spec = createUserSpecification(request);
+        validateDateRange(request);
         pageable = validatedPageable(pageable);
 
-        Page<User> userPage = userRepository.findAll(spec, pageable);
+        Page<User> userPage = userRepository.findAll(request, pageable);
         return PageResponse.of(userPage.map(UserDtoMapper::toUserAdminListResponse));
     }
 
@@ -78,6 +78,7 @@ public class UserAdminService {
 
     /**
      * 페이징 검색 사이즈 체크 및 변환
+     *
      * @param pageable
      * @return
      */
@@ -91,23 +92,16 @@ public class UserAdminService {
                 (pageable != null) ? pageable.getSort() : Sort.unsorted());
     }
 
-    // 검색 조권 쿼리
-    private Specification<User> createUserSpecification(UserSearchRequest request) {
-        Specification<User> spec = Specification.allOf();
-
-        if (request.userStatus() != null) {
-            spec = spec.and(UserSpecification.userStatus(request.userStatus()));
+    /**
+     * 날짜 조건 쿼리
+     *
+     * @param request
+     */
+    private void validateDateRange(UserSearchRequest request) {
+        if (request.startDate() != null
+                && request.endDate() != null
+                && request.startDate().isAfter(request.endDate())) {
+            throw new BusinessException(GlobalErrorCode.INVALID_DATE_RANGE);
         }
-        if (request.username() != null && !request.username().isBlank()) {
-            spec = spec.and(UserSpecification.likeUsername(request.username()));
-        }
-        if (request.role() != null) {
-            spec = spec.and(UserSpecification.equalRole(request.role()));
-        }
-        if (request.startDate() != null || request.endDate() != null) {
-            spec = spec.and(UserSpecification.rangeDate(request.startDate(), request.endDate()));
-        }
-
-        return spec;
     }
 }

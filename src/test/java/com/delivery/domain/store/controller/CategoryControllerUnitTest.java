@@ -10,15 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.delivery.domain.store.dto.request.CategoryRequest;
 import com.delivery.domain.store.dto.response.CategoryResponse;
 import com.delivery.domain.store.service.CategoryService;
-import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.global.cache.BlackListRepository;
-import com.delivery.global.cache.RefreshTokenRepository;
-import com.delivery.global.cache.UserCacheRepository;
-import com.delivery.global.cache.WithdrawnUserRepository;
 import com.delivery.global.exception.ErrorCodeRegistry;
-import com.delivery.global.security.config.CustomUserDetails;
-import com.delivery.global.security.config.CustomUserDetailsService;
-import com.delivery.global.security.jwt.JwtUtil;
+import com.delivery.global.security.principal.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -28,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -49,14 +41,8 @@ class CategoryControllerUnitTest {
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
 
-    @MockitoBean private RefreshTokenRepository refreshTokenRepository;
-    @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private CategoryService categoryService;
     @MockitoBean private ErrorCodeRegistry errorCodeRegistry;
-    @MockitoBean private CustomUserDetailsService customUserDetailsService;
-    @MockitoBean private BlackListRepository blackListRepository;
-    @MockitoBean private UserCacheRepository userCacheRepository;
-    @MockitoBean private WithdrawnUserRepository withdrawnUserRepository;
 
     @BeforeEach
     void setUpSecurityContext() {

@@ -6,7 +6,7 @@ import com.delivery.domain.payment.dto.response.PaymentPageResponse;
 import com.delivery.domain.payment.dto.response.PaymentResponse;
 import com.delivery.domain.payment.entity.PaymentStatus;
 import com.delivery.domain.payment.service.PaymentService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

@@ -15,8 +15,8 @@ import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.exception.GlobalErrorCode;
-import com.delivery.global.security.config.CustomUserDetails;
 import com.delivery.global.security.jwt.JwtUtil;
+import com.delivery.global.security.principal.CustomUserDetails;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,10 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Slf4j
 public class AuthService {
-    private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserCacheRepository userCacheRepository;
     private final BlackListRepository blackListRepository;
+    private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
@@ -102,8 +102,7 @@ public class AuthService {
     }
 
     /**
-     * 로그아웃
-     * Refresh Token과 User 캐시 삭제 후 블랙리스트 등록
+     * 로그아웃 Refresh Token과 User 캐시 삭제 후 블랙리스트 등록
      *
      * @param request
      */
@@ -124,6 +123,7 @@ public class AuthService {
             blackListRepository.save(sessionId, accessToken);
         } catch (ExpiredJwtException e) {
             log.info("이미 만료된 토큰으로 로그아웃 시도");
+            throw new AuthException(AuthErrorCode.EXPIRED_ACCESS_TOKEN);
         } catch (JwtException e) {
             throw new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN);
         }
@@ -224,6 +224,7 @@ public class AuthService {
 
     /**
      * 리프레시 토큰이 일치하는지 확인
+     *
      * @param refreshToken
      * @param savedToken
      */

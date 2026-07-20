@@ -25,7 +25,7 @@ import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.repository.UserRepository;
 import com.delivery.global.exception.BusinessException;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -118,7 +118,8 @@ class CartServiceUnitTest {
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .thenReturn(Optional.of(menu));
             when(menuService.getOrderableMenu(menuId, storeId))
                     .thenReturn(new MenuSnapshot(menuId, "Jjamppong", 9000));
             when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
@@ -146,7 +147,8 @@ class CartServiceUnitTest {
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .thenReturn(Optional.of(menu));
             when(menuService.getOrderableMenu(menuId, storeId))
                     .thenReturn(new MenuSnapshot(menuId, "Bibimbap", 10000));
             when(cartItemRepository.findByCartAndMenuIdAndDeletedAtIsNull(cart, menuId))
@@ -173,7 +175,8 @@ class CartServiceUnitTest {
 
             when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(createUser()));
             when(cartRepository.findByUserIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(cart));
-            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)).thenReturn(Optional.of(menu));
+            when(menuRepository.findByMenuIdAndDeletedAtIsNull(menuId))
+                    .thenReturn(Optional.of(menu));
 
             assertThatThrownBy(() -> cartService.addCartItem(userDetails, menuId, 1))
                     .isInstanceOf(CartException.class)

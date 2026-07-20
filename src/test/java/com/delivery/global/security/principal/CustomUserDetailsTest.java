@@ -1,4 +1,4 @@
-package com.delivery.global.security.config;
+package com.delivery.global.security.principal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 

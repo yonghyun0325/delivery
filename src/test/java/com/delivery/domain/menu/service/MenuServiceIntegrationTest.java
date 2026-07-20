@@ -15,8 +15,6 @@ import com.delivery.domain.menu.repository.MenuRepository;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
 import java.util.UUID;
-
-import com.delivery.global.cache.WithdrawnUserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +40,6 @@ class MenuServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired private StoreRepository storeRepository;
     @Autowired private MenuRepository menuRepository;
     @Autowired private AiLogRepository aiLogRepository;
-    @Autowired private WithdrawnUserRepository withdrawnUserRepository;
 
     @MockitoBean private GeminiClient geminiClient;
 

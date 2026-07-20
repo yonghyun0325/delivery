@@ -19,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class AddressServiceUnitTest {
     @Mock private AddressRepository addressRepository;
-    @Mock private UserService userService;
     @InjectMocks private AddressService addressService;
 
     @Test

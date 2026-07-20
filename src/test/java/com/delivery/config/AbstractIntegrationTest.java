@@ -4,10 +4,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-/**
- * 추상 테스트 컨테이너 클래스
- * 상속해서 사용
- */
+/** 추상 테스트 컨테이너 클래스 상속해서 사용 */
 // @Testcontainers
 public abstract class AbstractIntegrationTest {
 

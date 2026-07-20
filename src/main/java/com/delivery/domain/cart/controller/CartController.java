@@ -5,7 +5,7 @@ import com.delivery.domain.cart.dto.request.CartItemCreateRequest;
 import com.delivery.domain.cart.dto.request.CartItemUpdateRequest;
 import com.delivery.domain.cart.dto.response.CartResponse;
 import com.delivery.domain.cart.service.CartService;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

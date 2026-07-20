@@ -24,7 +24,7 @@ import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.global.exception.BusinessException;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -532,7 +532,8 @@ class PaymentServiceUnitTest {
             CustomUserDetails userDetails = createUserDetails(99L, Set.of(Role.MANAGER));
 
             when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
-            when(orderRepository.findByIdAndDeletedAtIsNull(orderId)).thenReturn(Optional.of(order));
+            when(orderRepository.findByIdAndDeletedAtIsNull(orderId))
+                    .thenReturn(Optional.of(order));
 
             PaymentResponse response =
                     paymentService.cancelPayment(paymentId, "관리자 취소", userDetails);
@@ -564,15 +565,12 @@ class PaymentServiceUnitTest {
         @DisplayName("이미 취소된 결제는 환불할 수 없다")
         void refundPaymentByStoreRejection_fail_when_payment_already_canceled() {
             UUID orderId = UUID.randomUUID();
-            Payment payment =
-                    createPayment(UUID.randomUUID(), orderId, 1L, PaymentStatus.CANCELED);
+            Payment payment = createPayment(UUID.randomUUID(), orderId, 1L, PaymentStatus.CANCELED);
 
             when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(payment));
 
             assertThatThrownBy(
-                            () ->
-                                    paymentService.refundPaymentByStoreRejection(
-                                            orderId, "가게 거절 환불"))
+                            () -> paymentService.refundPaymentByStoreRejection(orderId, "가게 거절 환불"))
                     .isInstanceOf(PaymentException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_ALREADY_CANCELED);
@@ -582,15 +580,12 @@ class PaymentServiceUnitTest {
         @DisplayName("이미 환불된 결제는 다시 환불할 수 없다")
         void refundPaymentByStoreRejection_fail_when_payment_already_refunded() {
             UUID orderId = UUID.randomUUID();
-            Payment payment =
-                    createPayment(UUID.randomUUID(), orderId, 1L, PaymentStatus.REFUNDED);
+            Payment payment = createPayment(UUID.randomUUID(), orderId, 1L, PaymentStatus.REFUNDED);
 
             when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(payment));
 
             assertThatThrownBy(
-                            () ->
-                                    paymentService.refundPaymentByStoreRejection(
-                                            orderId, "가게 거절 환불"))
+                            () -> paymentService.refundPaymentByStoreRejection(orderId, "가게 거절 환불"))
                     .isInstanceOf(PaymentException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_ALREADY_REFUNDED);

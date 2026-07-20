@@ -11,8 +11,6 @@ import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.exception.StoreErrorCode;
 import com.delivery.domain.store.repository.StoreRepository;
 import java.util.UUID;
-
-import com.delivery.global.cache.WithdrawnUserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

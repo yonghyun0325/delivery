@@ -4,7 +4,7 @@ import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.dto.request.CreateAddressRequest;
 import com.delivery.domain.user.dto.request.UpdateAddressRequest;
 import com.delivery.domain.user.dto.response.AddressResponse;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

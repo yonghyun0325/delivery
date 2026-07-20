@@ -3,7 +3,7 @@ package com.delivery.domain.store.controller.swagger;
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.store.dto.request.CategoryRequest;
 import com.delivery.domain.store.dto.response.CategoryResponse;
-import com.delivery.global.security.config.CustomUserDetails;
+import com.delivery.global.security.principal.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
