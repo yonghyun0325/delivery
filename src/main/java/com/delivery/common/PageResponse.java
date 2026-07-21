@@ -1,4 +1,4 @@
-package com.delivery.domain.user.dto.response;
+package com.delivery.common;
 
 import java.util.List;
 import org.springframework.data.domain.Page;
