@@ -1,4 +1,4 @@
-package com.delivery.global.config;
+package com.delivery.global.cache;
 
 import java.time.Duration;
 import lombok.Getter;

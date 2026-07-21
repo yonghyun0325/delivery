@@ -1,4 +1,4 @@
-package com.delivery.global.config;
+package com.delivery.global.security.config;
 
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

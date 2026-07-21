@@ -1,6 +1,6 @@
 package com.delivery.config;
 
-import com.delivery.global.config.JwtProperties;
+import com.delivery.global.security.jwt.JwtProperties;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.exception.GlobalExceptionHandler;
 import com.delivery.global.security.jwt.JwtUtil;

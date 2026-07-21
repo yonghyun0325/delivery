@@ -1,4 +1,4 @@
-package com.delivery.global.config;
+package com.delivery.global.security.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
