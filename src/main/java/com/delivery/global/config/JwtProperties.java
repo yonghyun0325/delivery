@@ -12,9 +12,11 @@ public class JwtProperties {
     public static final long REFRESH_TOKEN_VALIDITY_SECONDS = Duration.ofDays(14).toSeconds();
     private final String accessSecret;
     private final String refreshSecret;
+    private final boolean cookieSecure;
 
-    public JwtProperties(String accessSecret, String refreshSecret) {
+    public JwtProperties(String accessSecret, String refreshSecret, boolean cookieSecure) {
         this.accessSecret = accessSecret;
         this.refreshSecret = refreshSecret;
+        this.cookieSecure = cookieSecure;
     }
 }

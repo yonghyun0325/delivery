@@ -1,14 +1,12 @@
 package com.delivery.domain.user.controller;
 
-import static com.delivery.global.config.JwtProperties.REFRESH_TOKEN_VALIDITY_SECONDS;
-
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.controller.swagger.AuthApi;
 import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.response.AuthResponse;
 import com.delivery.domain.user.service.AuthService;
-import com.delivery.global.security.jwt.JwtUtil;
+import com.delivery.global.config.JwtProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +16,15 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.delivery.global.config.JwtProperties.REFRESH_TOKEN_VALIDITY_SECONDS;
+
 /** 인증 / 인가 컨트롤러 */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 public class AuthController implements AuthApi {
     private final AuthService authService;
-    private final JwtUtil jwtUtil;
+    private final JwtProperties jwtProperties;
 
     @PostMapping
     public ResponseEntity<RestApiResponse<String>> signUp(
@@ -34,14 +34,7 @@ public class AuthController implements AuthApi {
         String accessToken = authResponseToken.accessToken();
         String refreshToken = authResponseToken.refreshToken();
 
-        var cookie =
-                ResponseCookie.from("refreshToken", refreshToken)
-                        .maxAge(REFRESH_TOKEN_VALIDITY_SECONDS)
-                        .path("/")
-                        .secure(false)
-                        .sameSite("Strict")
-                        .httpOnly(true)
-                        .build();
+        var cookie = createRefreshToken(refreshToken, REFRESH_TOKEN_VALIDITY_SECONDS);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -55,14 +48,7 @@ public class AuthController implements AuthApi {
         String accessToken = authResponseToken.accessToken();
         String refreshToken = authResponseToken.refreshToken();
 
-        var cookie =
-                ResponseCookie.from("refreshToken", refreshToken)
-                        .maxAge(REFRESH_TOKEN_VALIDITY_SECONDS)
-                        .path("/")
-                        .secure(false)
-                        .sameSite("Strict")
-                        .httpOnly(true)
-                        .build();
+        var cookie = createRefreshToken(refreshToken, REFRESH_TOKEN_VALIDITY_SECONDS);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -73,14 +59,7 @@ public class AuthController implements AuthApi {
     public ResponseEntity<RestApiResponse<Void>> logout(HttpServletRequest request) {
         authService.logout(request);
 
-        var cookie =
-                ResponseCookie.from("refreshToken", "")
-                        .maxAge(0)
-                        .path("/")
-                        .secure(false)
-                        .sameSite("Strict")
-                        .httpOnly(true)
-                        .build();
+        var cookie = createRefreshToken("", 0);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -95,17 +74,20 @@ public class AuthController implements AuthApi {
         String accessToken = authResponseToken.accessToken();
         String newRefreshToken = authResponseToken.refreshToken();
 
-        var cookie =
-                ResponseCookie.from("refreshToken", newRefreshToken)
-                        .maxAge(REFRESH_TOKEN_VALIDITY_SECONDS)
-                        .path("/")
-                        .secure(false)
-                        .sameSite("Strict")
-                        .httpOnly(true)
-                        .build();
+        var cookie = createRefreshToken(newRefreshToken, REFRESH_TOKEN_VALIDITY_SECONDS);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(RestApiResponse.success(HttpStatus.OK, "Refresh Token 재발급 성공", accessToken));
+    }
+
+    private ResponseCookie createRefreshToken(String refreshToken, long maxAge) {
+        return ResponseCookie.from("refreshToken", refreshToken)
+                .maxAge(maxAge)
+                .path("/")
+                .secure(jwtProperties.isCookieSecure())
+                .sameSite("Strict")
+                .httpOnly(true)
+                .build();
     }
 }

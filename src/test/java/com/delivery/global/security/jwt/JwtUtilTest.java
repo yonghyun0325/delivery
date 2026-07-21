@@ -38,7 +38,8 @@ class JwtUtilTest {
         JwtProperties jwtConfig =
                 new JwtProperties(
                         "PpxDQ9Sl+fPNcE7xfw1nDT3+AwVSiPsY6qHs0IiU864=",
-                        "rEvezUuhxfKbs6PZzg13mv9ooenenx8ComFf99A69tw");
+                        "rEvezUuhxfKbs6PZzg13mv9ooenenx8ComFf99A69tw",
+                        false);
 
         jwtUtil = new JwtUtil(jwtConfig);
     }
