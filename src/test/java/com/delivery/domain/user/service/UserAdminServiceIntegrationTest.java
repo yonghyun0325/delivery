@@ -7,7 +7,7 @@ import com.delivery.config.AbstractIntegrationTest;
 import com.delivery.domain.user.dto.UserDtoMapper;
 import com.delivery.domain.user.dto.request.UpdateUserRoleRequest;
 import com.delivery.domain.user.dto.request.UserSearchRequest;
-import com.delivery.domain.user.dto.response.PageResponse;
+import com.delivery.common.PageResponse;
 import com.delivery.domain.user.dto.response.UserAdminListResponse;
 import com.delivery.domain.user.dto.response.UserAdminResponse;
 import com.delivery.domain.user.entity.Role;
