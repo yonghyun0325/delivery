@@ -1,6 +1,7 @@
 package com.delivery.domain.store.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -158,21 +159,21 @@ class StoreControllerUnitTest {
         }
     }
 
-    //    @Nested
-    //    @DisplayName("가게 삭제 테스트")
-    //    class DeleteStore {
-    //        @Test
-    //        @DisplayName("가게 삭제 성공")
-    //        void deleteStore_success() throws Exception {
-    //            // given
-    //            UUID storeId = UUID.randomUUID();
-    //
-    //            // when & then
-    //            mockMvc.perform(delete("/api/v1/stores/{storeId}", storeId))
-    //                    .andExpect(status().isOk())
-    //                    .andExpect(jsonPath("$.message").value("가게 삭제 성공"));
-    //
-    //            verify(storeService).deleteStore(eq(storeId), any(), anyBoolean(), any());
-    //        }
-    //    }
+    @Nested
+    @DisplayName("가게 삭제 테스트")
+    class DeleteStore {
+        @Test
+        @DisplayName("가게 삭제 성공")
+        void deleteStore_success() throws Exception {
+            // given
+            UUID storeId = UUID.randomUUID();
+
+            // when & then
+            mockMvc.perform(delete("/api/v1/stores/{storeId}", storeId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("가게 삭제 성공"));
+
+            verify(storeService).deleteStore(eq(storeId), any(), anyBoolean(), any());
+        }
+    }
 }
