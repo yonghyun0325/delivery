@@ -1,5 +1,7 @@
 package com.delivery.domain.user.controller;
 
+import static com.delivery.global.config.JwtProperties.REFRESH_TOKEN_VALIDITY_SECONDS;
+
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.controller.swagger.AuthApi;
 import com.delivery.domain.user.dto.request.LoginRequest;
@@ -15,8 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import static com.delivery.global.config.JwtProperties.REFRESH_TOKEN_VALIDITY_SECONDS;
 
 /** 인증 / 인가 컨트롤러 */
 @RestController

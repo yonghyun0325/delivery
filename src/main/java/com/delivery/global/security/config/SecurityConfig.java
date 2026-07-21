@@ -124,8 +124,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint(
-            JsonMapper jsonMapper) {
+    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint(JsonMapper jsonMapper) {
         return new CustomAuthenticationEntryPoint(jsonMapper);
     }
 
