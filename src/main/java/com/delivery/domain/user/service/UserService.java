@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final UserCacheRepository userCacheRepository;
     private final WithdrawnUserRepository withdrawnUserRepository;
@@ -93,7 +92,7 @@ public class UserService {
         deletedUser.delete(deletedUser.getUsername());
 
         userCacheRepository.delete(userUuid);
-        withdrawnUserRepository.save(userUuid, true);
+        withdrawnUserRepository.save(userUuid);
 
         applicationEventPublisher.publishEvent(
                 new UserDeletedEvent(deletedUser.getId(), deletedUser.getUsername()));
