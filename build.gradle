@@ -24,7 +24,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    // 스프링부트 4.x 버전에 맞도록 버전 업
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-restclient'
 
@@ -34,15 +33,18 @@ dependencies {
     // UUID v7, 시간 정렬 가능으로 인덱스 성능 향상
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
 
-    // 카페인 캐시
+    // Caffeine
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     runtimeOnly 'org.postgresql:postgresql'
 
-    // 스프링 4에선 직접 넣어야함
     implementation 'org.apache.httpcomponents.client5:httpclient5'
 
+    // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
@@ -50,15 +52,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    // 스프링 4에서는 기본적으로 지원 안함
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-
-    testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 
-    // 테스트 컨테이너 스프링부트 4.x 버전에 맞도록 버전 업
+    // testcontainers
     testImplementation 'org.testcontainers:testcontainers:1.21.4'
     testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
     testImplementation 'org.testcontainers:postgresql:1.21.4'
@@ -67,11 +67,11 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // Swagger 스프링부트 4.x 버전에 맞도록 버전 업
+    // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.3'
 
-    //QueryDSL 스프링부트 4.x 버전에 맞도록 버전 업
+    //QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
