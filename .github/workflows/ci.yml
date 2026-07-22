@@ -52,8 +52,6 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
       GEMINI_BASE_URL: ${{ secrets.GEMINI_BASE_URL }}
-      REDIS_HOST: localhost
-      REDIS_PORT: 6379
 
     steps:
       - name: Checkout
