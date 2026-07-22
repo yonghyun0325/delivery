@@ -3,31 +3,37 @@ package com.delivery.global.cache;
 import com.delivery.common.base.BaseCacheRepository;
 
 import java.util.UUID;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 /** 탈퇴 유저 캐시 */
 @Repository
-public class WithdrawnUserRepository implements BaseCacheRepository<UUID, Boolean> {
-    private final Cache cache;
+@RequiredArgsConstructor
+public class WithdrawnUserRepository {
+    private final StringRedisTemplate redisTemplate;
+    private final CacheType cacheType = CacheType.WITHDRAWN_USER;
 
-    public WithdrawnUserRepository(CacheManager cacheManager) {
-        this.cache = cacheManager.getCache(CacheType.WITHDRAWN_USER.name());
+    public void save(UUID key) {
+        redisTemplate.opsForValue().set(
+                generateKey(key),
+                "true",
+                cacheType.getTtl()
+        );
     }
 
-    @Override
-    public void save(UUID key, Boolean value) {
-        cache.put(key, value);
+    public Boolean exists(UUID key) {
+        return redisTemplate.hasKey(generateKey(key));
     }
 
-    @Override
-    public Boolean findByKey(UUID key) {
-        return cache.get(key, Boolean.class);
-    }
-
-    @Override
     public void delete(UUID key) {
-        cache.evict(key);
+        redisTemplate.delete(generateKey(key));
+    }
+
+    private String generateKey(UUID key) {
+        return cacheType.getPrefix() + key.toString();
     }
 }
