@@ -157,13 +157,13 @@ public class JwtUtil implements Serializable {
 
     private Key createAccessSigningKey() {
         return new SecretKeySpec(
-                Base64.getDecoder().decode(jwtProperties.getAccessSecret()),
+                Base64.getDecoder().decode(jwtProperties.accessSecret()),
                 SignatureAlgorithm.HS256.getJcaName());
     }
 
     private Key createRefreshSigningKey() {
         return new SecretKeySpec(
-                Base64.getDecoder().decode(jwtProperties.getRefreshSecret()),
+                Base64.getDecoder().decode(jwtProperties.refreshSecret()),
                 SignatureAlgorithm.HS256.getJcaName());
     }
 }

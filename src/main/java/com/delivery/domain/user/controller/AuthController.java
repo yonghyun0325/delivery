@@ -85,7 +85,7 @@ public class AuthController implements AuthApi {
         return ResponseCookie.from("refreshToken", refreshToken)
                 .maxAge(maxAge)
                 .path("/")
-                .secure(jwtProperties.isCookieSecure())
+                .secure(jwtProperties.cookieSecure())
                 .sameSite("Strict")
                 .httpOnly(true)
                 .build();
