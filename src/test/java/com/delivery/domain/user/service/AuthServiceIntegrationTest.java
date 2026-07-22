@@ -18,6 +18,7 @@ import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.fixture.UserFixture;
 import com.delivery.domain.user.repository.UserRepository;
+import com.delivery.global.cache.BlackListRepository;
 import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.security.jwt.JwtUtil;
 import com.delivery.global.security.principal.CustomUserDetails;
@@ -28,17 +29,21 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Transactional
 @SpringBootTest
 @ActiveProfiles("test")
@@ -46,12 +51,13 @@ class AuthServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired private AuthService authService;
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private StringRedisTemplate redisTemplate;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
     @Autowired private JwtUtil jwtUtil;
 
     @AfterEach
     void tearDown() {
-        refreshTokenRepository.deleteAll();
+        redisTemplate.getConnectionFactory().getConnection().serverCommands().flushAll();
     }
 
     @Test

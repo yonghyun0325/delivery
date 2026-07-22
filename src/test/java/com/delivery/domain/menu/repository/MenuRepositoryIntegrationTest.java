@@ -1,19 +1,13 @@
 package com.delivery.domain.menu.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import com.delivery.common.util.CryptoConverter;
 import com.delivery.common.util.SsnEncryptor;
-import com.delivery.config.AbstractIntegrationTest;
+import com.delivery.config.AbstractJpaTest;
 import com.delivery.domain.menu.entity.MenuEntity;
 import com.delivery.global.security.jwt.CustomAuditorAware;
 import com.delivery.global.security.config.EncryptConfig;
 import com.delivery.global.security.jwt.JpaAuditingConfig;
 import com.delivery.global.config.QueryDslConfig;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +19,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.AuditorAware;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 // @DataJpaTest는 User/Address 엔티티가 쓰는 CryptoConverter(전화번호/주소 암호화)도
 // 같은 영속성 유닛 메타모델에 포함시키려 하는데, 이 컨버터가 필요로 하는
@@ -40,7 +41,7 @@ import org.springframework.data.domain.AuditorAware;
     QueryDslConfig.class
 })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class MenuRepositoryIntegrationTest extends AbstractIntegrationTest {
+class MenuRepositoryIntegrationTest extends AbstractJpaTest {
 
     // @Import(CustomAuditorAware.class)만으로는 이 테스트 슬라이스에서
     // "customAuditorAware"라는 빈 이름으로 등록되지 않아 @EnableJpaAuditing이 못 찾음 -
