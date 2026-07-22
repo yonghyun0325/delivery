@@ -14,6 +14,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReviewReply extends BaseEntity {
 
+    // 답글 상태값을 상수로 관리하여 오타와 중복을 방지
+    private static final String STATUS_ACTIVE = "ACTIVE";
+    private static final String STATUS_DELETED = "DELETED";
+
     // 사장님 답글 ID
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -42,7 +46,7 @@ public class ReviewReply extends BaseEntity {
         this.review = review;
         this.content = content;
         this.ownerId = ownerId;
-        this.status = "ACTIVE";
+        this.status = STATUS_ACTIVE;
     }
 
     // 답글 수정
@@ -52,7 +56,7 @@ public class ReviewReply extends BaseEntity {
 
     // 답글 삭제 처리
     public void delete(String deletedBy) {
-        this.status = "DELETED";
+        this.status = STATUS_DELETED;
         super.delete(deletedBy);
     }
 }
