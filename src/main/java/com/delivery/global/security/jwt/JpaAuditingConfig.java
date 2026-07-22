@@ -7,11 +7,4 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Configuration
 @EnableConfigurationProperties(JwtProperties.class)
 @EnableJpaAuditing(auditorAwareRef = "customAuditorAware")
-public class JpaAuditingConfig {
-
-    /*@Bean
-    public AuditorAware<String> auditorProvider() {
-        // TODO: Spring Security/JWT 적용 후 로그인 사용자 ID 또는 username으로 교체
-        return () -> Optional.of("TEMP_USER");
-    }*/
-}
+public class JpaAuditingConfig {}
