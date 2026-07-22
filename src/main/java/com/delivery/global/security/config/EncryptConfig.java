@@ -14,7 +14,7 @@ public class EncryptConfig {
     private final EncryptProperties encryptProperties;
 
     @Bean
-    public AesBytesEncryptor aesBytesEncryptor() throws Exception {
-        return new AesBytesEncryptor(encryptProperties.getKey(), encryptProperties.getSalt());
+    public AesBytesEncryptor aesBytesEncryptor() {
+        return new AesBytesEncryptor(encryptProperties.key(), encryptProperties.salt());
     }
 }
