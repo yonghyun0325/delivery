@@ -32,6 +32,16 @@ jobs:
           --health-timeout=5s
           --health-retries=10
 
+      redis:
+        image: redis:8.4
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10    
+
     env:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -42,6 +52,8 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
       GEMINI_BASE_URL: ${{ secrets.GEMINI_BASE_URL }}
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
 
     steps:
       - name: Checkout
