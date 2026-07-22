@@ -14,17 +14,21 @@ import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.exception.StoreErrorCode;
 import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.StoreRepository;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ReviewReplyService {
+
+    // 답글 내용의 최대 허용 길이
+    private static final int MAX_REPLY_CONTENT_LENGTH = 1000;
 
     private final ReviewRepository reviewRepository;
     private final ReviewReplyRepository reviewReplyRepository;
@@ -69,6 +73,9 @@ public class ReviewReplyService {
         // 삭제되지 않은 답글 조회
         ReviewReply reply = findReplyByReviewId(reviewId);
 
+        // 답글이 연결된 리뷰가 삭제됐다면 답글도 외부에 노출하지 않음
+        validateActiveReview(reply.getReview());
+
         return ReviewReplyResponse.toDto(reply);
     }
 
@@ -87,6 +94,9 @@ public class ReviewReplyService {
 
         // 요청 리뷰 ID와 실제 답글의 리뷰 ID 일치 여부 검증
         validateReplyBelongsToReview(reply, reviewId);
+
+        // 삭제된 리뷰에 연결된 답글은 수정할 수 없음
+        validateActiveReview(reply.getReview());
 
         // 답글 작성자 본인인지 검증
         validateReplyOwner(reply, ownerId);
@@ -110,6 +120,9 @@ public class ReviewReplyService {
 
         // 요청 리뷰 ID와 실제 답글의 리뷰 ID 일치 여부 검증
         validateReplyBelongsToReview(reply, reviewId);
+
+        // 삭제된 리뷰에 연결된 답글은 활성 답글로 취급하지 않음
+        validateActiveReview(reply.getReview());
 
         // 답글 작성자 본인인지 검증
         validateReplyOwner(reply, ownerId);
@@ -174,14 +187,19 @@ public class ReviewReplyService {
                         });
     }
 
-    // 해당 리뷰에 이미 답글이 등록되어 있는지 검증
+    // 해당 리뷰에 삭제 여부와 관계없이 답글이 등록되어 있는지 검증
     private void validateDuplicateReply(UUID reviewId) {
 
-        if (reviewReplyRepository.existsByReviewIdAndDeletedAtIsNull(reviewId)) {
+        /*
+         * ReviewReply의 review_id에는 UNIQUE 제약이 적용되어 있습니다.
+         * 따라서 소프트 삭제된 답글도 중복 검사에 포함해야 합니다.
+         */
+        if (reviewReplyRepository.existsByReviewId(reviewId)) {
 
             log.warn("중복 리뷰 답글 등록 시도 - reviewId={}", reviewId);
 
-            throw new ReviewReplyException(ReviewReplyErrorCode.REVIEW_REPLY_ALREADY_EXISTS);
+            throw new ReviewReplyException(
+                    ReviewReplyErrorCode.REVIEW_REPLY_ALREADY_EXISTS);
         }
     }
 
@@ -234,14 +252,41 @@ public class ReviewReplyService {
         }
     }
 
-    // 답글 내용이 비어 있는지 검증
+    // 답글 요청 데이터 검증
     private void validateReplyRequest(ReviewReplyRequest request) {
 
+        // null, 빈 문자열, 공백만 있는 답글은 허용하지 않음
         if (request.content() == null || request.content().isBlank()) {
 
             log.warn("리뷰 답글 요청 검증 실패 - 답글 내용이 비어 있음");
 
-            throw new ReviewReplyException(ReviewReplyErrorCode.EMPTY_REPLY_CONTENT);
+            throw new ReviewReplyException(
+                    ReviewReplyErrorCode.EMPTY_REPLY_CONTENT);
+        }
+
+        // API 검증을 우회해 Service가 직접 호출되어도 최대 길이를 보장
+        if (request.content().length() > MAX_REPLY_CONTENT_LENGTH) {
+
+            log.warn(
+                    "리뷰 답글 요청 검증 실패 - 답글 내용 길이 초과, length={}",
+                    request.content().length());
+
+            throw new ReviewReplyException(
+                    ReviewReplyErrorCode.REVIEW_REPLY_CONTENT_TOO_LONG);
+        }
+    }
+
+    // 소프트 삭제된 리뷰에 연결된 답글의 조회·수정·삭제 방지
+    private void validateActiveReview(Review review) {
+
+        if (review.isDeleted()) {
+
+            log.warn(
+                    "리뷰 답글 처리 실패 - 삭제된 리뷰, reviewId={}",
+                    review.getId());
+
+            throw new ReviewException(
+                    ReviewErrorCode.REVIEW_NOT_FOUND);
         }
     }
 }
