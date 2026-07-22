@@ -12,8 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public abstract class AbstractIntegrationTest {
 
-    @Autowired
-    protected StringRedisTemplate stringRedisTemplate;
+    @Autowired protected StringRedisTemplate stringRedisTemplate;
 
     @AfterEach
     void clearRedis() {

@@ -1,5 +1,7 @@
 package com.delivery.domain.user.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.delivery.config.AbstractJpaTest;
 import com.delivery.config.CustomDataJpaTest;
 import com.delivery.domain.user.entity.Role;
@@ -10,8 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @CustomDataJpaTest
 class UserRepositoryTest extends AbstractJpaTest {

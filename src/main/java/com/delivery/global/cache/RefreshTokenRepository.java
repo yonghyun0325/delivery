@@ -1,12 +1,8 @@
 package com.delivery.global.cache;
 
 import com.delivery.common.base.BaseCacheRepository;
-
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -19,11 +15,7 @@ public class RefreshTokenRepository implements BaseCacheRepository<UUID, String>
 
     @Override
     public void save(UUID key, String value) {
-        redisTemplate.opsForValue().set(
-                generateKey(key),
-                value,
-                cacheType.getTtl()
-        );
+        redisTemplate.opsForValue().set(generateKey(key), value, cacheType.getTtl());
     }
 
     @Override

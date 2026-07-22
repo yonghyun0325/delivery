@@ -1,9 +1,9 @@
 package com.delivery.global.security.jwt;
 
-import static com.delivery.global.security.jwt.JwtProperties.ACCESS_TOKEN_VALIDITY;
-import static com.delivery.global.security.jwt.JwtProperties.REFRESH_TOKEN_VALIDITY;
 import static com.delivery.global.security.jwt.JwtHeaderType.ACCESS_TOKEN;
 import static com.delivery.global.security.jwt.JwtHeaderType.REFRESH_TOKEN;
+import static com.delivery.global.security.jwt.JwtProperties.ACCESS_TOKEN_VALIDITY;
+import static com.delivery.global.security.jwt.JwtProperties.REFRESH_TOKEN_VALIDITY;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

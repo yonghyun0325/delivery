@@ -1,10 +1,10 @@
 package com.delivery.domain.user.controller;
 
+import com.delivery.common.PageResponse;
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.controller.swagger.UserAdminApi;
 import com.delivery.domain.user.dto.request.UpdateUserRoleRequest;
 import com.delivery.domain.user.dto.request.UserSearchRequest;
-import com.delivery.common.PageResponse;
 import com.delivery.domain.user.dto.response.UserAdminListResponse;
 import com.delivery.domain.user.dto.response.UserAdminResponse;
 import com.delivery.domain.user.service.UserAdminService;

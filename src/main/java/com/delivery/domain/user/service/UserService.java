@@ -10,7 +10,6 @@ import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.cache.WithdrawnUserRepository;
 import jakarta.validation.Valid;
