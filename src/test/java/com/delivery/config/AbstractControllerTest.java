@@ -1,8 +1,8 @@
 package com.delivery.config;
 
-import com.delivery.global.security.jwt.JwtProperties;
 import com.delivery.global.exception.ErrorCodeRegistry;
 import com.delivery.global.exception.GlobalExceptionHandler;
+import com.delivery.global.security.jwt.JwtProperties;
 import com.delivery.global.security.jwt.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

@@ -1,33 +1,34 @@
 package com.delivery.global.cache;
 
 import com.delivery.common.base.BaseCacheRepository;
-
 import java.util.UUID;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
-/** 액세스 토큰 블랙리스트 Key : SessionId Value : 액세스 토큰 */
+/** 블랙리스트 Key : SessionId, Value : 액세스 토큰 */
 @Repository
+@RequiredArgsConstructor
 public class BlackListRepository implements BaseCacheRepository<UUID, String> {
-    private final Cache cache;
-
-    public BlackListRepository(CacheManager cacheManager) {
-        this.cache = cacheManager.getCache(CacheType.BLACK_LIST.name());
-    }
+    private final StringRedisTemplate redisTemplate;
+    private final CacheType cacheType = CacheType.BLACK_LIST;
 
     @Override
     public void save(UUID key, String value) {
-        cache.put(key, value);
+        redisTemplate.opsForValue().set(generateKey(key), value, cacheType.getTtl());
     }
 
     @Override
     public String findByKey(UUID key) {
-        return cache.get(key, String.class);
+        return redisTemplate.opsForValue().get(generateKey(key));
     }
 
     @Override
     public void delete(UUID key) {
-        cache.evict(key);
+        redisTemplate.delete(generateKey(key));
+    }
+
+    private String generateKey(UUID key) {
+        return cacheType.getPrefix() + key.toString();
     }
 }

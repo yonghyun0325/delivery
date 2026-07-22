@@ -8,10 +8,11 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum CacheType {
-    REFRESH_TOKEN(Duration.ofDays(14), 10000),
-    USER_DETAIL(Duration.ofMinutes(30), 10000),
-    BLACK_LIST(Duration.ofDays(14), 10000),
-    WITHDRAWN_USER(Duration.ofMinutes(30), 1000);
+    REFRESH_TOKEN("auth:refresh:", Duration.ofDays(14), 10000),
+    USER_DETAIL("auth:userDetail:", Duration.ofMinutes(30), 10000),
+    BLACK_LIST("auth:blacklist:", Duration.ofDays(14), 10000),
+    WITHDRAWN_USER("auth:withdrawnUser:", Duration.ofMinutes(30), 1000);
+    private final String prefix;
     private final Duration ttl;
     private final long maximumSize;
 }
