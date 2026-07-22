@@ -1,4 +1,4 @@
-package com.delivery.global.config;
+package com.delivery.global.security.jwt;
 
 import java.time.Duration;
 import lombok.Getter;

@@ -1,6 +1,6 @@
 package com.delivery.domain.user.controller;
 
-import static com.delivery.global.config.JwtProperties.REFRESH_TOKEN_VALIDITY_SECONDS;
+import static com.delivery.global.security.jwt.JwtProperties.REFRESH_TOKEN_VALIDITY_SECONDS;
 
 import com.delivery.common.RestApiResponse;
 import com.delivery.domain.user.controller.swagger.AuthApi;
@@ -8,7 +8,7 @@ import com.delivery.domain.user.dto.request.LoginRequest;
 import com.delivery.domain.user.dto.request.SignUpRequest;
 import com.delivery.domain.user.dto.response.AuthResponse;
 import com.delivery.domain.user.service.AuthService;
-import com.delivery.global.config.JwtProperties;
+import com.delivery.global.security.jwt.JwtProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
