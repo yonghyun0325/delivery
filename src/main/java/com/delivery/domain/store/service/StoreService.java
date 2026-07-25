@@ -13,14 +13,17 @@ import com.delivery.domain.store.repository.CategoryRepository;
 import com.delivery.domain.store.repository.RegionRepository;
 import com.delivery.domain.store.repository.StoreRepository;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -31,6 +34,9 @@ public class StoreService {
     private final RegionRepository regionRepository;
     private final ReviewRepository reviewRepository;
     private final MenuService menuService;
+
+    private static final Set<Integer> ALLOWED_PAGE_SIZES = Set.of(10, 30, 50);
+    private static final int DEFAULT_PAGE_SIZE = 10;
 
     @Transactional
     public StoreResponse createStore(Long userId, StoreRequest request) {
@@ -59,23 +65,19 @@ public class StoreService {
                         .averageRating(0.0)
                         .build();
 
-        return StoreResponse.from(storeRepository.save(store));
+        StoreResponse response = StoreResponse.from(storeRepository.save(store));
+        log.info("가게 등록 완료 - storeId={}, userId={}", response.storeId(), userId);
+        return response;
     }
 
-    public Page<StoreResponse> getStores(
-            UUID categoryId,
-            UUID regionId,
-            String name,
-            StoreSortType sortType,
-            Pageable pageable) {
-        int size = pageable.getPageSize();
-        if (size != 10 && size != 30 && size != 50) {
-            size = 10;
-        }
-        Pageable validatedPageable = PageRequest.of(pageable.getPageNumber(), size);
-        return storeRepository
-                .searchStores(categoryId, regionId, name, sortType, validatedPageable)
+    public Page<StoreResponse> getStores(UUID categoryId, UUID regionId, String name, StoreSortType sortType, Pageable pageable) {
+        Pageable validatedPageable = PageRequest.of(pageable.getPageNumber(), resolvePageSize(pageable.getPageSize()));
+        return storeRepository.searchStores(categoryId, regionId, name, sortType, validatedPageable)
                 .map(StoreResponse::from);
+    }
+
+    private int resolvePageSize(int requested) {
+        return ALLOWED_PAGE_SIZES.contains(requested) ? requested : DEFAULT_PAGE_SIZE;
     }
 
     public StoreResponse getStore(UUID storeId) {
@@ -88,7 +90,7 @@ public class StoreService {
 
     // 가게가 삭제되지 않고 존재하는지 여부 - AI 리뷰 요약 등 다른 도메인이 대상 가게 필터링에 사용
     public boolean existsActiveStore(UUID storeId) {
-        return storeRepository.findByStoreIdAndDeletedAtIsNull(storeId).isPresent();
+        return storeRepository.existsByStoreIdAndDeletedAtIsNull(storeId);
     }
 
     @Transactional
@@ -120,6 +122,7 @@ public class StoreService {
         List<Review> reviews = reviewRepository.findAllByStoreIdAndDeletedAtIsNull(storeId);
         reviews.forEach(review -> review.delete(deletedBy));
         store.delete(deletedBy);
+        log.info("가게 삭제 완료 - storeId={}, deletedBy={}", storeId, deletedBy);
     }
 
     @Transactional
