@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.delivery.domain.store.dto.request.RegionRequest;
+import com.delivery.domain.store.entity.Region;
 import com.delivery.domain.store.exception.StoreException;
 import com.delivery.domain.store.repository.RegionRepository;
 import java.util.Optional;
@@ -60,6 +61,23 @@ class RegionServiceUnitTest {
             assertThatThrownBy(() -> regionService.updateRegion(regionId, request))
                     .isInstanceOf(StoreException.class)
                     .hasMessage("지역을 찾을 수 없습니다.");
+        }
+
+        @Test
+        @DisplayName("중복된 이름으로 수정 시 예외가 발생해야 한다.")
+        void updateRegion_fail_when_duplicate_name() {
+            UUID regionId = UUID.randomUUID();
+            RegionRequest request = createRegionRequest();
+            Region region = Region.builder().name("서초구").latitude(37.4).longitude(127.0).build();
+
+            when(regionRepository.findByRegionIdAndDeletedAtIsNull(regionId))
+                    .thenReturn(Optional.of(region));
+            when(regionRepository.existsByNameAndDeletedAtIsNullAndRegionIdNot("강남구", regionId))
+                    .thenReturn(true);
+
+            assertThatThrownBy(() -> regionService.updateRegion(regionId, request))
+                    .isInstanceOf(StoreException.class)
+                    .hasMessage("이미 등록된 지역입니다.");
         }
     }
 
