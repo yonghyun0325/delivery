@@ -12,6 +12,8 @@ public interface StoreRepository extends JpaRepository<Store, UUID>, StoreReposi
     boolean existsByUserIdAndNameAndRegionIdAndDeletedAtIsNull(
             Long userId, String name, UUID regionId);
 
+    boolean existsByStoreIdAndDeletedAtIsNull(UUID storeId);
+
     boolean existsByCategoryIdAndDeletedAtIsNull(UUID categoryId);
 
     boolean existsByRegionIdAndDeletedAtIsNull(UUID regionId);
