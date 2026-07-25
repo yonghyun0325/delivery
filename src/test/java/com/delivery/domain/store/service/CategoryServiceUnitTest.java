@@ -68,7 +68,8 @@ class CategoryServiceUnitTest {
 
             when(categoryRepository.findByCategoryIdAndDeletedAtIsNull(categoryId))
                     .thenReturn(Optional.of(category));
-            when(categoryRepository.existsByNameAndDeletedAtIsNull("중식")).thenReturn(true);
+            when(categoryRepository.existsByNameAndDeletedAtIsNullAndCategoryIdNot("중식", categoryId)).thenReturn(true);
+
 
             assertThatThrownBy(() -> categoryService.updateCategory(categoryId, request))
                     .isInstanceOf(StoreException.class)
