@@ -33,7 +33,7 @@ public class OrderSpecification {
     // 예: status=REQUESTED인 경우에만 where status = 'REQUESTED' 조건 추가
     public static Specification<Order> statusEquals(OrderStatus status) {
         if (status == null) {
-            return null;
+            return Specification.unrestricted();
         }
 
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), status);
@@ -44,7 +44,7 @@ public class OrderSpecification {
     // SQL 관점: where created_at >= ?
     public static Specification<Order> createdAtGoe(LocalDateTime startDateTime) {
         if (startDateTime == null) {
-            return null;
+            return Specification.unrestricted();
         }
 
         return (root, query, criteriaBuilder) ->
@@ -56,7 +56,7 @@ public class OrderSpecification {
     // SQL 관점: where created_at <= ?
     public static Specification<Order> createdAtLoe(LocalDateTime endDateTime) {
         if (endDateTime == null) {
-            return null;
+            return Specification.unrestricted();
         }
 
         return (root, query, criteriaBuilder) ->
