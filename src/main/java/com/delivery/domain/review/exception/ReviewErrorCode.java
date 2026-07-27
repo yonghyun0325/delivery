@@ -14,6 +14,7 @@ public enum ReviewErrorCode implements ErrorCode {
     RATING_REQUIRED(HttpStatus.BAD_REQUEST, "평점은 필수입니다."),
     INVALID_RATING(HttpStatus.BAD_REQUEST, "평점은 1점 이상 5점 이하여야 합니다."),
     EMPTY_CONTENT(HttpStatus.BAD_REQUEST, "리뷰 내용은 필수입니다."),
+    REVIEW_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "리뷰 내용은 1000자 이하여야 합니다."),
     REVIEW_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 리뷰입니다."),
     ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "주문이 완료된 후에만 리뷰를 작성할 수 있습니다."),
     REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 리뷰를 작성한 주문입니다."),

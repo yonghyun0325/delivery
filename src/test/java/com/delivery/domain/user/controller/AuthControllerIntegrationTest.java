@@ -21,6 +21,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -39,11 +40,13 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired private UserRepository userRepository;
 
+    @Autowired private StringRedisTemplate redisTemplate;
+
     @Autowired private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired private PasswordEncoder passwordEncoder;
 
-    @Autowired JwtUtil jwtUtil;
+    @Autowired private JwtUtil jwtUtil;
 
     private String username;
     private UUID sessionId;
@@ -66,11 +69,6 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTest {
                 jwtUtil.generateRefreshToken(userDetails, dummySavedUser.getUserUuid(), sessionId);
 
         refreshTokenRepository.save(sessionId, refreshToken);
-    }
-
-    @AfterEach
-    void tearDown() {
-        refreshTokenRepository.deleteAll();
     }
 
     @Test

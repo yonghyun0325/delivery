@@ -39,7 +39,7 @@ public class RegionService {
     public List<RegionResponse> getRegions() {
         return regionRepository.findAllByDeletedAtIsNull().stream()
                 .map(RegionResponse::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
@@ -48,6 +48,10 @@ public class RegionService {
                 regionRepository
                         .findByRegionIdAndDeletedAtIsNull(regionId)
                         .orElseThrow(() -> new StoreException(StoreErrorCode.REGION_NOT_FOUND));
+
+        if (regionRepository.existsByNameAndDeletedAtIsNullAndRegionIdNot(request.name(), regionId)) {
+            throw new StoreException(StoreErrorCode.DUPLICATE_REGION);
+        }
 
         region.update(request.name(), request.latitude(), request.longitude());
         return RegionResponse.from(region);

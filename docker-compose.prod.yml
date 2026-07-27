@@ -22,6 +22,20 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:8.4
+    container_name: delivery-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - delivery-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     container_name: delivery-app
@@ -29,6 +43,8 @@ services:
 
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
     env_file:
@@ -38,6 +54,8 @@ services:
       # 컨테이너 네트워크 안에서는 postgres 서비스명으로 접속
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/delivery
       # application-prod.properties(ddl-auto=validate 등 운영 전용 오버라이드) 활성화
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
       SPRING_PROFILES_ACTIVE: prod
 
     ports:
@@ -45,3 +63,4 @@ services:
 
 volumes:
   delivery-postgres-data:
+  delivery-redis-data:

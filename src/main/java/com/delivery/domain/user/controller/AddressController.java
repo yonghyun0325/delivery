@@ -61,7 +61,6 @@ public class AddressController implements AddressApi {
                         addressService.findAddress(customUserDetails.getId(), addressId)));
     }
 
-    // TODO : 배송지 수정 시 Body를 반환하도록 변경 API 문서 수정해야함.
     @Override
     @PatchMapping("/{addressId}")
     public ResponseEntity<RestApiResponse<AddressResponse>> updateAddress(

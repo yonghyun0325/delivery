@@ -1,12 +1,10 @@
 package com.delivery.domain.review.dto.request;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import java.util.UUID;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -21,5 +19,6 @@ public class ReviewRequest {
     private Integer rating;
 
     @NotBlank(message = "EMPTY_CONTENT")
+    @Size(max = 1000, message = "REVIEW_CONTENT_TOO_LONG")
     private String content;
 }

@@ -29,7 +29,7 @@ public class JwtAuthenticationService {
         UUID sessionId = jwtUtil.getSessionIdFromAccessToken(accessToken);
 
         // 탈퇴 유저 확인
-        if (withdrawnUserRepository.findByKey(userUuid) != null) {
+        if (withdrawnUserRepository.exists(userUuid)) {
             throw new UserException(UserErrorCode.NOT_EXIST_USER);
         }
 

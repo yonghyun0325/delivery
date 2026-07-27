@@ -10,7 +10,6 @@ import com.delivery.domain.user.entity.User;
 import com.delivery.domain.user.exception.UserErrorCode;
 import com.delivery.domain.user.exception.UserException;
 import com.delivery.domain.user.repository.UserRepository;
-import com.delivery.global.cache.RefreshTokenRepository;
 import com.delivery.global.cache.UserCacheRepository;
 import com.delivery.global.cache.WithdrawnUserRepository;
 import jakarta.validation.Valid;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final UserCacheRepository userCacheRepository;
     private final WithdrawnUserRepository withdrawnUserRepository;
@@ -93,7 +91,7 @@ public class UserService {
         deletedUser.delete(deletedUser.getUsername());
 
         userCacheRepository.delete(userUuid);
-        withdrawnUserRepository.save(userUuid, true);
+        withdrawnUserRepository.save(userUuid);
 
         applicationEventPublisher.publishEvent(
                 new UserDeletedEvent(deletedUser.getId(), deletedUser.getUsername()));

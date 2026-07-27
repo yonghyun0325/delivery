@@ -15,5 +15,15 @@ services:
     volumes:
       - delivery-postgres-data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:8.4
+    container_name: delivery-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - delivery-redis-data:/data
+
 volumes:
   delivery-postgres-data:
+  delivery-redis-data:

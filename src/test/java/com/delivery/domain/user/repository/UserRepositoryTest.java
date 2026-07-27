@@ -2,7 +2,7 @@ package com.delivery.domain.user.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.delivery.config.AbstractIntegrationTest;
+import com.delivery.config.AbstractJpaTest;
 import com.delivery.config.CustomDataJpaTest;
 import com.delivery.domain.user.entity.Role;
 import com.delivery.domain.user.entity.User;
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @CustomDataJpaTest
-class UserRepositoryTest extends AbstractIntegrationTest {
+class UserRepositoryTest extends AbstractJpaTest {
     @Autowired private UserRepository userRepository;
     private User savedUser;
 

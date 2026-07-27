@@ -28,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ReviewService {
 
+    // Review Entity의 content 컬럼 최대 길이
+    private static final int MAX_REVIEW_CONTENT_LENGTH = 1000;
     private final ReviewRepository reviewRepository;
     private final OrderRepository orderRepository;
     private final StoreService storeService;
@@ -40,6 +42,9 @@ public class ReviewService {
 
         // 리뷰 평점과 내용 검증
         validateReviewRequest(request);
+
+        // Service를 직접 호출하더라도 주문 ID 누락을 방어
+        validateOrderId(request.getOrderId());
 
         // 삭제되지 않은 주문 조회
         Order order = findActiveOrderById(request.getOrderId());
@@ -261,19 +266,44 @@ public class ReviewService {
     private void validateReviewRequest(ReviewRequest request) {
 
         // 평점은 1점 이상 5점 이하만 허용
-        if (request.getRating() == null || request.getRating() < 1 || request.getRating() > 5) {
+        if (request.getRating() == null
+                || request.getRating() < 1
+                || request.getRating() > 5) {
 
-            log.warn("리뷰 요청 검증 실패 - 유효하지 않은 평점, rating={}", request.getRating());
+            log.warn(
+                    "리뷰 요청 검증 실패 - 유효하지 않은 평점, rating={}",
+                    request.getRating());
 
             throw new ReviewException(ReviewErrorCode.INVALID_RATING);
         }
 
-        // 리뷰 내용은 null, 빈 문자열, 공백만 있는 문자열을 허용하지 않음
+        // null, 빈 문자열, 공백만 있는 리뷰는 허용하지 않음
         if (request.getContent() == null || request.getContent().isBlank()) {
 
             log.warn("리뷰 요청 검증 실패 - 리뷰 내용이 비어 있음");
 
             throw new ReviewException(ReviewErrorCode.EMPTY_CONTENT);
+        }
+
+        // DB에 저장할 수 있는 최대 길이를 초과했는지 검증
+        if (request.getContent().length() > MAX_REVIEW_CONTENT_LENGTH) {
+
+            log.warn(
+                    "리뷰 요청 검증 실패 - 리뷰 내용 길이 초과, length={}",
+                    request.getContent().length());
+
+            throw new ReviewException(ReviewErrorCode.REVIEW_CONTENT_TOO_LONG);
+        }
+    }
+
+    // 리뷰 등록 요청의 주문 ID 검증
+    private void validateOrderId(UUID orderId) {
+
+        if (orderId == null) {
+
+            log.warn("리뷰 등록 요청 검증 실패 - 주문 ID가 비어 있음");
+
+            throw new ReviewException(ReviewErrorCode.ORDER_ID_REQUIRED);
         }
     }
 

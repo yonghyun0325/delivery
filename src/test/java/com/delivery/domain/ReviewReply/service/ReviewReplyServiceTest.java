@@ -1,11 +1,8 @@
 package com.delivery.domain.ReviewReply.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import com.delivery.domain.review.entity.Review;
+import com.delivery.domain.review.exception.ReviewErrorCode;
+import com.delivery.domain.review.exception.ReviewException;
 import com.delivery.domain.review.repository.ReviewRepository;
 import com.delivery.domain.reviewreply.dto.request.ReviewReplyRequest;
 import com.delivery.domain.reviewreply.dto.response.ReviewReplyResponse;
@@ -16,8 +13,6 @@ import com.delivery.domain.reviewreply.repository.ReviewReplyRepository;
 import com.delivery.domain.reviewreply.service.ReviewReplyService;
 import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.repository.StoreRepository;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +21,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewReplyServiceTest {
@@ -83,7 +86,7 @@ class ReviewReplyServiceTest {
         when(store.getUserId()).thenReturn(ownerId);
 
         // 기존 답글이 존재하지 않음
-        when(reviewReplyRepository.existsByReviewIdAndDeletedAtIsNull(reviewId)).thenReturn(false);
+        when(reviewReplyRepository.existsByReviewId(reviewId)).thenReturn(false);
 
         // 전달받은 답글 엔티티를 그대로 반환
         when(reviewReplyRepository.save(any(ReviewReply.class)))
@@ -101,7 +104,7 @@ class ReviewReplyServiceTest {
 
         verify(storeRepository).findByStoreIdAndDeletedAtIsNull(storeId);
 
-        verify(reviewReplyRepository).existsByReviewIdAndDeletedAtIsNull(reviewId);
+        verify(reviewReplyRepository).existsByReviewId(reviewId);
 
         verify(reviewReplyRepository).save(any(ReviewReply.class));
     }
@@ -126,7 +129,7 @@ class ReviewReplyServiceTest {
         when(store.getUserId()).thenReturn(ownerId);
 
         // 이미 답글이 존재함
-        when(reviewReplyRepository.existsByReviewIdAndDeletedAtIsNull(reviewId)).thenReturn(true);
+        when(reviewReplyRepository.existsByReviewId(reviewId)).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> reviewReplyService.createReply(reviewId, request, ownerId))
@@ -137,7 +140,7 @@ class ReviewReplyServiceTest {
 
         verify(storeRepository).findByStoreIdAndDeletedAtIsNull(storeId);
 
-        verify(reviewReplyRepository).existsByReviewIdAndDeletedAtIsNull(reviewId);
+        verify(reviewReplyRepository).existsByReviewId(reviewId);
 
         verify(reviewReplyRepository, never()).save(any(ReviewReply.class));
     }
@@ -236,5 +239,55 @@ class ReviewReplyServiceTest {
         assertThat(reply.getDeletedBy()).isEqualTo(ownerId.toString());
 
         verify(reviewReplyRepository).findByIdAndDeletedAtIsNull(replyId);
+    }
+
+    @Test
+    @DisplayName("답글 내용이 1000자를 초과하면 등록할 수 없다")
+    void createReply_contentTooLong() {
+
+        // given
+        ReviewReplyRequest request = mock(ReviewReplyRequest.class);
+
+        // 답글 최대 길이인 1000자를 초과한 요청
+        when(request.content()).thenReturn("가".repeat(1001));
+
+        // when & then
+        assertThatThrownBy(
+                () -> reviewReplyService.createReply(reviewId, request, ownerId))
+                .isInstanceOf(ReviewReplyException.class)
+                .hasMessage(
+                        ReviewReplyErrorCode.REVIEW_REPLY_CONTENT_TOO_LONG.getMessage());
+
+        // 요청 검증 단계에서 실패해야 하므로
+        // 리뷰·가게·답글 Repository는 호출되지 않아야 한다.
+        verifyNoInteractions(
+                reviewRepository,
+                reviewReplyRepository,
+                storeRepository
+        );
+    }
+
+    @Test
+    @DisplayName("삭제된 리뷰에 연결된 답글은 조회할 수 없다")
+    void getReply_deletedReview() {
+
+        // given
+        ReviewReply reply =
+                new ReviewReply(review, "이용해 주셔서 감사합니다.", ownerId);
+
+        // 답글 자체는 삭제되지 않았지만 원본 리뷰가 삭제된 상태
+        review.delete(customerId.toString());
+
+        when(reviewReplyRepository.findByReviewIdAndDeletedAtIsNull(reviewId))
+                .thenReturn(Optional.of(reply));
+
+        // when & then
+        assertThatThrownBy(() -> reviewReplyService.getReply(reviewId))
+                .isInstanceOf(ReviewException.class)
+                .hasMessage(ReviewErrorCode.REVIEW_NOT_FOUND.getMessage());
+
+        // 답글은 조회했지만 원본 리뷰가 삭제된 것을 확인한 뒤 실패해야 한다.
+        verify(reviewReplyRepository)
+                .findByReviewIdAndDeletedAtIsNull(reviewId);
     }
 }

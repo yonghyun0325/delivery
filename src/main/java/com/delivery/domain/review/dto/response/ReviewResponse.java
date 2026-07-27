@@ -37,7 +37,7 @@ public class ReviewResponse {
     }
 
     /** Entity를 Response DTO로 변환 */
-    public static ReviewResponse toDto(Review Review) {
-        return new ReviewResponse(Review);
+    public static ReviewResponse toDto(Review review) {
+        return new ReviewResponse(review);
     }
 }

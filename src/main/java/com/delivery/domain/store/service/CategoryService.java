@@ -34,7 +34,7 @@ public class CategoryService {
     public List<CategoryResponse> getCategories() {
         return categoryRepository.findAllByDeletedAtIsNull().stream()
                 .map(CategoryResponse::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
@@ -44,7 +44,7 @@ public class CategoryService {
                         .findByCategoryIdAndDeletedAtIsNull(categoryId)
                         .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
 
-        if (categoryRepository.existsByNameAndDeletedAtIsNull(request.name())) {
+        if (categoryRepository.existsByNameAndDeletedAtIsNullAndCategoryIdNot(request.name(), categoryId)) {
             throw new StoreException(StoreErrorCode.DUPLICATE_CATEGORY);
         }
 

@@ -22,7 +22,6 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "p_user")
 public class User extends BaseEntity {
     // CREATE SEQUENCE user_seq START WITH 1 INCREMENT BY 50;
-    // TODO : 추후 User 테이블 명세서 Erd 수정해야함
     @Id
     @Column(name = "user_id")
     @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq", allocationSize = 1)
@@ -51,7 +50,6 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
-    // TODO : API 문서 및 데이터 정의서, ERD에 UUID 컬럼 추가
     @Column(nullable = false, unique = true, name = "user_uuid")
     UUID userUuid;
 

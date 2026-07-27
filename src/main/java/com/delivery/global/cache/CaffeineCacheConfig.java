@@ -1,4 +1,4 @@
-package com.delivery.global.config;
+package com.delivery.global.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;
