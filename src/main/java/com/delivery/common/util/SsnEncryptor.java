@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
+import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.stereotype.Component;
 
 /** 양방향 암호화 유틸리티 전화번호, 주소, 이메일 등 개인정보 암복호화 */
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SsnEncryptor {
-    private final AesBytesEncryptor aesBytesEncryptor;
+    private final BytesEncryptor bytesEncryptor;
 
     /**
      * 암호화
@@ -27,7 +27,7 @@ public class SsnEncryptor {
             log.warn("[SsnEncryptor] Encrypt failed: {}", GlobalErrorCode.BAD_REQUEST);
             throw new BusinessException(GlobalErrorCode.BAD_REQUEST);
         }
-        byte[] encrypt = aesBytesEncryptor.encrypt(ssn.getBytes(StandardCharsets.UTF_8));
+        byte[] encrypt = bytesEncryptor.encrypt(ssn.getBytes(StandardCharsets.UTF_8));
         return new String(Base64.getEncoder().encode(encrypt), StandardCharsets.UTF_8);
     }
 
@@ -44,7 +44,7 @@ public class SsnEncryptor {
         }
         try {
             byte[] decode = Base64.getDecoder().decode(ssn.getBytes(StandardCharsets.UTF_8));
-            return new String(aesBytesEncryptor.decrypt(decode), StandardCharsets.UTF_8);
+            return new String(bytesEncryptor.decrypt(decode), StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("[SsnEncryptor] Decrypt failed: {}", e.getMessage(), e);
             throw new BusinessException(GlobalErrorCode.INTERNAL_SERVER_ERROR);
