@@ -2,6 +2,7 @@ package com.delivery.domain.user.entity;
 
 import com.delivery.common.base.BaseEntity;
 import com.delivery.common.util.CryptoConverter;
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -19,7 +20,6 @@ import lombok.experimental.SuperBuilder;
 public class Address extends BaseEntity {
     @Id
     @Column(name = "address_id")
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
@@ -54,5 +54,12 @@ public class Address extends BaseEntity {
 
     public void updateDefault(boolean isDefault) {
         this.isDefault = isDefault;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
     }
 }

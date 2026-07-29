@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
+import org.springframework.security.crypto.encrypt.BytesEncryptor;
+import org.springframework.security.crypto.encrypt.Encryptors;
 
 class SsnEncryptorTest {
     private SsnEncryptor ssnEncryptor;
@@ -20,7 +21,7 @@ class SsnEncryptorTest {
 
     @BeforeEach
     void setUp() {
-        AesBytesEncryptor encryptor = new AesBytesEncryptor(KEY, SALT);
+        BytesEncryptor encryptor = Encryptors.stronger(KEY, SALT);
         this.ssnEncryptor = new SsnEncryptor(encryptor);
     }
 
@@ -29,6 +30,7 @@ class SsnEncryptorTest {
     void crypt_success() {
         // given
         String ssn = "01012345678";
+        String ssn2 = "01012345678";
 
         // when
         String encrypted = ssnEncryptor.encrypt(ssn);
