@@ -5,6 +5,7 @@ import com.delivery.domain.store.entity.Store;
 import com.delivery.domain.store.enums.StoreSortType;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -23,36 +24,33 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> searchStores(
-            UUID categoryId,
-            UUID regionId,
-            String name,
-            StoreSortType sortType,
-            Pageable pageable) {
-        List<Store> content =
-                queryFactory
-                        .selectFrom(store)
-                        .where(
-                                store.deletedAt.isNull(),
-                                categoryIdEq(categoryId),
-                                regionIdEq(regionId),
-                                nameContains(name))
-                        .orderBy(toOrderSpecifier(sortType))
-                        .offset(pageable.getOffset())
-                        .limit(pageable.getPageSize())
-                        .fetch();
+    public Page<Store> searchStores(UUID categoryId, UUID regionId, String name, StoreSortType sortType, Pageable pageable) {
 
-        long total =
-                queryFactory
-                        .selectFrom(store)
-                        .where(
-                                store.deletedAt.isNull(),
-                                categoryIdEq(categoryId),
-                                regionIdEq(regionId),
-                                nameContains(name))
-                        .fetchCount();
+        BooleanBuilder builder = new BooleanBuilder()
+                .and(store.deletedAt.isNull())
+                .and(categoryIdEq(categoryId))
+                .and(regionIdEq(regionId))
+                .and(nameContains(name));
 
-        return new PageImpl<>(content, pageable, total);
+        List<Store> content = queryFactory
+                .selectFrom(store)
+                .where(builder)
+                .orderBy(toOrderSpecifier(sortType))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        if (content.size() < pageable.getPageSize() && pageable.getOffset() == 0) {
+            return new PageImpl<>(content, pageable, content.size());
+        }
+
+        Long total = queryFactory
+                .select(store.count())
+                .from(store)
+                .where(builder)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     private BooleanExpression regionIdEq(UUID regionId) {
